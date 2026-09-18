@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link, useNavigate } from 'react-router-dom';
 import { Eye, RotateCcw, X, ShieldCheck } from 'lucide-react';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 export const VerifyInvoicePage: React.FC = () => {
   const navigate = useNavigate();
@@ -9,6 +10,8 @@ export const VerifyInvoicePage: React.FC = () => {
   const [invoiceBarcode, setInvoiceBarcode] = useState('');
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Return Invoice modal
   const [returnMatch, setReturnMatch] = useState<any | null>(null);
@@ -63,6 +66,8 @@ export const VerifyInvoicePage: React.FC = () => {
     return m.invoice_number?.toLowerCase().includes(search.toLowerCase());
   });
 
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
   return (
     <div>
       {/* Content Header matching screenshot 12_verify_invoice.png */}
@@ -115,8 +120,18 @@ export const VerifyInvoicePage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
+                <select
+                  className="form-control"
+                  style={{ width: '70px', padding: '4px 8px' }}
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -127,7 +142,10 @@ export const VerifyInvoicePage: React.FC = () => {
                   type="text"
                   placeholder="Search..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="form-control"
                   style={{ width: '220px', padding: '6px 10px' }}
                 />
@@ -153,16 +171,16 @@ export const VerifyInvoicePage: React.FC = () => {
                         Loading verification list...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : paginated.length === 0 ? (
                     <tr>
                       <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((m, idx) => (
+                    paginated.map((m, idx) => (
                       <tr key={m.id}>
-                        <td>{idx + 1}</td>
+                        <td>{(page - 1) * pageSize + idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{m.invoice_number}</td>
                         <td>
                           <span
@@ -196,9 +214,12 @@ export const VerifyInvoicePage: React.FC = () => {
               </table>
             </div>
 
-            <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
-            </div>
+            <DataTablePagination
+              currentPage={page}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </div>

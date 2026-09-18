@@ -33,6 +33,17 @@ let CustomersService = class CustomersService {
         });
         return this.customerRepo.save(customer);
     }
+    async update(id, customerName) {
+        if (!customerName || !customerName.trim()) {
+            throw new common_1.BadRequestException('Customer Name is required');
+        }
+        const customer = await this.customerRepo.findOne({ where: { id } });
+        if (!customer) {
+            throw new common_1.BadRequestException('Customer not found');
+        }
+        customer.customer_name = customerName.trim();
+        return this.customerRepo.save(customer);
+    }
 };
 exports.CustomersService = CustomersService;
 exports.CustomersService = CustomersService = __decorate([

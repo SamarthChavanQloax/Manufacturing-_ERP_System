@@ -7,4 +7,14 @@ export declare class CustomersController {
         customer_name?: string;
         customerName?: string;
     }): Promise<import("../entities").Customer>;
+    update(id: string, body: {
+        customer_name?: string;
+        customerName?: string;
+        ucustomerName?: string;
+    }): Promise<import("../entities").Customer>;
+    updatePost(id: string, body: {
+        customer_name?: string;
+        customerName?: string;
+        ucustomerName?: string;
+    }): Promise<import("../entities").Customer>;
 }
