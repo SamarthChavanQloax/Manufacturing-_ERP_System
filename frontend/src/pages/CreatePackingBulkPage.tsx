@@ -228,7 +228,7 @@ export const CreatePackingBulkPage: React.FC = () => {
             
             <DataTablePagination
               totalItems={parts.filter((p) => p.part_number.toLowerCase().includes(searchQuery.toLowerCase()) || p.part_description.toLowerCase().includes(searchQuery.toLowerCase())).length}
-              itemsPerPage={itemsPerPage}
+              pageSize={itemsPerPage}
               currentPage={currentPage}
               onPageChange={setCurrentPage}
             />
