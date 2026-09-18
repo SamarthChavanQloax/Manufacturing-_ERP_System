@@ -16,7 +16,8 @@ export class CustomersController {
 
   @Post()
   @Roles('admin')
-  async create(@Body('customerName') customerName: string) {
-    return this.customersService.create(customerName);
+  async create(@Body() body: { customer_name?: string; customerName?: string }) {
+    const name = body.customer_name || body.customerName || '';
+    return this.customersService.create(name);
   }
 }

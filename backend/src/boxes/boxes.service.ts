@@ -161,6 +161,6 @@ export class BoxesService {
 
     box.lock_status = 'yes';
     await this.boxRepo.save(box);
-    return { success: true, message: 'Box Locked Successfully' };
+    return { success: true, lock_status: 'yes', message: 'Box Locked Successfully' };
   }
 }

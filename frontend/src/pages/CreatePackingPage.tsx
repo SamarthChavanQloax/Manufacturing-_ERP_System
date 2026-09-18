@@ -45,8 +45,8 @@ export const CreatePackingPage: React.FC = () => {
         part_id: selectedPartId,
         part_qty: partQty,
       });
-      setCreatedBarcode(res.data);
       setModalOpen(false);
+      navigate(`/view_packing_by_id/${res.data.id}`);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
     }

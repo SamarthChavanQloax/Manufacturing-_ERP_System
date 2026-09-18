@@ -35,10 +35,11 @@ export class InvoicesController {
   @Post('add-box')
   @Roles('admin', 'invoice')
   async addBox(
-    @Body() body: { invoice_id: number; box_id: string },
+    @Body() body: { invoice_id: number; box_id?: string; box_barcode?: string },
     @Request() req: any,
   ) {
-    return this.invoicesService.addBoxToInvoice(Number(body.invoice_id), String(body.box_id), req.user.userId);
+    const boxBarcode = body.box_id || body.box_barcode || '';
+    return this.invoicesService.addBoxToInvoice(Number(body.invoice_id), String(boxBarcode), req.user.userId);
   }
 
   @Delete(':id')
