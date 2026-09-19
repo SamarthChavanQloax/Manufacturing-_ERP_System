@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Mail, Lock, LogIn, AlertCircle } from 'lucide-react';
+import { Mail, Lock, LogIn, AlertCircle, ScanLine } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@admin.com');
-  const [password, setPassword] = useState('admin');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -25,201 +25,326 @@ export const LoginPage: React.FC = () => {
     }
   };
 
-  const setPreset = (e: string, p: string) => {
-    setEmail(e);
-    setPassword(p);
-  };
-
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: '#e9ecef',
+        width: '100%',
         display: 'flex',
-        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '20px',
+        padding: '24px',
+        position: 'relative',
+        background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)',
+        overflow: 'hidden',
+        fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       }}
     >
-      <div style={{ width: '100%', maxWidth: '380px' }}>
-        {/* Brand / Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+      {/* Ambient background glow effects */}
+      <div
+        style={{
+          position: 'absolute',
+          width: '500px',
+          height: '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(0, 0, 0, 0) 70%)',
+          top: '-100px',
+          left: '-100px',
+          pointerEvents: 'none',
+        }}
+      />
+      <div
+        style={{
+          position: 'absolute',
+          width: '600px',
+          height: '600px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(14, 165, 233, 0.12) 0%, rgba(0, 0, 0, 0) 70%)',
+          bottom: '-150px',
+          right: '-150px',
+          pointerEvents: 'none',
+        }}
+      />
+
+      {/* Main Login Card Container */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '420px',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {/* Brand / Logo Header */}
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
           <div
             style={{
-              width: '60px',
-              height: '60px',
-              borderRadius: '50%',
-              background: '#007bff',
-              color: '#fff',
+              width: '68px',
+              height: '68px',
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+              color: '#ffffff',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '26px',
-              fontWeight: 700,
-              boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
-              marginBottom: '10px',
+              boxShadow: '0 12px 24px -6px rgba(59, 130, 246, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.3)',
+              marginBottom: '14px',
             }}
           >
-            ERP
+            <ScanLine size={34} strokeWidth={2.2} />
           </div>
-          <h2 style={{ fontSize: '26px', fontWeight: 700, color: '#333' }}>SofTech</h2>
-          <div style={{ fontSize: '13px', color: '#666', marginTop: '-2px' }}>
-            We Digitize, Engineers Need
-          </div>
-          <h3 style={{ fontSize: '20px', fontWeight: 600, color: '#444', marginTop: '14px' }}>
-            Login
-          </h3>
+          <h1
+            style={{
+              fontSize: '28px',
+              fontWeight: 800,
+              letterSpacing: '-0.5px',
+              color: '#ffffff',
+              margin: '0 0 6px 0',
+              textShadow: '0 2px 4px rgba(0,0,0,0.3)',
+            }}
+          >
+            SofTech
+          </h1>
+          <p
+            style={{
+              fontSize: '13px',
+              color: '#94a3b8',
+              margin: 0,
+              fontWeight: 500,
+              letterSpacing: '0.2px',
+            }}
+          >
+            Barcode Stock Management & ERP System
+          </p>
         </div>
 
-        {/* Login Box */}
-        <div className="card" style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.08)' }}>
-          <div className="card-body" style={{ padding: '28px' }}>
+        {/* Elevated Glassmorphic Card */}
+        <div
+          style={{
+            backgroundColor: 'rgba(30, 41, 59, 0.72)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            borderRadius: '20px',
+            border: '1px solid rgba(255, 255, 255, 0.08)',
+            boxShadow:
+              '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 1px rgba(255, 255, 255, 0.1)',
+            padding: '36px 32px',
+          }}
+        >
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <h2
+              style={{
+                fontSize: '20px',
+                fontWeight: 700,
+                color: '#f1f5f9',
+                margin: '0 0 6px 0',
+              }}
+            >
+              Welcome Back
+            </h2>
             <p
               style={{
                 fontSize: '13.5px',
-                color: '#6c757d',
-                textAlign: 'center',
-                marginBottom: '20px',
+                color: '#94a3b8',
+                margin: 0,
               }}
             >
               Sign in to start your session
             </p>
+          </div>
 
-            {error && (
-              <div
+          {/* Error Alert Display */}
+          {error && (
+            <div
+              style={{
+                backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#fca5a5',
+                padding: '12px 14px',
+                borderRadius: '10px',
+                marginBottom: '20px',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+              }}
+            >
+              <AlertCircle size={17} style={{ flexShrink: 0, color: '#ef4444' }} />
+              <span style={{ fontWeight: 500 }}>{error}</span>
+            </div>
+          )}
+
+          {/* Form matching legacy fields: email, password, and signin submit */}
+          <form onSubmit={handleSubmit}>
+            <div style={{ marginBottom: '18px' }}>
+              <label
                 style={{
-                  background: '#f8d7da',
-                  color: '#721c24',
-                  border: '1px solid #f5c6cb',
-                  padding: '10px 14px',
-                  borderRadius: '4px',
-                  marginBottom: '16px',
+                  display: 'block',
                   fontSize: '13px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
+                  fontWeight: 600,
+                  color: '#cbd5e1',
+                  marginBottom: '8px',
                 }}
               >
-                <AlertCircle size={16} />
-                <span>{error}</span>
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="form-group" style={{ position: 'relative' }}>
+                Email Address
+              </label>
+              <div style={{ position: 'relative' }}>
                 <input
                   type="email"
+                  name="email"
                   required
-                  placeholder="Email"
-                  className="form-control"
+                  placeholder="name@company.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ paddingRight: '36px' }}
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    padding: '0 42px 0 14px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    borderRadius: '10px',
+                    color: '#f8fafc',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#3b82f6';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.25)';
+                    e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.2)';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.65)';
+                  }}
                 />
                 <Mail
-                  size={16}
+                  size={18}
                   style={{
                     position: 'absolute',
-                    right: '12px',
+                    right: '14px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: '#9ca3af',
+                    color: '#64748b',
+                    pointerEvents: 'none',
                   }}
                 />
-              </div>
-
-              <div className="form-group" style={{ position: 'relative', marginTop: '16px' }}>
-                <input
-                  type="password"
-                  required
-                  placeholder="Password"
-                  className="form-control"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ paddingRight: '36px' }}
-                />
-                <Lock
-                  size={16}
-                  style={{
-                    position: 'absolute',
-                    right: '12px',
-                    top: '50%',
-                    transform: 'translateY(-50%)',
-                    color: '#9ca3af',
-                  }}
-                />
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary"
-                style={{ width: '100%', marginTop: '18px', padding: '10px' }}
-              >
-                <LogIn size={16} />
-                {loading ? 'Signing in...' : 'Log In'}
-              </button>
-            </form>
-
-            {/* Quick Presets for all 5 roles */}
-            <div style={{ marginTop: '24px', borderTop: '1px solid #eee', paddingTop: '16px' }}>
-              <div
-                style={{
-                  fontSize: '11px',
-                  textTransform: 'uppercase',
-                  fontWeight: 700,
-                  color: '#9ca3af',
-                  marginBottom: '8px',
-                  textAlign: 'center',
-                }}
-              >
-                Quick Role Credentials
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
-                <button
-                  type="button"
-                  onClick={() => setPreset('admin@admin.com', 'admin')}
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: '11px' }}
-                >
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreset('dpr@talbros.com', 'dpr')}
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: '11px' }}
-                >
-                  Packing (DPR)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreset('fgs@talbros.com', 'fgs')}
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: '11px' }}
-                >
-                  Box (FGS)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreset('invoice@talbros.com', 'invoice')}
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: '11px' }}
-                >
-                  Invoice
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setPreset('gate@talbros.com', 'gate')}
-                  className="btn btn-sm btn-secondary"
-                  style={{ fontSize: '11px', gridColumn: 'span 2' }}
-                >
-                  Gate Security
-                </button>
               </div>
             </div>
-          </div>
+
+            <div style={{ marginBottom: '26px' }}>
+              <label
+                style={{
+                  display: 'block',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#cbd5e1',
+                  marginBottom: '8px',
+                }}
+              >
+                Password
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="password"
+                  name="password"
+                  required
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{
+                    width: '100%',
+                    height: '46px',
+                    padding: '0 42px 0 14px',
+                    backgroundColor: 'rgba(15, 23, 42, 0.65)',
+                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    borderRadius: '10px',
+                    color: '#f8fafc',
+                    fontSize: '14px',
+                    outline: 'none',
+                    transition: 'all 0.2s ease',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = '#3b82f6';
+                    e.currentTarget.style.boxShadow = '0 0 0 3px rgba(59, 130, 246, 0.25)';
+                    e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.85)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(148, 163, 184, 0.2)';
+                    e.currentTarget.style.boxShadow = 'none';
+                    e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.65)';
+                  }}
+                />
+                <Lock
+                  size={18}
+                  style={{
+                    position: 'absolute',
+                    right: '14px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    color: '#64748b',
+                    pointerEvents: 'none',
+                  }}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%',
+                height: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                background: loading
+                  ? '#475569'
+                  : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '10px',
+                fontSize: '15px',
+                fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+                boxShadow: '0 10px 15px -3px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.transform = 'translateY(-1px)';
+                  e.currentTarget.style.boxShadow =
+                    '0 14px 20px -3px rgba(37, 99, 235, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.2)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow =
+                    '0 10px 15px -3px rgba(37, 99, 235, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.2)';
+                }
+              }}
+            >
+              <LogIn size={18} />
+              <span>{loading ? 'Authenticating...' : 'Log In'}</span>
+            </button>
+          </form>
+        </div>
+
+        {/* System Footer Note */}
+        <div
+          style={{
+            marginTop: '20px',
+            textAlign: 'center',
+            fontSize: '12px',
+            color: '#64748b',
+          }}
+        >
+          Secure Enterprise Manufacturing Portal &copy; {new Date().getFullYear()}
         </div>
       </div>
     </div>

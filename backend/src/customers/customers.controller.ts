@@ -16,13 +16,28 @@ export class CustomersController {
 
   @Post()
   @Roles('admin')
-  async create(@Body('customerName') customerName: string) {
-    return this.customersService.create(customerName);
+  async create(@Body() body: { customer_name?: string; customerName?: string }) {
+    const name = body.customer_name || body.customerName || '';
+    return this.customersService.create(name);
   }
 
   @Put(':id')
   @Roles('admin')
-  async update(@Param('id') id: number, @Body('customerName') customerName: string) {
-    return this.customersService.update(id, customerName);
+  async update(
+    @Param('id') id: string,
+    @Body() body: { customer_name?: string; customerName?: string; ucustomerName?: string },
+  ) {
+    const name = body.customer_name || body.customerName || body.ucustomerName || '';
+    return this.customersService.update(parseInt(id, 10), name);
+  }
+
+  @Post(':id/update')
+  @Roles('admin')
+  async updatePost(
+    @Param('id') id: string,
+    @Body() body: { customer_name?: string; customerName?: string; ucustomerName?: string },
+  ) {
+    const name = body.customer_name || body.customerName || body.ucustomerName || '';
+    return this.customersService.update(parseInt(id, 10), name);
   }
 }

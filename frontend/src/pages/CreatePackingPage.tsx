@@ -3,11 +3,15 @@ import api from '../api/client';
 import { Plus, X, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarcodeCard } from '../components/BarcodeCard';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 export const CreatePackingPage: React.FC = () => {
   const navigate = useNavigate();
   const [parts, setParts] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
@@ -45,8 +49,8 @@ export const CreatePackingPage: React.FC = () => {
         part_id: selectedPartId,
         part_qty: partQty,
       });
-      setCreatedBarcode(res.data);
       setModalOpen(false);
+      navigate(`/view_packing_by_id/${res.data.id}`);
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
     }
@@ -114,8 +118,19 @@ export const CreatePackingPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
+                <select 
+                  className="form-control" 
+                  style={{ width: '70px', padding: '4px 8px' }}
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -127,6 +142,11 @@ export const CreatePackingPage: React.FC = () => {
                   placeholder="Search..."
                   className="form-control"
                   style={{ width: '200px', padding: '6px 10px' }}
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                  }}
                 />
               </div>
             </div>
@@ -143,9 +163,16 @@ export const CreatePackingPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {parts.slice(0, 10).map((p, idx) => (
+                  {parts
+                    .filter(
+                      (p) =>
+                        p.part_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                        p.part_description.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                    .map((p, idx) => (
                     <tr key={p.id}>
-                      <td>{idx + 1}</td>
+                      <td>{(currentPage - 1) * itemsPerPage + idx + 1}</td>
                       <td style={{ fontWeight: 600 }}>{p.part_number}</td>
                       <td>{p.part_description}</td>
                       <td>{p.qty || 1}</td>
@@ -168,6 +195,13 @@ export const CreatePackingPage: React.FC = () => {
                 </tbody>
               </table>
             </div>
+            
+            <DataTablePagination
+              totalItems={parts.filter((p) => p.part_number.toLowerCase().includes(searchQuery.toLowerCase()) || p.part_description.toLowerCase().includes(searchQuery.toLowerCase())).length}
+              pageSize={itemsPerPage}
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
       </div>

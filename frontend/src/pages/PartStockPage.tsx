@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Search } from 'lucide-react';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 export const PartStockPage: React.FC = () => {
   const [stockList, setStockList] = useState<any[]>([]);
@@ -145,46 +146,12 @@ export const PartStockPage: React.FC = () => {
             </div>
 
             {/* Pagination footer matching screenshot */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '16px',
-                flexWrap: 'wrap',
-                gap: '12px',
-              }}
-            >
-              <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                Showing {startEntry} to {endEntry} of {total} entries
-              </div>
-
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                  className="btn btn-sm btn-secondary"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-primary"
-                  style={{ minWidth: '32px' }}
-                >
-                  {page}
-                </button>
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage(page + 1)}
-                  className="btn btn-sm btn-secondary"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            <DataTablePagination
+              currentPage={page}
+              totalItems={total}
+              pageSize={limit}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </div>

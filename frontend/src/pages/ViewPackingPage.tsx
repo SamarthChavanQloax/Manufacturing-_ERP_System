@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Search, Trash2, X } from 'lucide-react';
 import { BarcodeCard } from '../components/BarcodeCard';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 export const ViewPackingPage: React.FC = () => {
   const [packingList, setPackingList] = useState<any[]>([]);
@@ -9,6 +10,8 @@ export const ViewPackingPage: React.FC = () => {
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   // Delete modal
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -57,6 +60,8 @@ export const ViewPackingPage: React.FC = () => {
     );
   });
 
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+
   return (
     <div>
       {/* Content Header matching screenshot 08_view_packing.png */}
@@ -77,44 +82,40 @@ export const ViewPackingPage: React.FC = () => {
               onSubmit={handleDateSearch}
               style={{
                 display: 'flex',
-                alignItems: 'flex-end',
-                gap: '14px',
+                alignItems: 'center',
+                gap: '12px',
                 marginBottom: '20px',
                 flexWrap: 'wrap',
               }}
             >
-              <div style={{ width: '180px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                  From Date
-                </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#374151' }}>From</label>
                 <input
                   type="date"
-                  required
-                  className="form-control"
                   value={fromDate}
                   onChange={(e) => setFromDate(e.target.value)}
+                  className="form-control"
+                  style={{ width: '160px' }}
                 />
               </div>
 
-              <div style={{ width: '180px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                  To Date
-                </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <label style={{ fontSize: '13.5px', fontWeight: 600, color: '#374151' }}>To</label>
                 <input
                   type="date"
-                  required
-                  className="form-control"
                   value={toDate}
                   onChange={(e) => setToDate(e.target.value)}
+                  className="form-control"
+                  style={{ width: '160px' }}
                 />
               </div>
 
-              <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
-                Search
+              <button type="submit" className="btn btn-primary">
+                <Search size={14} /> Search
               </button>
             </form>
 
-            {/* Table Controls matching screenshot 08_view_packing.png */}
+            {/* Controls matching screenshot 08_view_packing.png */}
             <div
               style={{
                 display: 'flex',
@@ -127,10 +128,18 @@ export const ViewPackingPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
-                  <option>25</option>
-                  <option>50</option>
+                <select
+                  className="form-control"
+                  style={{ width: '70px', padding: '4px 8px' }}
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -141,7 +150,10 @@ export const ViewPackingPage: React.FC = () => {
                   type="text"
                   placeholder="Search barcode, part..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="form-control"
                   style={{ width: '220px', padding: '6px 10px' }}
                 />
@@ -169,16 +181,16 @@ export const ViewPackingPage: React.FC = () => {
                         Loading packing ledger...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : paginated.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((p, idx) => (
+                    paginated.map((p, idx) => (
                       <tr key={p.id}>
-                        <td>{idx + 1}</td>
+                        <td>{(page - 1) * pageSize + idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{p.part_number}</td>
                         <td>{p.part_description}</td>
                         <td style={{ fontWeight: 600 }}>{p.part_qty}</td>
@@ -213,9 +225,12 @@ export const ViewPackingPage: React.FC = () => {
               </table>
             </div>
 
-            <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
-            </div>
+            <DataTablePagination
+              currentPage={page}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </div>

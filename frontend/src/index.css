@@ -439,3 +439,77 @@ table.data-table tbody tr:hover {
   gap: 10px;
   background: #f8f9fa;
 }
+
+/* DataTable Pagination Bar */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.pagination-info {
+  font-size: 13.5px;
+  color: #212529;
+}
+
+.pagination-bar {
+  display: inline-flex;
+  border-radius: 4px;
+}
+
+.pagination-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  margin-left: -1px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #007bff;
+  background-color: #ffffff;
+  border: 1px solid #dee2e6;
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
+  outline: none;
+  font-family: inherit;
+}
+
+.pagination-btn:hover:not(:disabled):not(.active) {
+  color: #0056b3;
+  background-color: #e9ecef;
+  border-color: #dee2e6;
+}
+
+.pagination-btn:first-child {
+  margin-left: 0;
+  border-top-left-radius: 4px;
+  border-bottom-left-radius: 4px;
+}
+
+.pagination-btn:last-child {
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+.pagination-btn.active {
+  z-index: 2;
+  color: #ffffff !important;
+  background-color: #007bff !important;
+  border-color: #007bff !important;
+  font-weight: 500;
+  cursor: default;
+}
+
+.pagination-btn:disabled,
+.pagination-btn.disabled {
+  color: #6c757d;
+  cursor: default;
+  pointer-events: none;
+  background-color: #ffffff;
+}
+
