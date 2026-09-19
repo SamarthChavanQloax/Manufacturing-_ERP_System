@@ -1,15 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Plus, Edit, X } from 'lucide-react';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 export const CustomerPage: React.FC = () => {
   const [customers, setCustomers] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
-  // Modal
+  // Add Modal
   const [modalOpen, setModalOpen] = useState(false);
   const [customerName, setCustomerName] = useState('');
+
+  // Edit Modal
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState<any | null>(null);
+  const [editCustomerName, setEditCustomerName] = useState('');
+  const [editLoading, setEditLoading] = useState(false);
 
   const fetchCustomers = async () => {
     setLoading(true);
@@ -40,9 +49,28 @@ export const CustomerPage: React.FC = () => {
     }
   };
 
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCustomer) return;
+    setEditLoading(true);
+    try {
+      await api.put(`/customers/${editingCustomer.id}`, { customerName: editCustomerName });
+      alert('Customer Updated Successfully');
+      setEditModalOpen(false);
+      setEditingCustomer(null);
+      fetchCustomers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error updating customer');
+    } finally {
+      setEditLoading(false);
+    }
+  };
+
   const filtered = customers.filter((c) =>
     c.customer_name?.toLowerCase().includes(search.toLowerCase()),
   );
+
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
@@ -85,10 +113,15 @@ export const CustomerPage: React.FC = () => {
                 <select
                   className="form-control"
                   style={{ width: '70px', padding: '4px 8px' }}
-                  defaultValue={10}
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
+                  <option value={50}>50</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -99,7 +132,10 @@ export const CustomerPage: React.FC = () => {
                   type="text"
                   placeholder="Search..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="form-control"
                   style={{ width: '220px', padding: '6px 10px' }}
                 />
@@ -123,22 +159,28 @@ export const CustomerPage: React.FC = () => {
                         Loading customer records...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : paginated.length === 0 ? (
                     <tr>
                       <td colSpan={3} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((c, idx) => (
+                    paginated.map((c, idx) => (
                       <tr key={c.id}>
-                        <td>{idx + 1}</td>
+                        <td>{(page - 1) * pageSize + idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{c.customer_name}</td>
                         <td>
                           <button
                             type="button"
                             className="btn btn-sm btn-primary"
                             style={{ padding: '4px 8px' }}
+                            title="Edit Customer"
+                            onClick={() => {
+                              setEditingCustomer(c);
+                              setEditCustomerName(c.customer_name);
+                              setEditModalOpen(true);
+                            }}
                           >
                             <Edit size={13} />
                           </button>
@@ -150,9 +192,12 @@ export const CustomerPage: React.FC = () => {
               </table>
             </div>
 
-            <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
-            </div>
+            <DataTablePagination
+              currentPage={page}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </div>
@@ -195,6 +240,51 @@ export const CustomerPage: React.FC = () => {
                 </button>
                 <button type="submit" className="btn btn-primary">
                   Save changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Customer Modal */}
+      {editModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <h5 className="modal-title">Edit Customer</h5>
+              <button
+                type="button"
+                onClick={() => setEditModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={handleUpdate}>
+              <div className="modal-body">
+                <div className="form-group">
+                  <label>Customer Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Customer Name"
+                    className="form-control"
+                    value={editCustomerName}
+                    onChange={(e) => setEditCustomerName(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button
+                  type="button"
+                  onClick={() => setEditModalOpen(false)}
+                  className="btn btn-secondary"
+                >
+                  Close
+                </button>
+                <button type="submit" className="btn btn-primary" disabled={editLoading}>
+                  {editLoading ? 'Saving...' : 'Save changes'}
                 </button>
               </div>
             </form>

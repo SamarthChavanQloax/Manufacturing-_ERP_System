@@ -23,4 +23,16 @@ export class CustomersService {
     });
     return this.customerRepo.save(customer);
   }
+
+  async update(id: number, customerName: string): Promise<Customer> {
+    if (!customerName || !customerName.trim()) {
+      throw new BadRequestException('Customer Name is required');
+    }
+    const customer = await this.customerRepo.findOne({ where: { id } });
+    if (!customer) {
+      throw new BadRequestException('Customer not found');
+    }
+    customer.customer_name = customerName.trim();
+    return this.customerRepo.save(customer);
+  }
 }

@@ -12,6 +12,7 @@ import { CustomerPage } from './pages/CustomerPage';
 import { CreatePackingPage } from './pages/CreatePackingPage';
 import { CreatePackingBulkPage } from './pages/CreatePackingBulkPage';
 import { ViewPackingPage } from './pages/ViewPackingPage';
+import { ViewPackingByIdPage } from './pages/ViewPackingByIdPage';
 import { CreateBoxPage } from './pages/CreateBoxPage';
 import { ViewBoxPage } from './pages/ViewBoxPage';
 import { AddPackingToBoxPage } from './pages/AddPackingToBoxPage';
@@ -140,6 +141,14 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedRoles={['admin', 'packing']}>
                   <ViewPackingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/view_packing_by_id/:id"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'packing']}>
+                  <ViewPackingByIdPage />
                 </ProtectedRoute>
               }
             />

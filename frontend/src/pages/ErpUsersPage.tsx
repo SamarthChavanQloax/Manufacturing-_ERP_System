@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
 import { Users, Plus, Search, Shield, Key, Mail, User, X } from 'lucide-react';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 interface ErpUser {
   id: number;
@@ -18,6 +19,8 @@ export const ErpUsersPage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const [formData, setFormData] = useState({
     user_name: '',
@@ -65,6 +68,8 @@ export const ErpUsersPage: React.FC = () => {
     (u.user_email || '').toLowerCase().includes(search.toLowerCase()) ||
     (u.user_role || '').toLowerCase().includes(search.toLowerCase())
   );
+
+  const paginatedUsers = filteredUsers.slice((page - 1) * pageSize, page * pageSize);
 
   const getRoleBadge = (role: string) => {
     const r = (role || '').toLowerCase();
@@ -133,16 +138,16 @@ export const ErpUsersPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredUsers.length === 0 ? (
+                  {paginatedUsers.length === 0 ? (
                     <tr>
                       <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
                         No ERP users found
                       </td>
                     </tr>
                   ) : (
-                    filteredUsers.map((u, idx) => (
+                    paginatedUsers.map((u, idx) => (
                       <tr key={u.id}>
-                        <td>{idx + 1}</td>
+                        <td>{(page - 1) * pageSize + idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#1e293b' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <User size={16} color="#64748b" /> {u.user_name}
@@ -164,6 +169,15 @@ export const ErpUsersPage: React.FC = () => {
               </table>
             </div>
           )}
+
+          <div style={{ padding: '0 1rem 1rem 1rem' }}>
+            <DataTablePagination
+              currentPage={page}
+              totalItems={filteredUsers.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
+          </div>
         </div>
       </div>
 

@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Printer, Download } from 'lucide-react';
+import { DataTablePagination } from '../components/DataTablePagination';
 
 export const GateOutReportPage: React.FC = () => {
   const [reportRows, setReportRows] = useState<any[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -31,6 +34,8 @@ export const GateOutReportPage: React.FC = () => {
       r.gateout_code?.toLowerCase().includes(q)
     );
   });
+
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <div>
@@ -71,9 +76,18 @@ export const GateOutReportPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
-                  <option>25</option>
+                <select
+                  className="form-control"
+                  style={{ width: '70px', padding: '4px 8px' }}
+                  value={pageSize}
+                  onChange={(e) => {
+                    setPageSize(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -84,7 +98,10 @@ export const GateOutReportPage: React.FC = () => {
                   type="text"
                   placeholder="Search invoice, part, gate code..."
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setPage(1);
+                  }}
                   className="form-control"
                   style={{ width: '240px', padding: '6px 10px' }}
                 />
@@ -112,16 +129,16 @@ export const GateOutReportPage: React.FC = () => {
                         Loading gate out records...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : paginated.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((r, idx) => (
+                    paginated.map((r, idx) => (
                       <tr key={r.id || idx}>
-                        <td>{idx + 1}</td>
+                        <td>{(page - 1) * pageSize + idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{r.invoice_number}</td>
                         <td style={{ fontWeight: 600, color: '#0284c7' }}>{r.part_number}</td>
                         <td>{r.part_description}</td>
@@ -135,9 +152,12 @@ export const GateOutReportPage: React.FC = () => {
               </table>
             </div>
 
-            <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
-            </div>
+            <DataTablePagination
+              currentPage={page}
+              totalItems={filtered.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </div>
