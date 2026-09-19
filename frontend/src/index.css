@@ -46,6 +46,8 @@ a:hover {
 .app-container {
   display: flex;
   min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
 }
 
 .sidebar {
@@ -55,9 +57,45 @@ a:hover {
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  transition: width 0.3s ease;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  height: 100vh;
   z-index: 1000;
+  transform: translateX(-100%);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.2);
+  will-change: transform;
+  overflow-y: auto;
 }
+
+.sidebar.sidebar-open {
+  transform: translateX(0);
+}
+
+/* Sidebar Backdrop Overlay */
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Left-edge swipe is handled via JS touch/pointer listeners — no DOM element needed */
 
 .brand-header {
   padding: 14px 16px;
@@ -177,6 +215,37 @@ a:hover {
   font-size: 13px;
 }
 
+/* Navigation Dropdown Smooth Accordion Animation */
+.chevron-icon {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  color: #8c96a0;
+  flex-shrink: 0;
+}
+
+.chevron-icon.open {
+  transform: rotate(180deg);
+}
+
+.nav-submenu {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.nav-submenu.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.nav-submenu-content {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
 /* Main Content */
 .main-wrapper {
   flex: 1;
@@ -184,6 +253,27 @@ a:hover {
   flex-direction: column;
   min-width: 0;
   background: var(--bg-main);
+  transition: margin-left 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-left: 0;
+  width: 100%;
+}
+
+@media (min-width: 993px) {
+  .sidebar.sidebar-open + .main-wrapper {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+  }
+
+  .sidebar-overlay {
+    display: none !important;
+  }
+}
+
+@media (max-width: 992px) {
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
 }
 
 .top-navbar {
@@ -392,124 +482,226 @@ table.data-table tbody tr:hover {
 }
 
 /* Modal */
-.modal-backdrop {
+.modal-backdrop,
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 2000;
+  padding: 20px;
+  animation: modalFadeIn 0.2s ease-out;
 }
 
-.modal-dialog {
-  background: #fff;
-  border-radius: 8px;
-  width: 90%;
-  max-width: 550px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+.modal-dialog,
+.modal-container {
+  background: #ffffff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 540px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.05);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: 90vh;
+  animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .modal-header {
-  padding: 14px 20px;
-  border-bottom: 1px solid var(--border-color);
+  padding: 18px 24px;
+  border-bottom: 1px solid #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  background: #ffffff;
 }
 
 .modal-title {
   font-size: 17px;
-  font-weight: 600;
-}
-
-.modal-body {
-  padding: 20px;
-}
-
-.modal-footer {
-  padding: 12px 20px;
-  border-top: 1px solid var(--border-color);
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  background: #f8f9fa;
-}
-
-/* DataTable Pagination Bar */
-.pagination-container {
-  display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-top: 16px;
-  flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
 
-.pagination-info {
-  font-size: 13.5px;
-  color: #212529;
-}
-
-.pagination-bar {
-  display: inline-flex;
-  border-radius: 4px;
-}
-
-.pagination-btn {
-  position: relative;
+.modal-close {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #f8fafc;
+  color: #64748b;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 6px 12px;
-  margin-left: -1px;
-  font-size: 14px;
-  line-height: 1.42857143;
-  color: #007bff;
-  background-color: #ffffff;
-  border: 1px solid #dee2e6;
   cursor: pointer;
-  user-select: none;
-  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out;
-  outline: none;
-  font-family: inherit;
+  transition: all 0.15s ease;
 }
 
-.pagination-btn:hover:not(:disabled):not(.active) {
-  color: #0056b3;
-  background-color: #e9ecef;
-  border-color: #dee2e6;
+.modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
 }
 
-.pagination-btn:first-child {
-  margin-left: 0;
-  border-top-left-radius: 4px;
-  border-bottom-left-radius: 4px;
+.modal-body {
+  padding: 22px 24px;
+  overflow-y: auto;
 }
 
-.pagination-btn:last-child {
-  border-top-right-radius: 4px;
-  border-bottom-right-radius: 4px;
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  background: #f8fafc;
 }
 
-.pagination-btn.active {
-  z-index: 2;
-  color: #ffffff !important;
-  background-color: #007bff !important;
-  border-color: #007bff !important;
-  font-weight: 500;
-  cursor: default;
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.pagination-btn:disabled,
-.pagination-btn.disabled {
-  color: #6c757d;
-  cursor: default;
-  pointer-events: none;
-  background-color: #ffffff;
+@keyframes modalSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
+
+/* ==========================================================================
+   Print Media Styles
+   ========================================================================== */
+@media print {
+  /* Hide sidebar, navigation, headers, and buttons */
+  .sidebar,
+  .brand-header,
+  .navbar,
+  .main-header,
+  .content-header,
+  .breadcrumbs,
+  .btn,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* Reset outer layout for print page */
+  html, body, #root, .app-container, .main-content, .content-body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    min-height: auto !important;
+    overflow: visible !important;
+    box-shadow: none !important;
+  }
+
+  .card {
+    border: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+}
+
+
+/* ==========================================================================
+   Global Animations & Interactive Effects
+   ========================================================================== */
+
+/* Page entrance animation */
+.main-content, .content-body, .page-fade-in {
+  animation: fadeInPage 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Card hover elevation */
+.card, .animated-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover, .animated-card:hover {
+  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+}
+
+/* Interactive button click feedback */
+.btn {
+  transition: all 0.15s ease;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+/* Pulsing status dot indicator */
+.pulse-status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  animation: pulseDot 2s infinite;
+}
+
+@keyframes pulseDot {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(34, 197, 94, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+/* Smooth ambient floating animation */
+@keyframes ambientFloat {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+.animate-float {
+  animation: ambientFloat 4s ease-in-out infinite;
+}
+
 

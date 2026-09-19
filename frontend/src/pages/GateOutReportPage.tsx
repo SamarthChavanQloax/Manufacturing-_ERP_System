@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Printer, Download } from 'lucide-react';
-import { DataTablePagination } from '../components/DataTablePagination';
+import { Printer, FileSpreadsheet } from 'lucide-react';
+import { exportToExcel } from '../utils/excelExport';
 
 export const GateOutReportPage: React.FC = () => {
   const [reportRows, setReportRows] = useState<any[]>([]);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
 
   const fetchReport = async () => {
     setLoading(true);
@@ -35,7 +34,21 @@ export const GateOutReportPage: React.FC = () => {
     );
   });
 
-  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize);
+  const displayedRows =
+    limit === 'all' ? filtered : filtered.slice(0, Number(limit));
+
+  const handleExportExcel = () => {
+    const exportData = filtered.map((r, idx) => ({
+      'Sr. No.': idx + 1,
+      'INVOICE NO': r.invoice_number || '',
+      'PART CODE': r.part_number || '',
+      'PART DESCRIPTION': r.part_description || '',
+      'QTY': r.qty || 0,
+      'GATEOUT CODE': r.gateout_code || '',
+      'GATE OUT DATE': r.gateout_date || '',
+    }));
+    exportToExcel(exportData, 'Gate_Out_Report', 'Gate Out Report');
+  };
 
   return (
     <div>
@@ -45,21 +58,32 @@ export const GateOutReportPage: React.FC = () => {
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Part Master</span>
+          <span style={{ color: '#212529', fontWeight: 600 }}>Gate Out Report</span>
         </div>
       </div>
 
       <div className="content-body">
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 className="card-title">Dispatched & Gate Cleared Records</h3>
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="btn btn-sm btn-primary"
-            >
-              <Printer size={14} /> Print Report
-            </button>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="btn btn-sm btn-success"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+              >
+                <FileSpreadsheet size={14} /> Export Excel
+              </button>
+              <button
+                type="button"
+                onClick={() => window.print()}
+                className="btn btn-sm btn-primary"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+              >
+                <Printer size={14} /> Print Report
+              </button>
+            </div>
           </div>
 
           <div className="card-body">
@@ -78,16 +102,20 @@ export const GateOutReportPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
                 <select
                   className="form-control"
-                  style={{ width: '70px', padding: '4px 8px' }}
-                  value={pageSize}
+                  style={{ width: '84px', padding: '4px 8px' }}
+                  value={limit}
                   onChange={(e) => {
-                    setPageSize(Number(e.target.value));
-                    setPage(1);
+                    const val = e.target.value;
+                    setLimit(val === 'all' ? 'all' : Number(val));
                   }}
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value="all">All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -98,10 +126,7 @@ export const GateOutReportPage: React.FC = () => {
                   type="text"
                   placeholder="Search invoice, part, gate code..."
                   value={search}
-                  onChange={(e) => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
                   style={{ width: '240px', padding: '6px 10px' }}
                 />
@@ -129,16 +154,16 @@ export const GateOutReportPage: React.FC = () => {
                         Loading gate out records...
                       </td>
                     </tr>
-                  ) : paginated.length === 0 ? (
+                  ) : displayedRows.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    paginated.map((r, idx) => (
+                    displayedRows.map((r, idx) => (
                       <tr key={r.id || idx}>
-                        <td>{(page - 1) * pageSize + idx + 1}</td>
+                        <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{r.invoice_number}</td>
                         <td style={{ fontWeight: 600, color: '#0284c7' }}>{r.part_number}</td>
                         <td>{r.part_description}</td>
@@ -152,12 +177,9 @@ export const GateOutReportPage: React.FC = () => {
               </table>
             </div>
 
-            <DataTablePagination
-              currentPage={page}
-              totalItems={filtered.length}
-              pageSize={pageSize}
-              onPageChange={setPage}
-            />
+            <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
+              Showing 1 to {displayedRows.length} of {filtered.length} entries
+            </div>
           </div>
         </div>
       </div>

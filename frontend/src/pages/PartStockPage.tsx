@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Search } from 'lucide-react';
-import { DataTablePagination } from '../components/DataTablePagination';
+import { Search, FileSpreadsheet } from 'lucide-react';
+import { Pagination } from '../components/Pagination';
+import { exportToExcel } from '../utils/excelExport';
 
 export const PartStockPage: React.FC = () => {
   const [stockList, setStockList] = useState<any[]>([]);
@@ -30,6 +31,23 @@ export const PartStockPage: React.FC = () => {
     fetchStock();
   }, [page, limit, search]);
 
+  const handleExportExcel = async () => {
+    try {
+      const res = await api.get('/parts/stock', { params: { search, page: 1, limit: 1000000 } });
+      const exportData = res.data.items.map((s: any, idx: number) => ({
+        'Sr. No.': idx + 1,
+        'Part Number': s.part_number,
+        'Part Description': s.part_description,
+        'FG Rack stock': s.fg_stock || 0,
+        'Box pack stock': s.box_stock || 0,
+        'Invoice Barcode Generated stock': s.inv_stock || 0,
+      }));
+      exportToExcel(exportData, 'Part_Stock_Report', 'Part Stock');
+    } catch (err) {
+      console.error('Error exporting stock report', err);
+    }
+  };
+
   const totalPages = Math.ceil(total / limit) || 1;
   const startEntry = total === 0 ? 0 : (page - 1) * limit + 1;
   const endEntry = Math.min(page * limit, total);
@@ -48,6 +66,17 @@ export const PartStockPage: React.FC = () => {
 
       <div className="content-body">
         <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              className="btn btn-sm btn-success"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+            >
+              <FileSpreadsheet size={14} /> Export Excel
+            </button>
+          </div>
+
           <div className="card-body">
             {/* Controls matching screenshot 04_part_stock.png */}
             <div
@@ -69,12 +98,15 @@ export const PartStockPage: React.FC = () => {
                     setPage(1);
                   }}
                   className="form-control"
-                  style={{ width: '70px', padding: '4px 8px' }}
+                  style={{ width: '84px', padding: '4px 8px' }}
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                   <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value={1000000}>All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -145,10 +177,11 @@ export const PartStockPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Pagination footer matching screenshot */}
-            <DataTablePagination
+            {/* Pagination footer with page shift (1, 2, 3... totalPages) */}
+            <Pagination
               currentPage={page}
-              totalItems={total}
+              totalPages={totalPages}
+              totalEntries={total}
               pageSize={limit}
               onPageChange={setPage}
             />
