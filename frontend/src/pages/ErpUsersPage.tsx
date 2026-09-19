@@ -66,14 +66,21 @@ export const ErpUsersPage: React.FC = () => {
     (u.user_role || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  const badgeStyle = (bg: string, color: string, border: string): React.CSSProperties => ({
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    padding: '3px 10px', fontSize: '11.5px', fontWeight: 600,
+    borderRadius: 20, background: bg, color, border: `1px solid ${border}`,
+    whiteSpace: 'nowrap',
+  });
+
   const getRoleBadge = (role: string) => {
     const r = (role || '').toLowerCase();
-    if (r.includes('admin')) return <span className="badge badge-danger"><Shield size={12} style={{ display: 'inline', marginRight: 4 }} /> Admin</span>;
-    if (r.includes('pack')) return <span className="badge badge-warning">Packing</span>;
-    if (r.includes('box')) return <span className="badge badge-info">Box</span>;
-    if (r.includes('inv')) return <span className="badge badge-primary">Invoice</span>;
-    if (r.includes('gate') || r.includes('sec')) return <span className="badge badge-success">Gate Security</span>;
-    return <span className="badge badge-secondary">{role}</span>;
+    if (r.includes('admin')) return <span style={badgeStyle('#fee2e2', '#991b1b', '#fca5a5')}><Shield size={11} /> Admin</span>;
+    if (r.includes('pack')) return <span style={badgeStyle('#fef9c3', '#854d0e', '#fde047')}>Packing</span>;
+    if (r.includes('box')) return <span style={badgeStyle('#dbeafe', '#1e40af', '#93c5fd')}>Box</span>;
+    if (r.includes('inv')) return <span style={badgeStyle('#ede9fe', '#5b21b6', '#c4b5fd')}>Invoice</span>;
+    if (r.includes('gate') || r.includes('sec')) return <span style={badgeStyle('#dcfce7', '#166534', '#86efac')}>Gate Security</span>;
+    return <span style={badgeStyle('#f1f5f9', '#475569', '#cbd5e1')}>{role}</span>;
   };
 
   return (
@@ -121,42 +128,100 @@ export const ErpUsersPage: React.FC = () => {
           {loading ? (
             <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>Loading ERP users...</div>
           ) : (
-            <div className="table-container">
-              <table className="table">
+            <div style={{ overflowX: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+                <colgroup>
+                  <col style={{ width: '72px' }} />
+                  <col style={{ width: '180px' }} />
+                  <col style={{ width: '230px' }} />
+                  <col style={{ width: '170px' }} />
+                  <col />
+                </colgroup>
                 <thead>
-                  <tr>
-                    <th style={{ width: 70 }}>Sr No</th>
-                    <th>Full Name</th>
-                    <th>Email Address</th>
-                    <th>Password</th>
-                    <th>Assigned Role</th>
+                  <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
+                    {['Sr No', 'Full Name', 'Email Address', 'Password', 'Assigned Role'].map((h) => (
+                      <th key={h} style={{
+                        padding: '11px 16px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        color: '#6b7280',
+                        textAlign: 'left',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.06em',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {h}
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
                   {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: '#94a3b8' }}>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '2.5rem', color: '#94a3b8', fontSize: 14 }}>
                         No ERP users found
                       </td>
                     </tr>
                   ) : (
                     filteredUsers.map((u, idx) => (
-                      <tr key={u.id}>
-                        <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#1e293b' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <User size={16} color="#64748b" /> {u.user_name}
+                      <tr
+                        key={u.id}
+                        style={{ borderBottom: '1px solid #e9ecef', background: idx % 2 !== 0 ? '#f9fafb' : '#fff' }}
+                        onMouseEnter={e => (e.currentTarget.style.background = '#eff6ff')}
+                        onMouseLeave={e => (e.currentTarget.style.background = idx % 2 !== 0 ? '#f9fafb' : '#fff')}
+                      >
+                        {/* Sr No */}
+                        <td style={{ padding: '12px 16px', fontSize: '13px', color: '#9ca3af', fontWeight: 600 }}>
+                          {idx + 1}
+                        </td>
+
+                        {/* Full Name with avatar */}
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                            <span style={{
+                              width: 28, height: 28, borderRadius: '50%',
+                              background: '#dbeafe', color: '#1d4ed8',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontWeight: 700, fontSize: 11, flexShrink: 0,
+                            }}>
+                              {(u.user_name || '?')[0].toUpperCase()}
+                            </span>
+                            <span style={{ fontWeight: 600, color: '#111827', fontSize: 13.5, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {u.user_name}
+                            </span>
                           </div>
                         </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <Mail size={14} color="#94a3b8" /> {u.user_email}
+
+                        {/* Email */}
+                        <td style={{ padding: '12px 16px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                            <Mail size={13} color="#94a3b8" style={{ flexShrink: 0 }} />
+                            <span style={{ fontSize: 13.5, color: '#374151', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {u.user_email}
+                            </span>
                           </div>
                         </td>
-                        <td style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}>
-                          {showPassword ? u.user_password : '••••••••'}
+
+                        {/* Password */}
+                        <td style={{ padding: '12px 16px' }}>
+                          {showPassword ? (
+                            <span style={{
+                              fontFamily: 'monospace', fontSize: 12.5,
+                              background: '#fef9c3', color: '#92400e',
+                              padding: '2px 8px', borderRadius: 4,
+                              border: '1px solid #fde68a',
+                            }}>
+                              {u.user_password}
+                            </span>
+                          ) : (
+                            <span style={{ letterSpacing: 4, color: '#9ca3af', fontSize: 13 }}>••••••••</span>
+                          )}
                         </td>
-                        <td>{getRoleBadge(u.user_role || u.type)}</td>
+
+                        {/* Assigned Role */}
+                        <td style={{ padding: '12px 16px' }}>
+                          {getRoleBadge(u.user_role || u.type)}
+                        </td>
                       </tr>
                     ))
                   )}
