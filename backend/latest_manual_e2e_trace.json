@@ -1,0 +1,26 @@
+{
+  "runId": "MANUAL-E2E-870905",
+  "partNumber": "D16.064.34.0.PR",
+  "partId": 1825,
+  "customer": "Mahindra & Mahindra",
+  "qty": 5,
+  "startingStock": {
+    "fg": "116",
+    "box": "95",
+    "inv": "153"
+  },
+  "packingId": 293,
+  "packingBarcode": "100280",
+  "boxId": 80,
+  "boxBarcode": "200078",
+  "invoiceNumber": "MANUAL-E2E-870905",
+  "invoiceId": 54,
+  "invoiceBarcode": "300051",
+  "gateMatchId": 23,
+  "clearanceCode": "MANUAL-E2E-870905400023",
+  "finalStock": {
+    "fg": "116",
+    "box": "95",
+    "inv": "153"
+  }
+}

@@ -130,7 +130,16 @@ let PackingService = class PackingService {
             .getRawOne();
         if (!item)
             throw new common_1.NotFoundException('Packing record not found');
-        return item;
+        const trimmedPartNumber = (item.part_number || '').trim();
+        return {
+            ...item,
+            part_number: trimmedPartNumber,
+            part: {
+                id: item.part_id,
+                part_number: trimmedPartNumber,
+                part_description: item.part_description || '',
+            },
+        };
     }
     async delete(id) {
         const item = await this.packingRepo.findOne({ where: { id } });

@@ -27,7 +27,18 @@ export declare class BoxesService {
         lock_status: string;
     }[]>;
     findOne(id: number): Promise<{
-        box: Box;
+        box: {
+            box_name: string;
+            id: number;
+            barcode: string;
+            box_size: string;
+            customer_id: number;
+            created_by: number;
+            created_date: string;
+            created_time: string;
+            status: string;
+            lock_status: string;
+        };
         customer: Customer;
         total_part_qty: number;
         items: any[];
@@ -38,6 +49,7 @@ export declare class BoxesService {
     }>;
     lockBox(boxId: number): Promise<{
         success: boolean;
+        lock_status: string;
         message: string;
     }>;
 }

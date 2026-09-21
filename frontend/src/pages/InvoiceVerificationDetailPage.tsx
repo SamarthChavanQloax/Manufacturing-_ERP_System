@@ -29,12 +29,13 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
 
   const handleScanBox = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!boxBarcode.trim()) return;
+    const barcodeVal = boxBarcode.trim() || (e.currentTarget.querySelector('input') as HTMLInputElement)?.value.trim();
+    if (!barcodeVal) return;
 
     try {
       await api.post('/verification/scan-box', {
         match_id: Number(id),
-        box_barcode: boxBarcode.trim(),
+        box_barcode: barcodeVal,
       });
       alert('Added Successfully');
       setBoxBarcode('');
@@ -90,7 +91,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
+                <button type="submit" id="btn-scan-box-gate" className="btn btn-danger" style={{ height: '38px' }}>
                   Submit
                 </button>
               </form>

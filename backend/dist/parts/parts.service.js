@@ -38,10 +38,15 @@ let PartsService = class PartsService {
         return { items, total };
     }
     async getAllSimple() {
-        return this.partRepo.find({
+        const parts = await this.partRepo.find({
             select: ['id', 'part_number', 'part_description', 'qty'],
             order: { part_number: 'ASC' },
         });
+        return parts.map((p) => ({
+            ...p,
+            part_number: (p.part_number || '').trim(),
+            part_description: (p.part_description || '').trim(),
+        }));
     }
     async findOne(id) {
         const part = await this.partRepo.findOne({ where: { id } });
@@ -118,7 +123,12 @@ let PartsService = class PartsService {
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
         const items = await this.partRepo.query(dataQuery, params);
-        return { items, total };
+        const cleanedItems = items.map((item) => ({
+            ...item,
+            part_number: (item.part_number || '').trim(),
+            part_description: (item.part_description || '').trim(),
+        }));
+        return { items: cleanedItems, total };
     }
 };
 exports.PartsService = PartsService;

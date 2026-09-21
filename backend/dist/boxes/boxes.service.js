@@ -60,7 +60,9 @@ let BoxesService = class BoxesService {
         }
         const boxes = await query.orderBy('b.id', 'DESC').getMany();
         const result = await Promise.all(boxes.map(async (box) => {
-            const boxPackings = await this.boxPackingRepo.find({ where: { box_id: box.id } });
+            const boxPackings = await this.boxPackingRepo.find({
+                where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+            });
             let totalPartQty = 0;
             for (const bp of boxPackings) {
                 totalPartQty += bp.part_qty || 0;
@@ -73,13 +75,18 @@ let BoxesService = class BoxesService {
         return result;
     }
     async findOne(id) {
-        const box = await this.boxRepo.findOne({ where: { id } });
+        let box = await this.boxRepo.findOne({ where: { id } });
+        if (!box && id >= 200000) {
+            box = await this.boxRepo.findOne({ where: { barcode: String(id) } });
+        }
         if (!box)
             throw new common_1.NotFoundException('Box not found');
         const customer = box.customer_id
             ? await this.customerRepo.findOne({ where: { id: box.customer_id } })
             : null;
-        const boxPackings = await this.boxPackingRepo.find({ where: { box_id: box.id } });
+        const boxPackings = await this.boxPackingRepo.find({
+            where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+        });
         let totalPartQty = 0;
         const items = [];
         for (const bp of boxPackings) {
@@ -87,26 +94,33 @@ let BoxesService = class BoxesService {
             const part = await this.partRepo.findOne({ where: { id: bp.part_id } });
             items.push({
                 ...bp,
-                part_number: part?.part_number || '',
+                part_number: (part?.part_number || '').trim(),
                 part_description: part?.part_description || '',
             });
         }
         return {
-            box,
+            box: {
+                ...box,
+                box_name: (box.box_name || '').trim(),
+            },
             customer,
             total_part_qty: totalPartQty,
             items,
         };
     }
     async addPackingToBox(boxId, packBarcode, userId) {
-        const box = await this.boxRepo.findOne({ where: { id: boxId } });
+        let box = await this.boxRepo.findOne({ where: { id: boxId } });
+        if (!box && boxId >= 200000) {
+            box = await this.boxRepo.findOne({ where: { barcode: String(boxId) } });
+        }
         if (!box)
             throw new common_1.NotFoundException('Box not found');
         if (box.lock_status === 'yes') {
             throw new common_1.BadRequestException('Error: Box is already locked');
         }
+        const cleanPackBarcode = String(packBarcode).trim();
         const packing = await this.packingRepo.findOne({
-            where: { barcode: packBarcode, status: 'pending' },
+            where: { barcode: cleanPackBarcode, status: 'pending' },
         });
         if (!packing) {
             throw new common_1.BadRequestException('Error : Packing barcode not found or already used !!!!');
@@ -115,7 +129,7 @@ let BoxesService = class BoxesService {
         if (!part) {
             throw new common_1.BadRequestException('Part record not found');
         }
-        if (box.box_name !== part.part_number) {
+        if (box.box_name.trim() !== part.part_number.trim()) {
             throw new common_1.BadRequestException('Error : Part Id Not Matched !!!!');
         }
         const { dateStr, timeStr } = this.getLegacyDateTime();
@@ -127,7 +141,7 @@ let BoxesService = class BoxesService {
             created_by: userId,
             created_date: dateStr,
             created_time: timeStr,
-            status: 'used',
+            status: 'pending',
         });
         await this.boxPackingRepo.save(boxPacking);
         packing.status = 'used';
@@ -135,12 +149,21 @@ let BoxesService = class BoxesService {
         return { success: true, message: 'Added Successfully' };
     }
     async lockBox(boxId) {
-        const box = await this.boxRepo.findOne({ where: { id: boxId } });
+        let box = await this.boxRepo.findOne({ where: { id: boxId } });
+        if (!box && boxId >= 200000) {
+            box = await this.boxRepo.findOne({ where: { barcode: String(boxId) } });
+        }
         if (!box)
             throw new common_1.NotFoundException('Box not found');
+        const boxPackings = await this.boxPackingRepo.find({
+            where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+        });
+        if (!boxPackings || boxPackings.length === 0) {
+            throw new common_1.BadRequestException('Error: Cannot lock an empty box! Please scan packing items first.');
+        }
         box.lock_status = 'yes';
         await this.boxRepo.save(box);
-        return { success: true, message: 'Box Locked Successfully' };
+        return { success: true, lock_status: 'yes', message: 'Box Locked Successfully' };
     }
 };
 exports.BoxesService = BoxesService;

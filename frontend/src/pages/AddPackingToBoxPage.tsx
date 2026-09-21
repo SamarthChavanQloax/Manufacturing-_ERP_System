@@ -29,12 +29,13 @@ export const AddPackingToBoxPage: React.FC = () => {
 
   const handleScanPacking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!scanCode.trim()) return;
+    const packVal = scanCode.trim() || (e.currentTarget?.querySelector('input') as HTMLInputElement)?.value?.trim() || '';
+    if (!packVal) return;
 
     try {
       await api.post('/boxes/add-packing', {
         box_id: Number(id),
-        pack_id: scanCode.trim(),
+        pack_id: packVal,
       });
       alert('Added Successfully');
       setScanCode('');
@@ -102,14 +103,21 @@ export const AddPackingToBoxPage: React.FC = () => {
                       />
                     </div>
 
-                    <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
+                    <button type="submit" id="btn-add-packing" className="btn btn-danger" style={{ height: '38px' }}>
                       Submit
                     </button>
                   </form>
 
                   <button
                     type="button"
-                    onClick={() => setLockModalOpen(true)}
+                    id="btn-lock-box"
+                    onClick={() => {
+                      if (!data?.items || data.items.length === 0) {
+                        alert('Error: Cannot lock an empty box! Please scan packing items first.');
+                        return;
+                      }
+                      setLockModalOpen(true);
+                    }}
                     className="btn btn-primary"
                     style={{ height: '38px' }}
                   >

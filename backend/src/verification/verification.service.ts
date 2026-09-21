@@ -152,17 +152,22 @@ export class VerificationService {
     const totalExpected = await this.invoiceBoxRepo.count({ where: { invoice_id: invoice.id } });
     const totalScanned = await this.invoiceBoxMatchRepo.count({ where: { invoice_id: invoice.id } });
 
-    if (totalExpected > 0 && totalScanned >= totalExpected) {
+    const isComplete = totalExpected > 0 && totalScanned >= totalExpected;
+    if (isComplete) {
       match.status = 'verified';
       await this.invoiceMatchRepo.save(match);
     }
+
+    const gateOutCode = invoice && isComplete ? `${invoice.invoice_number}4000${match.id}` : '';
 
     return {
       success: true,
       matched: true,
       message: 'Added Successfully',
-      completed: totalExpected > 0 && totalScanned >= totalExpected,
+      completed: isComplete,
       remaining: Math.max(0, totalExpected - totalScanned),
+      clearance_code: gateOutCode,
+      gate_out_code: gateOutCode,
     };
   }
 

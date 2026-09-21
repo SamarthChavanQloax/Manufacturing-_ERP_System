@@ -31,7 +31,8 @@ let BoxesController = class BoxesController {
         return this.boxesService.findOne(Number(id));
     }
     async addPacking(body, req) {
-        return this.boxesService.addPackingToBox(Number(body.box_id), String(body.pack_id), req.user.userId);
+        const packBarcode = body.pack_id || body.barcode || body.packing_barcode || body.pack_barcode || '';
+        return this.boxesService.addPackingToBox(Number(body.box_id), String(packBarcode), req.user.userId);
     }
     async lockBox(body) {
         return this.boxesService.lockBox(Number(body.box_id));

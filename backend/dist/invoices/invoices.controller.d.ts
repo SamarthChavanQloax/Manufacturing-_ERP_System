@@ -24,15 +24,44 @@ export declare class InvoicesController {
     }[]>;
     getOne(id: string): Promise<{
         invoice: import("../entities").Invoice;
-        part: import("../entities").Part;
+        part: {
+            part_number: string;
+            id: number;
+            part_description: string;
+            qty: number;
+            customer_id: number;
+            revision_date: string;
+            customer_part_id: number;
+            revision_no: string;
+            diagram: string;
+            model: string;
+            part_family: string;
+            created_id: number;
+            date: string;
+            time: string;
+            timestamp: Date;
+            deleted: number;
+            revision_remark: string;
+            hsn_code: string;
+            uom: string;
+            safety_stock: string;
+        };
         total_part_qty: number;
         boxes: any[];
     }>;
     addBox(body: {
         invoice_id: number;
-        box_id: string;
+        box_id?: string;
+        box_barcode?: string;
     }, req: any): Promise<{
         success: boolean;
+        message: string;
+    }>;
+    lockInvoice(body: {
+        invoice_id: number;
+    }): Promise<{
+        success: boolean;
+        lock_status: string;
         message: string;
     }>;
     delete(id: string): Promise<import("typeorm").DeleteResult>;

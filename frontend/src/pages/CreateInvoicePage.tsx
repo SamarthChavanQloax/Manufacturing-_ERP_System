@@ -44,21 +44,36 @@ export const CreateInvoicePage: React.FC = () => {
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invoiceNumber.trim() || !selectedPartId || !qty) {
+    console.log('[CLIENT INVOICE] handleCreateInvoice START');
+    const form = e.currentTarget as HTMLFormElement;
+    const invInput = form?.querySelector('input[type="text"]') as HTMLInputElement;
+    const partSelect = form?.querySelector('select') as HTMLSelectElement;
+    const qtyInput = form?.querySelector('input[type="number"]') as HTMLInputElement;
+
+    const invNum = invoiceNumber.trim() || invInput?.value?.trim() || '';
+    const pId = selectedPartId || (partSelect?.value ? Number(partSelect.value) : '');
+    const qVal = qty || (qtyInput?.value ? Number(qtyInput.value) : '');
+
+    console.log('[CLIENT INVOICE] Values:', { invNum, pId, qVal, invoiceNumber, selectedPartId, qty });
+
+    if (!invNum || !pId || !qVal) {
+      console.warn('[CLIENT INVOICE] Missing fields!');
       alert('Please fill all required fields');
       return;
     }
     try {
-      await api.post('/invoices', {
-        invoice_number: invoiceNumber.trim(),
-        part_id: Number(selectedPartId),
-        qty: Number(qty),
+      const res = await api.post('/invoices', {
+        invoice_number: invNum,
+        part_id: Number(pId),
+        qty: Number(qVal),
       });
+      console.log('[CLIENT INVOICE] Response:', res.data);
       alert('Invoice Created Successfully');
       setInvoiceNumber('');
       setQty('');
       fetchData();
     } catch (err: any) {
+      console.error('[CLIENT INVOICE] Error:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Error : Invoice Number Already Exists');
     }
   };
@@ -135,6 +150,7 @@ export const CreateInvoicePage: React.FC = () => {
                   <input
                     type="text"
                     required
+                    maxLength={20}
                     placeholder="Enter Invoice Number"
                     className="form-control"
                     value={invoiceNumber}
@@ -176,7 +192,7 @@ export const CreateInvoicePage: React.FC = () => {
                 </div>
 
                 <div>
-                  <button type="submit" className="btn btn-info" style={{ height: '38px' }}>
+                  <button type="submit" id="btn-create-invoice" className="btn btn-info" style={{ height: '38px' }}>
                     Submit
                   </button>
                 </div>

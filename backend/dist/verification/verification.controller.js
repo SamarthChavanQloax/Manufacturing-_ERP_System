@@ -21,8 +21,9 @@ let VerificationController = class VerificationController {
     constructor(verificationService) {
         this.verificationService = verificationService;
     }
-    async start(invoiceBarcode, req) {
-        return this.verificationService.startVerification(invoiceBarcode, req.user.userId);
+    async start(body, req) {
+        const barcode = body.invoice_barcode || body.invoice_number || '';
+        return this.verificationService.startVerification(String(barcode), req.user.userId);
     }
     async getAll() {
         return this.verificationService.findAll();
@@ -31,20 +32,23 @@ let VerificationController = class VerificationController {
         return this.verificationService.findOne(Number(id));
     }
     async scanBox(body, req) {
-        return this.verificationService.scanBox(Number(body.match_id), String(body.box_barcode), req.user.userId);
+        const matchId = body.match_id || body.invoice_match_id || 0;
+        const boxBarcode = body.box_barcode || body.box_id || '';
+        return this.verificationService.scanBox(Number(matchId), String(boxBarcode), req.user.userId);
     }
     async returnInvoice(body) {
-        return this.verificationService.returnInvoice(Number(body.match_id), String(body.invoice_barcode));
+        const matchId = body.match_id || body.invoice_match_id || 0;
+        return this.verificationService.returnInvoice(Number(matchId), body.invoice_barcode);
     }
 };
 exports.VerificationController = VerificationController;
 __decorate([
     (0, common_1.Post)('start'),
     (0, roles_decorator_1.Roles)('admin', 'gate'),
-    __param(0, (0, common_1.Body)('invoice_barcode')),
+    __param(0, (0, common_1.Body)()),
     __param(1, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], VerificationController.prototype, "start", null);
 __decorate([
