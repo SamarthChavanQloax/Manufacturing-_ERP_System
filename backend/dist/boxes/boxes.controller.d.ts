@@ -21,14 +21,28 @@ export declare class BoxesController {
         lock_status: string;
     }[]>;
     getOne(id: string): Promise<{
-        box: import("../entities").Box;
+        box: {
+            box_name: string;
+            id: number;
+            barcode: string;
+            box_size: string;
+            customer_id: number;
+            created_by: number;
+            created_date: string;
+            created_time: string;
+            status: string;
+            lock_status: string;
+        };
         customer: import("../entities").Customer;
         total_part_qty: number;
         items: any[];
     }>;
     addPacking(body: {
         box_id: number;
-        pack_id: string;
+        pack_id?: string;
+        barcode?: string;
+        packing_barcode?: string;
+        pack_barcode?: string;
     }, req: any): Promise<{
         success: boolean;
         message: string;
@@ -37,6 +51,7 @@ export declare class BoxesController {
         box_id: number;
     }): Promise<{
         success: boolean;
+        lock_status: string;
         message: string;
     }>;
 }

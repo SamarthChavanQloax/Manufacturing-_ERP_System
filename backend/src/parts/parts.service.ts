@@ -33,10 +33,15 @@ export class PartsService {
   }
 
   async getAllSimple(): Promise<Part[]> {
-    return this.partRepo.find({
+    const parts = await this.partRepo.find({
       select: ['id', 'part_number', 'part_description', 'qty'],
       order: { part_number: 'ASC' },
     });
+    return parts.map((p) => ({
+      ...p,
+      part_number: (p.part_number || '').trim(),
+      part_description: (p.part_description || '').trim(),
+    }));
   }
 
   async findOne(id: number): Promise<Part> {
@@ -124,6 +129,11 @@ export class PartsService {
     `;
 
     const items = await this.partRepo.query(dataQuery, params);
-    return { items, total };
+    const cleanedItems = items.map((item: any) => ({
+      ...item,
+      part_number: (item.part_number || '').trim(),
+      part_description: (item.part_description || '').trim(),
+    }));
+    return { items: cleanedItems, total };
   }
 }

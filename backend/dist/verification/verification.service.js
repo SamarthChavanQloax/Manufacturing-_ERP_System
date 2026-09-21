@@ -58,7 +58,10 @@ let VerificationService = class VerificationService {
         const savedMatch = await this.invoiceMatchRepo.save(match);
         invoice.status = 'used';
         await this.invoiceRepo.save(invoice);
-        return savedMatch;
+        return {
+            ...savedMatch,
+            invoice_match_id: savedMatch.id,
+        };
     }
     async findAll() {
         return this.invoiceMatchRepo.find({ order: { id: 'DESC' } });
@@ -88,7 +91,9 @@ let VerificationService = class VerificationService {
             expected_boxes_count: expectedBoxes.length,
             scanned_boxes_count: scannedBoxes.length,
             checked: isMatched,
+            is_complete: isMatched,
             gate_out_code: gateOutCode,
+            clearance_code: gateOutCode,
             scanned_boxes: scannedBoxes,
         };
     }
@@ -125,22 +130,29 @@ let VerificationService = class VerificationService {
         await this.invoiceBoxMatchRepo.save(boxMatch);
         const totalExpected = await this.invoiceBoxRepo.count({ where: { invoice_id: invoice.id } });
         const totalScanned = await this.invoiceBoxMatchRepo.count({ where: { invoice_id: invoice.id } });
-        if (totalExpected > 0 && totalScanned >= totalExpected) {
+        const isComplete = totalExpected > 0 && totalScanned >= totalExpected;
+        if (isComplete) {
             match.status = 'verified';
             await this.invoiceMatchRepo.save(match);
         }
+        const gateOutCode = invoice && isComplete ? `${invoice.invoice_number}4000${match.id}` : '';
         return {
             success: true,
+            matched: true,
             message: 'Added Successfully',
-            completed: totalExpected > 0 && totalScanned >= totalExpected,
+            completed: isComplete,
+            remaining: Math.max(0, totalExpected - totalScanned),
+            clearance_code: gateOutCode,
+            gate_out_code: gateOutCode,
         };
     }
     async returnInvoice(matchId, invoiceBarcode) {
         const match = await this.invoiceMatchRepo.findOne({ where: { id: matchId } });
         if (!match)
             throw new common_1.NotFoundException('Verification record not found');
+        const barcode = invoiceBarcode || match.invoice_number;
         const invoice = await this.invoiceRepo.findOne({
-            where: { barcode: invoiceBarcode },
+            where: { barcode },
         });
         if (invoice) {
             invoice.status = 'pending';

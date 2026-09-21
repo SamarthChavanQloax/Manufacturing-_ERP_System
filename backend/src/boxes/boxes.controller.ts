@@ -35,10 +35,10 @@ export class BoxesController {
   @Post('add-packing')
   @Roles('admin', 'box')
   async addPacking(
-    @Body() body: { box_id: number; pack_id?: string; barcode?: string },
+    @Body() body: { box_id: number; pack_id?: string; barcode?: string; packing_barcode?: string; pack_barcode?: string },
     @Request() req: any,
   ) {
-    const packBarcode = body.pack_id || body.barcode || '';
+    const packBarcode = body.pack_id || body.barcode || body.packing_barcode || body.pack_barcode || '';
     return this.boxesService.addPackingToBox(Number(body.box_id), String(packBarcode), req.user.userId);
   }
 

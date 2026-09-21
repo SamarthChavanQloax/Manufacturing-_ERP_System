@@ -42,6 +42,12 @@ export class InvoicesController {
     return this.invoicesService.addBoxToInvoice(Number(body.invoice_id), String(boxBarcode), req.user.userId);
   }
 
+  @Post('lock')
+  @Roles('admin', 'invoice')
+  async lockInvoice(@Body() body: { invoice_id: number }) {
+    return this.invoicesService.lockInvoice(Number(body.invoice_id));
+  }
+
   @Delete(':id')
   @Roles('admin', 'invoice')
   async delete(@Param('id') id: string) {

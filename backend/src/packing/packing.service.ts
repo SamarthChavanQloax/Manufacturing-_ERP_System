@@ -129,7 +129,16 @@ export class PackingService {
       .getRawOne();
 
     if (!item) throw new NotFoundException('Packing record not found');
-    return item;
+    const trimmedPartNumber = (item.part_number || '').trim();
+    return {
+      ...item,
+      part_number: trimmedPartNumber,
+      part: {
+        id: item.part_id,
+        part_number: trimmedPartNumber,
+        part_description: item.part_description || '',
+      },
+    };
   }
 
   async delete(id: number) {

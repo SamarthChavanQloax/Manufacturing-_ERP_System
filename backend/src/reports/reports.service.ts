@@ -41,7 +41,7 @@ export class ReportsService {
       if (invoice) {
         invoiceNum = invoice.invoice_number;
         invoiceQty = invoice.qty;
-        gateoutCode = `${invoice.invoice_number}4000${invoice.id}`;
+        gateoutCode = `${invoice.invoice_number}4000${match.id}`;
 
         const invoiceBox = await this.invoiceBoxRepo.findOne({
           where: { invoice_id: invoice.id },

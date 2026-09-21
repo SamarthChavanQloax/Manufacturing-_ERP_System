@@ -33,11 +33,12 @@ export const VerifyInvoicePage: React.FC = () => {
 
   const handleStartVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invoiceBarcode.trim()) return;
+    const barcodeVal = invoiceBarcode.trim() || (e.currentTarget.querySelector('input') as HTMLInputElement)?.value.trim();
+    if (!barcodeVal) return;
 
     try {
       const res = await api.post('/verification/start', {
-        invoice_barcode: invoiceBarcode.trim(),
+        invoice_barcode: barcodeVal,
       });
       alert('Added Successfully');
       navigate(`/add_box_to_invoice_verify/${res.data.id}`);
@@ -110,7 +111,7 @@ export const VerifyInvoicePage: React.FC = () => {
                 />
               </div>
 
-              <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
+              <button type="submit" id="btn-start-verify-invoice" className="btn btn-danger" style={{ height: '38px' }}>
                 Submit
               </button>
             </form>

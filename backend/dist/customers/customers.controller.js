@@ -24,8 +24,17 @@ let CustomersController = class CustomersController {
     async getAll() {
         return this.customersService.findAll();
     }
-    async create(customerName) {
-        return this.customersService.create(customerName);
+    async create(body) {
+        const name = body.customer_name || body.customerName || '';
+        return this.customersService.create(name);
+    }
+    async update(id, body) {
+        const name = body.customer_name || body.customerName || body.ucustomerName || '';
+        return this.customersService.update(parseInt(id, 10), name);
+    }
+    async updatePost(id, body) {
+        const name = body.customer_name || body.customerName || body.ucustomerName || '';
+        return this.customersService.update(parseInt(id, 10), name);
     }
 };
 exports.CustomersController = CustomersController;
@@ -39,11 +48,29 @@ __decorate([
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)('admin'),
-    __param(0, (0, common_1.Body)('customerName')),
+    __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], CustomersController.prototype, "create", null);
+__decorate([
+    (0, common_1.Put)(':id'),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CustomersController.prototype, "update", null);
+__decorate([
+    (0, common_1.Post)(':id/update'),
+    (0, roles_decorator_1.Roles)('admin'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], CustomersController.prototype, "updatePost", null);
 exports.CustomersController = CustomersController = __decorate([
     (0, common_1.Controller)('api/customers'),
     (0, common_1.UseGuards)(guards_1.JwtAuthGuard, guards_1.RolesGuard),

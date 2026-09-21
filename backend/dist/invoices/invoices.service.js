@@ -36,6 +36,9 @@ let InvoicesService = class InvoicesService {
         if (!data.invoice_number || !data.part_id || !data.qty) {
             throw new common_1.BadRequestException('Invoice number, Part, and Quantity are required');
         }
+        if (data.invoice_number.trim().length > 20) {
+            throw new common_1.BadRequestException('Error : Invoice Number must not exceed 20 characters');
+        }
         const existing = await this.invoiceRepo.findOne({
             where: { invoice_number: data.invoice_number.trim() },
         });
@@ -90,7 +93,9 @@ let InvoicesService = class InvoicesService {
             const box = await this.boxRepo.findOne({ where: { barcode: String(ib.box_id) } });
             let boxQty = 0;
             if (box) {
-                const boxPackings = await this.boxPackingRepo.find({ where: { box_id: box.id } });
+                const boxPackings = await this.boxPackingRepo.find({
+                    where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+                });
                 for (const bp of boxPackings) {
                     boxQty += bp.part_qty || 0;
                 }
@@ -99,13 +104,13 @@ let InvoicesService = class InvoicesService {
             boxesWithDetails.push({
                 ...ib,
                 box_barcode: ib.box_id,
-                box_name: box?.box_name || '',
+                box_name: (box?.box_name || '').trim(),
                 box_qty: boxQty,
             });
         }
         return {
             invoice,
-            part,
+            part: part ? { ...part, part_number: (part.part_number || '').trim() } : null,
             total_part_qty: totalPartQty,
             boxes: boxesWithDetails,
         };
@@ -114,18 +119,27 @@ let InvoicesService = class InvoicesService {
         const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
         if (!invoice)
             throw new common_1.NotFoundException('Invoice not found');
+        if (invoice.lock_status === 'yes') {
+            throw new common_1.BadRequestException('Error: Invoice is already locked');
+        }
+        const cleanBoxBarcode = String(boxBarcode).trim();
         const box = await this.boxRepo.findOne({
-            where: { barcode: String(boxBarcode), status: 'pending' },
+            where: { barcode: cleanBoxBarcode, status: 'pending' },
         });
         if (!box) {
             throw new common_1.BadRequestException('Error : Box barcode not found or already used in another invoice !!!!');
         }
-        const boxPackings = await this.boxPackingRepo.find({ where: { box_id: box.id } });
+        const boxPackings = await this.boxPackingRepo.find({
+            where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+        });
         if (!boxPackings || boxPackings.length === 0) {
             throw new common_1.BadRequestException('Error 403 : Box barcode contains no packing items !!!!');
         }
         const boxPartId = boxPackings[0].part_id;
-        if (boxPartId !== invoice.part_id) {
+        const invoicePart = await this.partRepo.findOne({ where: { id: invoice.part_id } });
+        const isPartMatch = boxPartId === invoice.part_id ||
+            (invoicePart && box.box_name.trim() === invoicePart.part_number.trim());
+        if (!isPartMatch) {
             throw new common_1.BadRequestException('Error 405 : Packing Part Number Mismatch Please Try Again');
         }
         let currentInvoiceTotal = 0;
@@ -133,7 +147,9 @@ let InvoicesService = class InvoicesService {
         for (const eib of existingInvoiceBoxes) {
             const b = await this.boxRepo.findOne({ where: { barcode: String(eib.box_id) } });
             if (b) {
-                const bps = await this.boxPackingRepo.find({ where: { box_id: b.id } });
+                const bps = await this.boxPackingRepo.find({
+                    where: [{ box_id: b.id }, { box_id: Number(b.barcode) }],
+                });
                 for (const bp of bps) {
                     currentInvoiceTotal += bp.part_qty || 0;
                 }
@@ -147,18 +163,32 @@ let InvoicesService = class InvoicesService {
             throw new common_1.BadRequestException('Error 406 : Part Qty Mismatch, adding this box exceeds invoice quantity');
         }
         const { dateStr, timeStr } = this.getLegacyDateTime();
-        const invoiceBox = this.invoiceBoxRepo.create({
-            box_id: Number(box.barcode),
-            invoice_id: invoice.id,
-            created_by: userId,
-            created_date: dateStr,
-            created_time: timeStr,
-            status: 'used',
+        await this.invoiceRepo.manager.transaction(async (transactionManager) => {
+            const invoiceBox = transactionManager.create(entities_1.InvoiceBox, {
+                box_id: Number(box.barcode),
+                invoice_id: invoice.id,
+                created_by: userId,
+                created_date: dateStr,
+                created_time: timeStr,
+                status: 'pending',
+            });
+            await transactionManager.save(entities_1.InvoiceBox, invoiceBox);
+            box.status = 'used';
+            await transactionManager.save(entities_1.Box, box);
+            for (const bp of boxPackings) {
+                bp.status = 'used';
+                await transactionManager.save(entities_1.BoxPacking, bp);
+            }
         });
-        await this.invoiceBoxRepo.save(invoiceBox);
-        box.status = 'used';
-        await this.boxRepo.save(box);
         return { success: true, message: 'Box Added to Invoice Successfully' };
+    }
+    async lockInvoice(invoiceId) {
+        const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
+        if (!invoice)
+            throw new common_1.NotFoundException('Invoice not found');
+        invoice.lock_status = 'yes';
+        await this.invoiceRepo.save(invoice);
+        return { success: true, lock_status: 'yes', message: 'Invoice Locked Successfully' };
     }
     async delete(id) {
         const invoice = await this.invoiceRepo.findOne({ where: { id } });

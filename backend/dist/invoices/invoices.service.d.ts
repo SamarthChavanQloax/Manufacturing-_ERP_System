@@ -31,12 +31,38 @@ export declare class InvoicesService {
     }[]>;
     findOne(id: number): Promise<{
         invoice: Invoice;
-        part: Part;
+        part: {
+            part_number: string;
+            id: number;
+            part_description: string;
+            qty: number;
+            customer_id: number;
+            revision_date: string;
+            customer_part_id: number;
+            revision_no: string;
+            diagram: string;
+            model: string;
+            part_family: string;
+            created_id: number;
+            date: string;
+            time: string;
+            timestamp: Date;
+            deleted: number;
+            revision_remark: string;
+            hsn_code: string;
+            uom: string;
+            safety_stock: string;
+        };
         total_part_qty: number;
         boxes: any[];
     }>;
     addBoxToInvoice(invoiceId: number, boxBarcode: string, userId: number): Promise<{
         success: boolean;
+        message: string;
+    }>;
+    lockInvoice(invoiceId: number): Promise<{
+        success: boolean;
+        lock_status: string;
         message: string;
     }>;
     delete(id: number): Promise<import("typeorm").DeleteResult>;

@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import { ArrowLeft, Box, CheckCircle } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Lock, X } from 'lucide-react';
+import { BarcodeCard } from '../components/BarcodeCard';
 
 export const AddBoxToInvoicePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<any>(null);
   const [boxBarcode, setBoxBarcode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [lockModalOpen, setLockModalOpen] = useState(false);
 
   const fetchInvoiceDetails = async () => {
     setLoading(true);
@@ -27,12 +29,14 @@ export const AddBoxToInvoicePage: React.FC = () => {
 
   const handleAddBox = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!boxBarcode.trim()) return;
+    const barcodeVal = boxBarcode.trim() || (e.currentTarget?.querySelector('input') as HTMLInputElement)?.value?.trim() || (document.querySelector('input[placeholder*="Box Barcode"]') as HTMLInputElement)?.value?.trim();
+    console.log('[CLIENT LOG] handleAddBox called:', { boxBarcode, barcodeVal, id });
+    if (!barcodeVal) return;
 
     try {
       await api.post('/invoices/add-box', {
         invoice_id: Number(id),
-        box_id: boxBarcode.trim(),
+        box_id: barcodeVal,
       });
       alert('Box Added to Invoice Successfully');
       setBoxBarcode('');
@@ -42,12 +46,25 @@ export const AddBoxToInvoicePage: React.FC = () => {
     }
   };
 
+  const handleLockInvoice = async () => {
+    try {
+      await api.post('/invoices/lock', { invoice_id: Number(id) });
+      alert('Invoice Locked Successfully');
+      setLockModalOpen(false);
+      fetchInvoiceDetails();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error locking invoice');
+    }
+  };
+
   if (!data && loading) {
     return <div style={{ padding: '30px', textAlign: 'center' }}>Loading invoice details...</div>;
   }
 
   const invoice = data?.invoice;
-  const isFulfilled = data?.total_part_qty >= invoice?.qty;
+  const totalPartQty = data?.total_part_qty || 0;
+  const isLocked = invoice?.lock_status === 'yes';
+  const isMatched = totalPartQty === invoice?.qty;
 
   return (
     <div>
@@ -68,28 +85,92 @@ export const AddBoxToInvoicePage: React.FC = () => {
 
       <div className="content-body">
         <div className="card">
-          <div className="card-header">
-            {/* Box Barcode Scan input */}
-            <form onSubmit={handleAddBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
-              <div style={{ width: '260px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                  Scan Box Barcode
-                </label>
-                <input
-                  type="text"
-                  required
-                  placeholder="Enter Box Barcode (e.g. 200000)"
-                  className="form-control"
-                  value={boxBarcode}
-                  onChange={(e) => setBoxBarcode(e.target.value)}
-                  autoFocus
+          <div
+            className="card-header"
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'flex-start',
+              flexWrap: 'wrap',
+              gap: '20px',
+            }}
+          >
+            {/* Left Controls: Scan or Lock or Status */}
+            <div>
+              {!isLocked && !isMatched && (
+                <form onSubmit={handleAddBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
+                  <div style={{ width: '260px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                      Scan Box Barcode
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter Box Barcode (e.g. 200000)"
+                      className="form-control"
+                      value={boxBarcode}
+                      onChange={(e) => setBoxBarcode(e.target.value)}
+                      autoFocus
+                    />
+                  </div>
+
+                  <button type="submit" id="btn-add-box-to-invoice" className="btn btn-danger" style={{ height: '38px' }}>
+                    Submit
+                  </button>
+                </form>
+              )}
+
+              {!isLocked && isMatched && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                  <div style={{ fontSize: '15px', fontWeight: 600, color: '#16a34a' }}>
+                    Status : Invoice Qty Matched
+                  </div>
+                  <button
+                    type="button"
+                    id="btn-lock-invoice"
+                    onClick={() => setLockModalOpen(true)}
+                    className="btn btn-primary"
+                    style={{ height: '38px', display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <Lock size={15} /> Lock Invoice
+                  </button>
+                </div>
+              )}
+
+              {isLocked && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: '#065f46',
+                    background: '#d1fae5',
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    fontWeight: 600,
+                    fontSize: '15px',
+                  }}
+                >
+                  <CheckCircle size={20} />
+                  <span>Status : Invoice Locked !!</span>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Printable Invoice Barcode Sticker when locked */}
+            {isLocked && invoice && (
+              <div style={{ textAlign: 'right' }}>
+                <BarcodeCard
+                  partNumber={data?.part?.part_number || ''}
+                  qty={totalPartQty}
+                  dateStr={invoice.created_time}
+                  timeStr={invoice.created_date}
+                  barcode={invoice.barcode}
+                  invoiceNumber={invoice.invoice_number}
+                  isInvoice={true}
                 />
               </div>
-
-              <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
-                Submit
-              </button>
-            </form>
+            )}
           </div>
 
           <div className="card-body">
@@ -123,7 +204,7 @@ export const AddBoxToInvoicePage: React.FC = () => {
               <div>
                 <span style={{ fontSize: '12px', color: '#64748b' }}>Target Part:</span>
                 <div style={{ fontSize: '15px', fontWeight: 600, color: '#0f172a' }}>
-                  {data?.part?.part_number}
+                  {data?.part?.part_number} {data?.part?.part_description ? ` / ${data.part.part_description}` : ''}
                 </div>
               </div>
 
@@ -135,15 +216,15 @@ export const AddBoxToInvoicePage: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>Currently Packed Qty:</span>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>Added Box Qty:</span>
                 <div
                   style={{
                     fontSize: '18px',
                     fontWeight: 700,
-                    color: isFulfilled ? '#16a34a' : '#ea580c',
+                    color: totalPartQty === invoice?.qty ? '#16a34a' : '#ea580c',
                   }}
                 >
-                  {data?.total_part_qty || 0} / {invoice?.qty} Pcs
+                  {totalPartQty} / {invoice?.qty} Pcs
                 </div>
               </div>
             </div>
@@ -160,7 +241,7 @@ export const AddBoxToInvoicePage: React.FC = () => {
                     <th style={{ width: '70px' }}>Sr. No.</th>
                     <th>Box Barcode</th>
                     <th>Box Name (Part)</th>
-                    <th>Quantity</th>
+                    <th>Total Part Qty</th>
                     <th>Date Mapped</th>
                   </tr>
                 </thead>
@@ -188,6 +269,41 @@ export const AddBoxToInvoicePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Lock Invoice Modal matching legacy */}
+      {lockModalOpen && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <h5 className="modal-title">Lock Invoice</h5>
+              <button
+                type="button"
+                onClick={() => setLockModalOpen(false)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '15px', color: '#374151' }}>
+                Are You Sure Want To Lock This Invoice ? Once locked, the invoice is finalized and ready for Gate Pass verification.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => setLockModalOpen(false)}
+                className="btn btn-secondary"
+              >
+                Close
+              </button>
+              <button type="button" id="btn-confirm-lock-invoice" onClick={handleLockInvoice} className="btn btn-primary">
+                Save changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -36,14 +36,21 @@ export const CreatePackingPage: React.FC = () => {
 
   const handleCreatePacking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartId) {
+    const form = e.currentTarget as HTMLFormElement;
+    const partSelect = form?.querySelector('select') as HTMLSelectElement;
+    const qtyInput = form?.querySelector('input[type="number"]') as HTMLInputElement;
+
+    const pId = selectedPartId || (partSelect?.value ? Number(partSelect.value) : '');
+    const qVal = partQty || (qtyInput?.value ? Number(qtyInput.value) : 1);
+
+    if (!pId) {
       alert('Please select a part');
       return;
     }
     try {
       const res = await api.post('/packing/single', {
-        part_id: selectedPartId,
-        part_qty: partQty,
+        part_id: pId,
+        part_qty: qVal,
       });
       setCreatedBarcode(res.data);
       setModalOpen(false);

@@ -1,0 +1,33 @@
+{
+  "runId": "RETEST-1789810496295",
+  "timestamp": "2026-09-19T09:34:56.295Z",
+  "partId": 1825,
+  "partNumber": "D16.064.34.0.PR",
+  "customerId": 1,
+  "customerName": "Mahindra & Mahindra",
+  "packingId": 235,
+  "packingBarcode": "100231",
+  "boxId": 30,
+  "boxBarcode": "200028",
+  "invoiceId": 23,
+  "invoiceNumber": "INV-RETEST-496216",
+  "invoiceBarcode": "300020",
+  "matchId": 12,
+  "clearanceCode": "INV-RETEST-496216400012",
+  "startingStock": {
+    "id": 1825,
+    "part_number": "D16.064.34.0.PR",
+    "part_description": "S SJOINT",
+    "fg_stock": "25",
+    "box_stock": "5",
+    "inv_stock": 30
+  },
+  "endingStock": {
+    "id": 1825,
+    "part_number": "D16.064.34.0.PR",
+    "part_description": "S SJOINT",
+    "fg_stock": "25",
+    "box_stock": "5",
+    "inv_stock": 30
+  }
+}

@@ -80,9 +80,9 @@ export const ViewPackingByIdPage: React.FC = () => {
                       <tr>
                         <td>1</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>
-                          {packing.part?.part_number || '—'}
+                          {packing.part_number || packing.part?.part_number || '—'}
                         </td>
-                        <td>{packing.part?.part_description || '—'}</td>
+                        <td>{packing.part_description || packing.part?.part_description || '—'}</td>
                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#0284c7' }}>
                           {packing.part_qty}
                         </td>
@@ -120,10 +120,10 @@ export const ViewPackingByIdPage: React.FC = () => {
                   </h4>
                   <BarcodeCard
                     barcode={packing.barcode}
-                    partNumber={packing.part?.part_number || ''}
+                    partNumber={packing.part_number || packing.part?.part_number || ''}
                     qty={packing.part_qty}
                     dateStr={packing.created_time || ''}
-                    customerName={packing.part?.customer?.customer_name || 'Talbros Automotive'}
+                    isBox={false}
                   />
                 </div>
               </div>

@@ -31,7 +31,11 @@ let InvoicesController = class InvoicesController {
         return this.invoicesService.findOne(Number(id));
     }
     async addBox(body, req) {
-        return this.invoicesService.addBoxToInvoice(Number(body.invoice_id), String(body.box_id), req.user.userId);
+        const boxBarcode = body.box_id || body.box_barcode || '';
+        return this.invoicesService.addBoxToInvoice(Number(body.invoice_id), String(boxBarcode), req.user.userId);
+    }
+    async lockInvoice(body) {
+        return this.invoicesService.lockInvoice(Number(body.invoice_id));
     }
     async delete(id) {
         return this.invoicesService.delete(Number(id));
@@ -73,6 +77,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], InvoicesController.prototype, "addBox", null);
+__decorate([
+    (0, common_1.Post)('lock'),
+    (0, roles_decorator_1.Roles)('admin', 'invoice'),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], InvoicesController.prototype, "lockInvoice", null);
 __decorate([
     (0, common_1.Delete)(':id'),
     (0, roles_decorator_1.Roles)('admin', 'invoice'),
