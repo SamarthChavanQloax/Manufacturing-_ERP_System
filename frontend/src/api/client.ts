@@ -1,7 +1,17 @@
 import axios from 'axios';
 
+// Resolve API base URL:
+// 1. If VITE_API_URL is provided (e.g. on Vercel pointing to Render: 'https://xxx.onrender.com' or 'https://xxx.onrender.com/api')
+//    normalize it so it always targets the '/api' prefix.
+// 2. If VITE_API_URL is omitted (local dev), fallback to '/api' so Vite proxy handles it.
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim();
+const normalizedApiUrl = rawApiUrl.replace(/\/+$/, '');
+const baseURL = normalizedApiUrl
+  ? (normalizedApiUrl.endsWith('/api') ? normalizedApiUrl : `${normalizedApiUrl}/api`)
+  : '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL,
   headers: {
     'Content-Type': 'application/json',
   },

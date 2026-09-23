@@ -21,7 +21,9 @@ const invoices_module_1 = require("./invoices/invoices.module");
 const verification_module_1 = require("./verification/verification.module");
 const reports_module_1 = require("./reports/reports.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
+const health_controller_1 = require("./health/health.controller");
 dotenv.config();
+const isSslEnabled = process.env.DB_SSL === 'true';
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -30,11 +32,16 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             typeorm_1.TypeOrmModule.forRoot({
                 type: 'mysql',
-                host: process.env.DB_HOST || '127.0.0.1',
-                port: Number(process.env.DB_PORT) || 3306,
-                username: process.env.DB_USER || 'root',
-                password: process.env.DB_PASS || 'Outlook@123',
-                database: process.env.DB_NAME || 'barcode',
+                ...(process.env.DATABASE_URL
+                    ? { url: process.env.DATABASE_URL }
+                    : {
+                        host: process.env.DB_HOST || '127.0.0.1',
+                        port: Number(process.env.DB_PORT) || 3306,
+                        username: process.env.DB_USER || 'root',
+                        password: process.env.DB_PASS || 'Outlook@123',
+                        database: process.env.DB_NAME || 'barcode',
+                    }),
+                ssl: isSslEnabled ? { rejectUnauthorized: false } : undefined,
                 entities: [
                     entities_1.UserInfo,
                     entities_1.Part,
@@ -60,6 +67,7 @@ exports.AppModule = AppModule = __decorate([
             reports_module_1.ReportsModule,
             dashboard_module_1.DashboardModule,
         ],
+        controllers: [health_controller_1.HealthController],
     })
 ], AppModule);
 //# sourceMappingURL=app.module.js.map
