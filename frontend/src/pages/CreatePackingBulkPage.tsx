@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Plus, X, Printer, Download } from 'lucide-react';
 import { BarcodeCard } from '../components/BarcodeCard';
+import { BarcodeInlineTable } from '../components/BarcodeInlineTable';
 import html2canvas from 'html2canvas';
 
 export const CreatePackingBulkPage: React.FC = () => {
@@ -58,10 +59,10 @@ export const CreatePackingBulkPage: React.FC = () => {
   const handlePrintAll = () => {
     if (!bulkTickets || bulkTickets.length === 0) return;
 
-    // Collect the inner HTML of every barcode card
+    // Collect the outer HTML of every barcode card
     const cardsHtml = bulkTickets.map((t) => {
       const el = document.getElementById(`barcode-card-${t.barcode}`);
-      return el ? `<div class="sticker">${el.innerHTML}</div>` : '';
+      return el ? `<div style="page-break-inside: avoid;">${el.outerHTML}</div>` : '';
     }).join('');
 
     const win = window.open('', '_blank', 'width=1000,height=800');
@@ -73,20 +74,9 @@ export const CreatePackingBulkPage: React.FC = () => {
           <title>Bulk Barcodes</title>
           <style>
             @page { size: A4; margin: 10mm; }
-            body { margin: 0; padding: 10px; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+            body { margin: 0; padding: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
             .grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start; }
-            .sticker {
-              border: 2px solid #cbd5e1;
-              border-top: 6px solid #2563eb;
-              border-radius: 10px;
-              padding: 16px;
-              width: 280px;
-              box-sizing: border-box;
-              page-break-inside: avoid;
-              background: #fff;
-              font-size: 12px;
-              color: #0f172a;
-            }
             svg { width: 100%; height: 55px; display: block; }
           </style>
         </head>
@@ -203,25 +193,8 @@ export const CreatePackingBulkPage: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div
-              className="card-body"
-              style={{
-                display: 'flex',
-                flexWrap: 'wrap',
-                gap: '16px',
-                justifyContent: 'center',
-                background: '#fafafa',
-              }}
-            >
-              {bulkTickets.map((ticket, idx) => (
-                <BarcodeCard
-                  key={ticket.id || idx}
-                  partNumber={ticket.part_number}
-                  qty={ticket.part_qty}
-                  dateStr={ticket.created_time}
-                  barcode={ticket.barcode}
-                />
-              ))}
+            <div className="card-body">
+              <BarcodeInlineTable barcodes={bulkTickets} parts={parts} />
             </div>
           </div>
         )}

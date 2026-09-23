@@ -58,12 +58,13 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
       <style>
         @page { size: auto; margin: 5mm; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 5px; }
-        .barcode-card { max-width: 320px; font-weight: bold; font-size: 15px; line-height: 1.4; color: #000; }
+        * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        .barcode-card { width: 320px; font-weight: bold; font-size: 15px; line-height: 1.4; color: #000; }
         svg { width: 100%; max-height: 60px; margin: 5px 0; }
       </style>
     `);
     win.document.write('</head><body>');
-    win.document.write('<div class="barcode-card">' + printContent.innerHTML + '</div>');
+    win.document.write('<div class="barcode-card">' + printContent.outerHTML + '</div>');
     win.document.write('</body></html>');
     win.document.close();
     win.focus();

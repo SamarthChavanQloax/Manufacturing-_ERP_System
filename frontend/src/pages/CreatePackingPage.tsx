@@ -3,6 +3,7 @@ import api from '../api/client';
 import { Plus, X, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarcodeCard } from '../components/BarcodeCard';
+import { BarcodeInlineTable } from '../components/BarcodeInlineTable';
 
 export const CreatePackingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -99,13 +100,8 @@ export const CreatePackingPage: React.FC = () => {
                 Dismiss
               </button>
             </div>
-            <div className="card-body" style={{ textAlign: 'center' }}>
-              <BarcodeCard
-                partNumber={createdBarcode.part_number}
-                qty={createdBarcode.part_qty}
-                dateStr={createdBarcode.created_time}
-                barcode={createdBarcode.barcode}
-              />
+            <div className="card-body">
+              <BarcodeInlineTable barcodes={[createdBarcode]} parts={parts} />
             </div>
           </div>
         )}
