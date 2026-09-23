@@ -12,7 +12,7 @@ export const CreatePackingPage: React.FC = () => {
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<number | ''>('');
-  const [partQty, setPartQty] = useState<number>(1);
+  const [partQty, setPartQty] = useState<number | string>(0);
   const [createdBarcode, setCreatedBarcode] = useState<any | null>(null);
 
   const fetchParts = async () => {
@@ -75,11 +75,11 @@ export const CreatePackingPage: React.FC = () => {
     <div>
       {/* Content Header matching screenshot 06_create_packing.png */}
       <div className="content-header">
-        <h1>Part Master</h1>
+        <h1>Create Packing</h1>
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Part Master</span>
+          <span style={{ color: '#212529', fontWeight: 600 }}>Create Packing</span>
         </div>
       </div>
 
@@ -261,8 +261,10 @@ export const CreatePackingPage: React.FC = () => {
                     required
                     min={1}
                     className="form-control"
-                    value={partQty}
-                    onChange={(e) => setPartQty(Number(e.target.value))}
+                    value={partQty === 0 ? '' : partQty}
+                    onFocus={() => { if (partQty === 0) setPartQty(''); }}
+                    onBlur={() => { if (partQty === '') setPartQty(0); }}
+                    onChange={(e) => setPartQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 </div>
               </div>

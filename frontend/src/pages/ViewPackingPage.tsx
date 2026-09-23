@@ -79,11 +79,11 @@ export const ViewPackingPage: React.FC = () => {
     <div>
       {/* Content Header matching screenshot 08_view_packing.png */}
       <div className="content-header">
-        <h1>Part Master</h1>
+        <h1>Packing Ledger</h1>
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Part Master</span>
+          <span style={{ color: '#212529', fontWeight: 600 }}>Packing Ledger</span>
         </div>
       </div>
 

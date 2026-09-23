@@ -242,6 +242,7 @@ export const AddBoxToInvoicePage: React.FC = () => {
                     <th>Box Barcode</th>
                     <th>Box Name (Part)</th>
                     <th>Total Part Qty</th>
+                    <th style={{ width: '100px' }}>Status</th>
                     <th>Date Mapped</th>
                   </tr>
                 </thead>
@@ -259,6 +260,11 @@ export const AddBoxToInvoicePage: React.FC = () => {
                         <td style={{ fontWeight: 600, color: '#0284c7' }}>{b.box_barcode}</td>
                         <td>{b.box_name}</td>
                         <td style={{ fontWeight: 600, color: '#16a34a' }}>{b.box_qty}</td>
+                        <td>
+                          <span className={`badge badge-used`}>
+                            {b.status || 'used'}
+                          </span>
+                        </td>
                         <td>{b.created_date}</td>
                       </tr>
                     ))

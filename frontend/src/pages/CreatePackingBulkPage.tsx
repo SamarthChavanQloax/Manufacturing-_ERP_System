@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, X, Printer } from 'lucide-react';
+import { Plus, X, Printer, Download } from 'lucide-react';
 import { BarcodeCard } from '../components/BarcodeCard';
+import html2canvas from 'html2canvas';
 
 export const CreatePackingBulkPage: React.FC = () => {
   const [parts, setParts] = useState<any[]>([]);
@@ -10,8 +11,8 @@ export const CreatePackingBulkPage: React.FC = () => {
   // Modal State
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPartId, setSelectedPartId] = useState<number | ''>('');
-  const [partQty, setPartQty] = useState<number>(1);
-  const [packingQty, setPackingQty] = useState<number>(5);
+  const [partQty, setPartQty] = useState<number | string>(0);
+  const [packingQty, setPackingQty] = useState<number | string>(0);
 
   // Bulk generated tickets
   const [bulkTickets, setBulkTickets] = useState<any[] | null>(null);
@@ -55,7 +56,91 @@ export const CreatePackingBulkPage: React.FC = () => {
   };
 
   const handlePrintAll = () => {
-    window.print();
+    if (!bulkTickets || bulkTickets.length === 0) return;
+
+    // Collect the inner HTML of every barcode card
+    const cardsHtml = bulkTickets.map((t) => {
+      const el = document.getElementById(`barcode-card-${t.barcode}`);
+      return el ? `<div class="sticker">${el.innerHTML}</div>` : '';
+    }).join('');
+
+    const win = window.open('', '_blank', 'width=1000,height=800');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Bulk Barcodes</title>
+          <style>
+            @page { size: A4; margin: 10mm; }
+            body { margin: 0; padding: 10px; background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; }
+            .grid { display: flex; flex-wrap: wrap; gap: 16px; justify-content: flex-start; }
+            .sticker {
+              border: 2px solid #cbd5e1;
+              border-top: 6px solid #2563eb;
+              border-radius: 10px;
+              padding: 16px;
+              width: 280px;
+              box-sizing: border-box;
+              page-break-inside: avoid;
+              background: #fff;
+              font-size: 12px;
+              color: #0f172a;
+            }
+            svg { width: 100%; height: 55px; display: block; }
+          </style>
+        </head>
+        <body>
+          <div class="grid">${cardsHtml}</div>
+          <script>window.onload = () => { window.print(); window.onafterprint = () => window.close(); }<\/script>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  };
+
+  const handleDownloadAll = async () => {
+    if (!bulkTickets || bulkTickets.length === 0) return;
+    try {
+      // Create a temporary container
+      const container = document.createElement('div');
+      container.style.position = 'absolute';
+      container.style.left = '-9999px';
+      container.style.top = '0';
+      container.style.background = '#fff';
+      container.style.display = 'flex';
+      container.style.flexWrap = 'wrap';
+      container.style.width = '800px';
+      container.style.gap = '20px';
+      container.style.padding = '20px';
+      
+      // Clone all barcode elements to it
+      for (const t of bulkTickets) {
+        const el = document.getElementById(`barcode-card-${t.barcode}`);
+        if (el) {
+          const clone = el.cloneNode(true) as HTMLElement;
+          container.appendChild(clone);
+        }
+      }
+      
+      document.body.appendChild(container);
+      
+      // Render entire container
+      const canvas = await html2canvas(container, { scale: 1.5, useCORS: true, backgroundColor: '#ffffff' });
+      const image = canvas.toDataURL('image/png', 1.0);
+      
+      // Cleanup
+      document.body.removeChild(container);
+      
+      // Download
+      const link = document.createElement('a');
+      link.href = image;
+      link.download = `Bulk_Barcodes_${new Date().getTime()}.png`;
+      link.click();
+    } catch (err) {
+      console.error('Error generating bulk image', err);
+      alert('Error generating download.');
+    }
   };
 
   const [search, setSearch] = useState('');
@@ -100,6 +185,14 @@ export const CreatePackingBulkPage: React.FC = () => {
                   className="btn btn-sm btn-danger"
                 >
                   <Printer size={14} /> Print All
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownloadAll}
+                  className="btn btn-sm btn-success"
+                  style={{ background: '#10b981', border: 'none' }}
+                >
+                  <Download size={14} /> Download All
                 </button>
                 <button
                   type="button"
@@ -284,8 +377,10 @@ export const CreatePackingBulkPage: React.FC = () => {
                     required
                     min={1}
                     className="form-control"
-                    value={partQty}
-                    onChange={(e) => setPartQty(Number(e.target.value))}
+                    value={partQty === 0 ? '' : partQty}
+                    onFocus={() => { if (partQty === 0) setPartQty(''); }}
+                    onBlur={() => { if (partQty === '') setPartQty(0); }}
+                    onChange={(e) => setPartQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 </div>
 
@@ -297,8 +392,10 @@ export const CreatePackingBulkPage: React.FC = () => {
                     min={1}
                     max={50}
                     className="form-control"
-                    value={packingQty}
-                    onChange={(e) => setPackingQty(Number(e.target.value))}
+                    value={packingQty === 0 ? '' : packingQty}
+                    onFocus={() => { if (packingQty === 0) setPackingQty(''); }}
+                    onBlur={() => { if (packingQty === '') setPackingQty(0); }}
+                    onChange={(e) => setPackingQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 </div>
               </div>

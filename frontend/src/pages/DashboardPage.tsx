@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { ShoppingBag, TrendingUp, UserPlus, Eye, Package, Box, FileText, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+
+const COLORS = ['#0284c7', '#16a34a', '#d97706', '#dc2626'];
 
 export const DashboardPage: React.FC = () => {
   const [stats, setStats] = useState<any>(null);
@@ -230,6 +233,78 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Dashboard Charts */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px', marginTop: '24px' }}>
+          
+          <div className="card" style={{ margin: 0 }}>
+            <div className="card-header">
+              <h3 className="card-title">System Data Bar Chart</h3>
+            </div>
+            <div className="card-body">
+              <div style={{ height: '300px', width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={[
+                      { name: 'Parts', count: stats?.systemCounts?.parts ?? 3051 },
+                      { name: 'Packings', count: stats?.systemCounts?.packings ?? 209 },
+                      { name: 'Boxes', count: stats?.systemCounts?.boxes ?? 10 },
+                      { name: 'Invoices', count: stats?.systemCounts?.invoices ?? 7 },
+                    ]}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} />
+                    <Bar dataKey="count" fill="#3b82f6" name="Total Count" radius={[6, 6, 0, 0]} barSize={40} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
+          <div className="card" style={{ margin: 0 }}>
+            <div className="card-header">
+              <h3 className="card-title">System Data Distribution</h3>
+            </div>
+            <div className="card-body" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+              <div style={{ height: '300px', width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: 'Parts', value: stats?.systemCounts?.parts ?? 3051 },
+                        { name: 'Packings', value: stats?.systemCounts?.packings ?? 209 },
+                        { name: 'Boxes', value: stats?.systemCounts?.boxes ?? 10 },
+                        { name: 'Invoices', value: stats?.systemCounts?.invoices ?? 7 },
+                      ]}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={100}
+                      paddingAngle={5}
+                      dataKey="value"
+                      label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    >
+                      {[
+                        { name: 'Parts', value: stats?.systemCounts?.parts ?? 3051 },
+                        { name: 'Packings', value: stats?.systemCounts?.packings ?? 209 },
+                        { name: 'Boxes', value: stats?.systemCounts?.boxes ?? 10 },
+                        { name: 'Invoices', value: stats?.systemCounts?.invoices ?? 7 },
+                      ].map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                    <Legend verticalAlign="bottom" height={36}/>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

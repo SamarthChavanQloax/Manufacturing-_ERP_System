@@ -50,6 +50,69 @@ export const GateOutReportPage: React.FC = () => {
     exportToExcel(exportData, 'Gate_Out_Report', 'Gate Out Report');
   };
 
+  const handlePrintReport = () => {
+    const rows = filtered;
+    if (rows.length === 0) { alert('No data to print.'); return; }
+
+    const rowsHtml = rows.map((r, idx) => `
+      <tr>
+        <td>${idx + 1}</td>
+        <td><strong>${r.invoice_number || ''}</strong></td>
+        <td style="color:#0284c7;font-weight:700">${r.part_number || ''}</td>
+        <td>${r.part_description || ''}</td>
+        <td><strong>${r.qty || 0}</strong></td>
+        <td style="color:#16a34a;font-weight:700">${r.gateout_code || ''}</td>
+        <td>${r.gateout_date || ''}</td>
+      </tr>
+    `).join('');
+
+    const win = window.open('', '_blank', 'width=1200,height=800');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Gate Out Report</title>
+          <style>
+            @page { size: A4 landscape; margin: 10mm; }
+            body { margin: 0; padding: 16px; font-family: Arial, sans-serif; font-size: 12px; color: #000; background: #fff; }
+            h2 { margin: 0 0 4px 0; font-size: 18px; color: #1e3a5f; }
+            p.subtitle { margin: 0 0 14px 0; font-size: 12px; color: #555; }
+            table { width: 100%; border-collapse: collapse; }
+            thead tr { background: #1e3a5f; }
+            th { color: #fff; padding: 9px 10px; text-align: left; font-weight: 700; font-size: 12px; }
+            td { padding: 7px 10px; border-bottom: 1px solid #e5e7eb; font-size: 12px; }
+            tbody tr:nth-child(even) td { background: #f8fafc; }
+            tfoot td { font-weight: 700; padding: 9px 10px; border-top: 2px solid #1e3a5f; }
+          </style>
+        </head>
+        <body>
+          <h2>Gate Out Report</h2>
+          <p class="subtitle">Printed on: ${new Date().toLocaleString('en-IN')} &nbsp;|&nbsp; Total Records: ${rows.length}</p>
+          <table>
+            <thead>
+              <tr>
+                <th>Sr. No.</th>
+                <th>Invoice No</th>
+                <th>Part Code</th>
+                <th>Part Description</th>
+                <th>Qty</th>
+                <th>Gateout Code</th>
+                <th>Gate Out Date</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+            <tfoot>
+              <tr><td colspan="4">Total Records: ${rows.length}</td><td>${rows.reduce((s, r) => s + (Number(r.qty) || 0), 0)}</td><td colspan="2"></td></tr>
+            </tfoot>
+          </table>
+          <script>window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; }<\/script>
+        </body>
+      </html>
+    `);
+    win.document.close();
+  };
+
   return (
     <div>
       {/* Content Header matching screenshot 13_gate_out_report.png */}
@@ -77,7 +140,7 @@ export const GateOutReportPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => window.print()}
+                onClick={handlePrintReport}
                 className="btn btn-sm btn-primary"
                 style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
               >
