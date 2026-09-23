@@ -34,6 +34,10 @@ let PackingService = class PackingService {
             throw new common_1.BadRequestException('Part not found');
         if (!partQty || partQty <= 0)
             throw new common_1.BadRequestException('Invalid quantity');
+        const availableStock = Number(part.qty) || 0;
+        if (partQty > availableStock) {
+            throw new common_1.BadRequestException(`You don't have enough stock! Available stock is ${availableStock}, but requested is ${partQty}.`);
+        }
         const count = await this.packingRepo.count();
         const barcode = String(100000 + count);
         const { dateStr, timeStr } = this.getLegacyDateTime();
@@ -48,8 +52,11 @@ let PackingService = class PackingService {
             packing_name: '',
         });
         const saved = await this.packingRepo.save(packing);
+        part.qty = Math.max(0, availableStock - partQty);
+        await this.partRepo.save(part);
         return {
             ...saved,
+            remaining_stock: part.qty,
             part_number: part.part_number,
             part_description: part.part_description,
         };
@@ -62,6 +69,11 @@ let PackingService = class PackingService {
             throw new common_1.BadRequestException('Invalid part quantity');
         if (!packingQty || packingQty <= 0)
             throw new common_1.BadRequestException('Invalid packing bulk quantity');
+        const totalRequired = partQty * packingQty;
+        const availableStock = Number(part.qty) || 0;
+        if (totalRequired > availableStock) {
+            throw new common_1.BadRequestException(`You don't have enough stock! Available stock is ${availableStock}, but requested is ${totalRequired} (${packingQty} items × ${partQty}).`);
+        }
         const createdItems = [];
         const { dateStr, timeStr } = this.getLegacyDateTime();
         for (let i = 0; i < packingQty; i++) {
@@ -84,6 +96,8 @@ let PackingService = class PackingService {
                 part_description: part.part_description,
             });
         }
+        part.qty = Math.max(0, availableStock - totalRequired);
+        await this.partRepo.save(part);
         return createdItems;
     }
     async findAll(fromDate, toDate) {
@@ -145,6 +159,11 @@ let PackingService = class PackingService {
         const item = await this.packingRepo.findOne({ where: { id } });
         if (!item)
             throw new common_1.NotFoundException('Packing record not found');
+        const part = await this.partRepo.findOne({ where: { id: item.part_id } });
+        if (part) {
+            part.qty = (Number(part.qty) || 0) + Number(item.part_qty || 0);
+            await this.partRepo.save(part);
+        }
         return this.packingRepo.delete(id);
     }
 };

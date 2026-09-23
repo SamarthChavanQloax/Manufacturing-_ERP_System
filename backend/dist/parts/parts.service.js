@@ -96,6 +96,7 @@ let PartsService = class PartsService {
         p.id,
         p.part_number,
         p.part_description,
+        COALESCE(p.qty, 0) AS remaining_stock,
         COALESCE(pack.fg_stock, 0) AS fg_stock,
         COALESCE(boxp.box_stock, 0) AS box_stock,
         COALESCE(inv.inv_stock, 0) AS inv_stock
@@ -127,8 +128,30 @@ let PartsService = class PartsService {
             ...item,
             part_number: (item.part_number || '').trim(),
             part_description: (item.part_description || '').trim(),
+            remaining_stock: Number(item.remaining_stock) || 0,
+            fg_stock: Number(item.fg_stock) || 0,
+            box_stock: Number(item.box_stock) || 0,
+            inv_stock: Number(item.inv_stock) || 0,
         }));
         return { items: cleanedItems, total };
+    }
+    async update(id, data) {
+        const part = await this.partRepo.findOne({ where: { id } });
+        if (!part)
+            throw new common_1.BadRequestException('Part not found');
+        if (data.part_number !== undefined && data.part_number.trim()) {
+            part.part_number = data.part_number.trim();
+        }
+        if (data.part_desc !== undefined) {
+            part.part_description = data.part_desc.trim();
+        }
+        if (data.qty !== undefined) {
+            const q = Number(data.qty);
+            if (isNaN(q) || q < 0)
+                throw new common_1.BadRequestException('Quantity must be 0 or greater');
+            part.qty = q;
+        }
+        return this.partRepo.save(part);
     }
 };
 exports.PartsService = PartsService;

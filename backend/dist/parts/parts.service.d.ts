@@ -21,4 +21,9 @@ export declare class PartsService {
         items: any[];
         total: number;
     }>;
+    update(id: number, data: {
+        part_number?: string;
+        part_desc?: string;
+        qty?: number;
+    }): Promise<Part>;
 }

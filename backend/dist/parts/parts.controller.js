@@ -33,6 +33,9 @@ let PartsController = class PartsController {
     async create(body) {
         return this.partsService.create(body);
     }
+    async update(id, body) {
+        return this.partsService.update(Number(id), body);
+    }
 };
 exports.PartsController = PartsController;
 __decorate([
@@ -70,6 +73,15 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], PartsController.prototype, "create", null);
+__decorate([
+    (0, common_1.Patch)(':id'),
+    (0, roles_decorator_1.Roles)('admin', 'packing'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PartsController.prototype, "update", null);
 exports.PartsController = PartsController = __decorate([
     (0, common_1.Controller)('api/parts'),
     (0, common_1.UseGuards)(guards_1.JwtAuthGuard, guards_1.RolesGuard),

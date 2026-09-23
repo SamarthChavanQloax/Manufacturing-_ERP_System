@@ -23,18 +23,26 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { VerificationModule } from './verification/verification.module';
 import { ReportsModule } from './reports/reports.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { HealthController } from './health/health.controller';
 
 dotenv.config();
+
+const isSslEnabled = process.env.DB_SSL === 'true';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: process.env.DB_HOST || '127.0.0.1',
-      port: Number(process.env.DB_PORT) || 3306,
-      username: process.env.DB_USER || 'root',
-      password: process.env.DB_PASS || 'Outlook@123',
-      database: process.env.DB_NAME || 'barcode',
+      ...(process.env.DATABASE_URL
+        ? { url: process.env.DATABASE_URL }
+        : {
+            host: process.env.DB_HOST || '127.0.0.1',
+            port: Number(process.env.DB_PORT) || 3306,
+            username: process.env.DB_USER || 'root',
+            password: process.env.DB_PASS || 'Outlook@123',
+            database: process.env.DB_NAME || 'barcode',
+          }),
+      ssl: isSslEnabled ? { rejectUnauthorized: false } : undefined,
       entities: [
         UserInfo,
         Part,
@@ -60,5 +68,6 @@ dotenv.config();
     ReportsModule,
     DashboardModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
