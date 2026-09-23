@@ -4,6 +4,7 @@ import { Plus, Search, X, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Pagination } from '../components/Pagination';
 import { exportToExcel } from '../utils/excelExport';
+import { BarcodeCard } from '../components/BarcodeCard';
 
 export const PartMasterPage: React.FC = () => {
   const { user } = useAuth();
@@ -18,7 +19,8 @@ export const PartMasterPage: React.FC = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [partNumber, setPartNumber] = useState('');
   const [partDesc, setPartDesc] = useState('');
-  const [qty, setQty] = useState(1);
+  const [qty, setQty] = useState<number | string>(0);
+  const [barcodeModalData, setBarcodeModalData] = useState<any>(null);
 
   const fetchParts = async () => {
     setLoading(true);
@@ -172,6 +174,7 @@ export const PartMasterPage: React.FC = () => {
                     <th>Part Number</th>
                     <th>Part Description</th>
                     <th style={{ width: '120px' }}>Packing Qty</th>
+                    <th style={{ width: '150px' }}>Barcode</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -194,6 +197,15 @@ export const PartMasterPage: React.FC = () => {
                         <td style={{ fontWeight: 600, color: '#111827' }}>{p.part_number}</td>
                         <td>{p.part_description}</td>
                         <td>{p.qty || 1}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => setBarcodeModalData(p)}
+                            className="btn btn-sm btn-info"
+                          >
+                            View / Download
+                          </button>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -258,8 +270,10 @@ export const PartMasterPage: React.FC = () => {
                     required
                     min={1}
                     className="form-control"
-                    value={qty}
-                    onChange={(e) => setQty(Number(e.target.value))}
+                    value={qty === 0 ? '' : qty}
+                    onFocus={() => { if (qty === 0) setQty(''); }}
+                    onBlur={() => { if (qty === '') setQty(0); }}
+                    onChange={(e) => setQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 </div>
               </div>
@@ -276,6 +290,32 @@ export const PartMasterPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Barcode Modal */}
+      {barcodeModalData && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog" style={{ width: 'auto' }}>
+            <div className="modal-header">
+              <h5 className="modal-title">Part Barcode</h5>
+              <button
+                type="button"
+                onClick={() => setBarcodeModalData(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body" style={{ display: 'flex', justifyContent: 'center' }}>
+              <BarcodeCard
+                partNumber={barcodeModalData.part_number}
+                qty={barcodeModalData.qty || 1}
+                dateStr={new Date().toISOString().split('T')[0]}
+                barcode={barcodeModalData.part_number}
+              />
+            </div>
           </div>
         </div>
       )}

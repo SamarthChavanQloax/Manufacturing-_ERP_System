@@ -217,6 +217,7 @@ export const AddPackingToBoxPage: React.FC = () => {
                     <th>Part Number</th>
                     <th>Part Description</th>
                     <th style={{ width: '120px' }}>Quantity</th>
+                    <th style={{ width: '100px' }}>Status</th>
                     <th style={{ width: '130px' }}>Date Added</th>
                   </tr>
                 </thead>
@@ -235,6 +236,11 @@ export const AddPackingToBoxPage: React.FC = () => {
                         <td style={{ fontWeight: 600 }}>{item.part_number}</td>
                         <td>{item.part_description}</td>
                         <td style={{ fontWeight: 600, color: '#16a34a' }}>{item.part_qty}</td>
+                        <td>
+                          <span className={`badge badge-used`}>
+                            {item.status || 'used'}
+                          </span>
+                        </td>
                         <td>{item.created_date}</td>
                       </tr>
                     ))

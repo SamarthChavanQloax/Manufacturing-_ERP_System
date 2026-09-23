@@ -9,7 +9,7 @@ export const CreateInvoicePage: React.FC = () => {
   const [parts, setParts] = useState<any[]>([]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [selectedPartId, setSelectedPartId] = useState<number | ''>('');
-  const [qty, setQty] = useState<number | ''>('');
+  const [qty, setQty] = useState<number | string>(0);
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
@@ -184,10 +184,11 @@ export const CreateInvoicePage: React.FC = () => {
                     type="number"
                     required
                     min={1}
-                    placeholder="Enter QTY"
                     className="form-control"
-                    value={qty}
-                    onChange={(e) => setQty(Number(e.target.value))}
+                    value={qty === 0 ? '' : qty}
+                    onFocus={() => { if (qty === 0) setQty(''); }}
+                    onBlur={() => { if (qty === '') setQty(0); }}
+                    onChange={(e) => setQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
                 </div>
 
@@ -291,6 +292,7 @@ export const CreateInvoicePage: React.FC = () => {
                     <th>Invoice Number</th>
                     <th>Part Number</th>
                     <th>Target Qty</th>
+                    <th style={{ width: '100px' }}>Status</th>
                     <th style={{ width: '120px' }}>Add Boxes</th>
                     <th style={{ width: '140px' }}>Delete</th>
                   </tr>
@@ -315,6 +317,13 @@ export const CreateInvoicePage: React.FC = () => {
                         <td style={{ fontWeight: 600, color: '#111827' }}>{inv.invoice_number}</td>
                         <td>{inv.part_number}</td>
                         <td style={{ fontWeight: 600 }}>{inv.qty}</td>
+                        <td>
+                          <span
+                            className={`badge ${inv.status === 'used' ? 'badge-used' : 'badge-pending'}`}
+                          >
+                            {inv.status || 'pending'}
+                          </span>
+                        </td>
                         <td>
                           <Link
                             to={`/add_box_to_invoice/${inv.id}`}
