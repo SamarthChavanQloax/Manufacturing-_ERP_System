@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards } from '@nestjs/common';
 import { PartsService } from './parts.service';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/roles.decorator';
@@ -38,5 +38,14 @@ export class PartsController {
   @Roles('admin')
   async create(@Body() body: { part_number: string; part_desc: string; qty: number }) {
     return this.partsService.create(body);
+  }
+
+  @Patch(':id')
+  @Roles('admin', 'packing')
+  async update(
+    @Param('id') id: string,
+    @Body() body: { part_number?: string; part_desc?: string; qty?: number },
+  ) {
+    return this.partsService.update(Number(id), body);
   }
 }

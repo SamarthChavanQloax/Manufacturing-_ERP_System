@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, X, Printer, Download } from 'lucide-react';
+import { Plus, X, Printer, Download, AlertCircle } from 'lucide-react';
 import { BarcodeCard } from '../components/BarcodeCard';
 import { BarcodeInlineTable } from '../components/BarcodeInlineTable';
 import html2canvas from 'html2canvas';
@@ -43,6 +43,16 @@ export const CreatePackingBulkPage: React.FC = () => {
       alert('Please select a part');
       return;
     }
+
+    const currentPart = parts.find((p) => p.id === Number(selectedPartId));
+    const availableStock = currentPart ? Number(currentPart.qty ?? 0) : 0;
+    const totalRequired = Number(partQty || 0) * Number(packingQty || 0);
+
+    if (totalRequired > availableStock) {
+      alert(`You don't have enough stock! Available stock is ${availableStock}, but total required is ${totalRequired} (${packingQty} items × ${partQty}).`);
+      return;
+    }
+
     try {
       const res = await api.post('/packing/bulk', {
         part_id: selectedPartId,
@@ -51,6 +61,7 @@ export const CreatePackingBulkPage: React.FC = () => {
       });
       setBulkTickets(res.data);
       setModalOpen(false);
+      fetchParts();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
     }
@@ -264,7 +275,7 @@ export const CreatePackingBulkPage: React.FC = () => {
                     <th style={{ width: '80px' }}>Sr. No.</th>
                     <th>Part Number</th>
                     <th>Part Description</th>
-                    <th style={{ width: '120px' }}>Packing Qty</th>
+                    <th style={{ width: '130px' }}>Remaining Stock</th>
                     <th style={{ width: '120px' }}>Action</th>
                   </tr>
                 </thead>
@@ -281,14 +292,27 @@ export const CreatePackingBulkPage: React.FC = () => {
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600 }}>{p.part_number}</td>
                         <td>{p.part_description}</td>
-                        <td>{p.qty || 1}</td>
+                        <td>
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              color: Number(p.qty) > 0 ? '#15803d' : '#dc2626',
+                              background: Number(p.qty) > 0 ? '#f0fdf4' : '#fef2f2',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12.5px',
+                            }}
+                          >
+                            {p.qty ?? 0}
+                          </span>
+                        </td>
                         <td>
                           <button
                             type="button"
                             onClick={() => {
                               setSelectedPartId(p.id);
-                              setPartQty(p.qty || 1);
-                              setPackingQty(5);
+                              setPartQty(Number(p.qty) > 0 ? Math.min(Number(p.qty), 1) : 1);
+                              setPackingQty(Number(p.qty) >= 5 ? 5 : 1);
                               setModalOpen(true);
                             }}
                             className="btn btn-sm btn-primary"
@@ -337,11 +361,38 @@ export const CreatePackingBulkPage: React.FC = () => {
                     <option value="">-- Select Part --</option>
                     {parts.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.part_number} / {p.part_description}
+                        {p.part_number} / {p.part_description} (Stock: {p.qty ?? 0})
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {selectedPartId !== '' && (() => {
+                  const selPart = parts.find((p) => p.id === Number(selectedPartId));
+                  const stock = selPart ? Number(selPart.qty ?? 0) : 0;
+                  return (
+                    <div
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        background: stock > 0 ? '#f0fdf4' : '#fef2f2',
+                        border: `1px solid ${stock > 0 ? '#bbf7d0' : '#fecaca'}`,
+                        color: stock > 0 ? '#166534' : '#991b1b',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        marginBottom: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>Remaining Part Stock:</span>
+                      <span style={{ fontSize: '15px', fontWeight: 800 }}>
+                        {stock}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 <div className="form-group">
                   <label>Part Qty (Pieces per package) *</label>
@@ -370,6 +421,38 @@ export const CreatePackingBulkPage: React.FC = () => {
                     onBlur={() => { if (packingQty === '') setPackingQty(0); }}
                     onChange={(e) => setPackingQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
+                  {selectedPartId !== '' && (() => {
+                    const selPart = parts.find((p) => p.id === Number(selectedPartId));
+                    const stock = selPart ? Number(selPart.qty ?? 0) : 0;
+                    const totalReq = Number(partQty || 0) * Number(packingQty || 0);
+                    if (totalReq > stock) {
+                      return (
+                        <div
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            marginTop: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                          <span>You don't have enough stock! Available: {stock}, Total Required: {totalReq}</span>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div style={{ marginTop: '6px', fontSize: '12px', color: '#6b7280' }}>
+                        Total parts required: <strong>{totalReq}</strong>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
               <div className="modal-footer">
@@ -380,7 +463,16 @@ export const CreatePackingBulkPage: React.FC = () => {
                 >
                   Close
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={selectedPartId !== '' && (() => {
+                    const selPart = parts.find((p) => p.id === Number(selectedPartId));
+                    const stock = selPart ? Number(selPart.qty ?? 0) : 0;
+                    const totalReq = Number(partQty || 0) * Number(packingQty || 0);
+                    return totalReq > stock;
+                  })()}
+                >
                   Generate Barcodes
                 </button>
               </div>

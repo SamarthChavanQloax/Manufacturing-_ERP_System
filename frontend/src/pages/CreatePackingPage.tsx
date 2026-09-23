@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, X, Eye } from 'lucide-react';
+import { Plus, X, Eye, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarcodeCard } from '../components/BarcodeCard';
 import { BarcodeInlineTable } from '../components/BarcodeInlineTable';
@@ -48,6 +48,14 @@ export const CreatePackingPage: React.FC = () => {
       alert('Please select a part');
       return;
     }
+
+    const currentPart = parts.find((p) => p.id === Number(pId));
+    const availableStock = currentPart ? Number(currentPart.qty ?? 0) : 0;
+    if (Number(qVal) > availableStock) {
+      alert(`You don't have enough stock! Available stock is ${availableStock}, but requested is ${qVal}.`);
+      return;
+    }
+
     try {
       const res = await api.post('/packing/single', {
         part_id: pId,
@@ -55,6 +63,7 @@ export const CreatePackingPage: React.FC = () => {
       });
       setCreatedBarcode(res.data);
       setModalOpen(false);
+      fetchParts();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
     }
@@ -171,7 +180,7 @@ export const CreatePackingPage: React.FC = () => {
                     <th style={{ width: '80px' }}>Sr. No.</th>
                     <th>Part Number</th>
                     <th>Part Description</th>
-                    <th style={{ width: '120px' }}>Packing Qty</th>
+                    <th style={{ width: '130px' }}>Remaining Stock</th>
                     <th style={{ width: '100px' }}>Action</th>
                   </tr>
                 </thead>
@@ -188,13 +197,26 @@ export const CreatePackingPage: React.FC = () => {
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600 }}>{p.part_number}</td>
                         <td>{p.part_description}</td>
-                        <td>{p.qty || 1}</td>
+                        <td>
+                          <span
+                            style={{
+                              fontWeight: 700,
+                              color: Number(p.qty) > 0 ? '#15803d' : '#dc2626',
+                              background: Number(p.qty) > 0 ? '#f0fdf4' : '#fef2f2',
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              fontSize: '12.5px',
+                            }}
+                          >
+                            {p.qty ?? 0}
+                          </span>
+                        </td>
                         <td>
                           <button
                             type="button"
                             onClick={() => {
                               setSelectedPartId(p.id);
-                              setPartQty(p.qty || 1);
+                              setPartQty(Number(p.qty) > 0 ? Math.min(Number(p.qty), 1) : 1);
                               setModalOpen(true);
                             }}
                             className="btn btn-sm btn-primary"
@@ -239,16 +261,50 @@ export const CreatePackingPage: React.FC = () => {
                     required
                     className="form-control"
                     value={selectedPartId}
-                    onChange={(e) => setSelectedPartId(Number(e.target.value))}
+                    onChange={(e) => {
+                      const newId = Number(e.target.value);
+                      setSelectedPartId(newId);
+                      const p = parts.find((part) => part.id === newId);
+                      if (p && Number(p.qty) > 0 && Number(partQty) > Number(p.qty)) {
+                        setPartQty(Number(p.qty));
+                      }
+                    }}
                   >
                     <option value="">-- Select Part --</option>
                     {parts.map((p) => (
                       <option key={p.id} value={p.id}>
-                        {p.part_number} / {p.part_description}
+                        {p.part_number} / {p.part_description} (Stock: {p.qty ?? 0})
                       </option>
                     ))}
                   </select>
                 </div>
+
+                {selectedPartId !== '' && (() => {
+                  const selPart = parts.find((p) => p.id === Number(selectedPartId));
+                  const stock = selPart ? Number(selPart.qty ?? 0) : 0;
+                  return (
+                    <div
+                      style={{
+                        padding: '9px 12px',
+                        borderRadius: '8px',
+                        background: stock > 0 ? '#f0fdf4' : '#fef2f2',
+                        border: `1px solid ${stock > 0 ? '#bbf7d0' : '#fecaca'}`,
+                        color: stock > 0 ? '#166534' : '#991b1b',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        marginBottom: '14px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <span>Remaining Part Stock:</span>
+                      <span style={{ fontSize: '15px', fontWeight: 800 }}>
+                        {stock}
+                      </span>
+                    </div>
+                  );
+                })()}
 
                 <div className="form-group">
                   <label>Part Qty *</label>
@@ -262,6 +318,33 @@ export const CreatePackingPage: React.FC = () => {
                     onBlur={() => { if (partQty === '') setPartQty(0); }}
                     onChange={(e) => setPartQty(e.target.value === '' ? '' : Number(e.target.value))}
                   />
+                  {selectedPartId !== '' && (() => {
+                    const selPart = parts.find((p) => p.id === Number(selectedPartId));
+                    const stock = selPart ? Number(selPart.qty ?? 0) : 0;
+                    if (Number(partQty) > stock) {
+                      return (
+                        <div
+                          style={{
+                            padding: '8px 12px',
+                            borderRadius: '8px',
+                            background: '#fef2f2',
+                            border: '1px solid #fecaca',
+                            color: '#dc2626',
+                            fontSize: '13px',
+                            fontWeight: 600,
+                            marginTop: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                          }}
+                        >
+                          <AlertCircle size={16} style={{ flexShrink: 0 }} />
+                          <span>You don't have enough stock! Available: {stock}, Requested: {partQty}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               </div>
               <div className="modal-footer">
@@ -272,7 +355,15 @@ export const CreatePackingPage: React.FC = () => {
                 >
                   Close
                 </button>
-                <button type="submit" className="btn btn-primary">
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={selectedPartId !== '' && (() => {
+                    const selPart = parts.find((p) => p.id === Number(selectedPartId));
+                    const stock = selPart ? Number(selPart.qty ?? 0) : 0;
+                    return Number(partQty) > stock;
+                  })()}
+                >
                   Submit
                 </button>
               </div>

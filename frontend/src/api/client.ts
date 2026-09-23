@@ -8,7 +8,7 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('token');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -21,9 +21,11 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Don't auto-redirect on login check failure
       if (!window.location.pathname.includes('/login')) {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
         localStorage.removeItem('token');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+        window.location.href = '/login?notice=login_first';
       }
     }
     return Promise.reject(error);
