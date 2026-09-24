@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
@@ -11,15 +11,28 @@ import {
   ShieldCheck,
   LogOut,
   ChevronDown,
-  ChevronRight,
   Menu,
-  FileCheck,
 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
   const { user, logout, switchRole } = useAuth();
   const navigate = useNavigate();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const location = useLocation();
+
+  const isDesktop = () => window.innerWidth > 992;
+
+  const [sidebarOpen, setSidebarOpen] = useState(() => isDesktop());
+
+  // Keep a ref in sync with state so event listeners can always read the latest value
+  const sidebarOpenRef = useRef(sidebarOpen);
+  useEffect(() => {
+    sidebarOpenRef.current = sidebarOpen;
+  }, [sidebarOpen]);
+
+  const sidebarRef = useRef<HTMLElement>(null);
+  const overlayRef = useRef<HTMLDivElement>(null);
+
+  const SIDEBAR_WIDTH = 250;
 
   // Menu collapse state
   const [masterOpen, setMasterOpen] = useState(true);
@@ -36,10 +49,203 @@ export const Layout: React.FC = () => {
     navigate('/index');
   };
 
+  const openSidebar = useCallback(() => setSidebarOpen(true), []);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
+  const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
+
+  // Close sidebar on mobile/tablet when route changes
+  useEffect(() => {
+    if (!isDesktop()) {
+      closeSidebar();
+    }
+  }, [location.pathname, closeSidebar]);
+
+  // Handle ESC key to close sidebar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && sidebarOpenRef.current) {
+        closeSidebar();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [closeSidebar]);
+
+  // Left-Edge Swipe / Touch gesture — registered once, reads state via ref
+  useEffect(() => {
+    // Track gesture state in refs to avoid stale closures
+    const touchStart = { x: 0, y: 0, time: 0, active: false };
+    let swipeDir: 'horizontal' | 'vertical' | null = null;
+    let isDragging = false;
+
+    const resetDrag = () => {
+      if (sidebarRef.current) sidebarRef.current.style.transform = '';
+      if (overlayRef.current) {
+        overlayRef.current.style.opacity = '';
+        overlayRef.current.style.pointerEvents = '';
+      }
+      isDragging = false;
+    };
+
+    const onStart = (clientX: number, clientY: number) => {
+      const open = sidebarOpenRef.current;
+      const onEdge = clientX <= 40;
+
+      // Only start gesture if:
+      // - sidebar is closed and user starts from left edge, OR
+      // - sidebar is open (user can swipe left to close)
+      if (!open && !onEdge) return;
+
+      touchStart.x = clientX;
+      touchStart.y = clientY;
+      touchStart.time = Date.now();
+      touchStart.active = true;
+      swipeDir = null;
+      isDragging = false;
+    };
+
+    const onMove = (clientX: number, clientY: number, event?: Event) => {
+      if (!touchStart.active) return;
+
+      const deltaX = clientX - touchStart.x;
+      const deltaY = clientY - touchStart.y;
+
+      // Determine swipe direction once we have enough movement
+      if (!swipeDir) {
+        if (Math.abs(deltaX) < 5 && Math.abs(deltaY) < 5) return;
+        swipeDir = Math.abs(deltaX) > Math.abs(deltaY) ? 'horizontal' : 'vertical';
+      }
+
+      if (swipeDir === 'vertical') {
+        // Let vertical scrolling happen normally
+        touchStart.active = false;
+        resetDrag();
+        return;
+      }
+
+      // Horizontal drag — prevent default scroll
+      if (event && event.cancelable) event.preventDefault();
+
+      isDragging = true;
+      const open = sidebarOpenRef.current;
+      const base = open ? 0 : -SIDEBAR_WIDTH;
+      const rawTranslate = base + deltaX;
+      const clamped = Math.max(-SIDEBAR_WIDTH, Math.min(0, rawTranslate));
+      const progress = (clamped + SIDEBAR_WIDTH) / SIDEBAR_WIDTH;
+
+      if (sidebarRef.current) {
+        sidebarRef.current.style.transition = 'none';
+        sidebarRef.current.style.transform = `translateX(${clamped}px)`;
+      }
+      if (overlayRef.current && !isDesktop()) {
+        overlayRef.current.style.transition = 'none';
+        overlayRef.current.style.opacity = `${progress}`;
+        overlayRef.current.style.pointerEvents = progress > 0.05 ? 'auto' : 'none';
+      }
+    };
+
+    const onEnd = (clientX: number) => {
+      if (!touchStart.active) return;
+      touchStart.active = false;
+
+      // Restore CSS transitions
+      if (sidebarRef.current) sidebarRef.current.style.transition = '';
+      if (overlayRef.current) {
+        overlayRef.current.style.transition = '';
+        overlayRef.current.style.pointerEvents = '';
+      }
+
+      if (!isDragging) {
+        resetDrag();
+        return;
+      }
+
+      resetDrag();
+
+      const deltaX = clientX - touchStart.x;
+      const elapsed = Math.max(1, Date.now() - touchStart.time);
+      const velocity = deltaX / elapsed; // px/ms
+
+      const open = sidebarOpenRef.current;
+
+      if (!open) {
+        // Open if swiped right enough or fast enough
+        if (deltaX > 50 || velocity > 0.3) {
+          openSidebar();
+        }
+        // else stays closed (CSS handles it)
+      } else {
+        // Close if swiped left enough or fast enough
+        if (deltaX < -50 || velocity < -0.3) {
+          closeSidebar();
+        }
+        // else stays open
+      }
+    };
+
+    // ---- Touch events ----
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return;
+      onStart(e.touches[0].clientX, e.touches[0].clientY);
+    };
+    const handleTouchMove = (e: TouchEvent) => {
+      onMove(e.touches[0].clientX, e.touches[0].clientY, e);
+    };
+    const handleTouchEnd = (e: TouchEvent) => {
+      onEnd(e.changedTouches[0].clientX);
+    };
+
+    // ---- Pointer events (for touch screens using pointer API) ----
+    const handlePointerDown = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse') return; // Skip mouse, only touch/pen
+      onStart(e.clientX, e.clientY);
+    };
+    const handlePointerMove = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse') return;
+      onMove(e.clientX, e.clientY);
+    };
+    const handlePointerUp = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse') return;
+      onEnd(e.clientX);
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEnd, { passive: true });
+
+    window.addEventListener('pointerdown', handlePointerDown, { passive: true });
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('pointerup', handlePointerUp, { passive: true });
+    window.addEventListener('pointercancel', handlePointerUp, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchEnd);
+      window.removeEventListener('pointerdown', handlePointerDown);
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      window.removeEventListener('pointercancel', handlePointerUp);
+    };
+    // Only run once on mount — reads live state via sidebarOpenRef
+  }, [openSidebar, closeSidebar]);
+
   return (
     <div className="app-container">
+      {/* Backdrop overlay — click to close sidebar on mobile */}
+      <div
+        ref={overlayRef}
+        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={closeSidebar}
+      />
+
       {/* Sidebar */}
-      <aside className="sidebar" style={{ display: sidebarOpen ? 'flex' : 'none' }}>
+      <aside
+        ref={sidebarRef}
+        className={`sidebar ${sidebarOpen ? 'sidebar-open' : ''}`}
+      >
         <div className="brand-header">
           <div className="brand-logo">ERP</div>
           <div className="brand-text">SofTech ERP</div>
@@ -69,19 +275,18 @@ export const Layout: React.FC = () => {
           {(role === 'admin' || role === 'packing') && (
             <div>
               <div
-                className="nav-link"
+                className="nav-link nav-dropdown-toggle"
                 onClick={() => setMasterOpen(!masterOpen)}
-                style={{ justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Database size={18} />
                   <span>Master</span>
                 </div>
-                {masterOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                <ChevronDown size={15} className={`chevron-icon ${masterOpen ? 'open' : ''}`} />
               </div>
 
-              {masterOpen && (
-                <div>
+              <div className={`nav-submenu ${masterOpen ? 'open' : ''}`}>
+                <div className="nav-submenu-content">
                   {role === 'admin' && (
                     <NavLink
                       to="/erp_users"
@@ -115,7 +320,7 @@ export const Layout: React.FC = () => {
                     </NavLink>
                   )}
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -123,19 +328,18 @@ export const Layout: React.FC = () => {
           {(role === 'admin' || role === 'packing') && (
             <div>
               <div
-                className="nav-link"
+                className="nav-link nav-dropdown-toggle"
                 onClick={() => setPackingOpen(!packingOpen)}
-                style={{ justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Layers size={18} />
                   <span>Packing</span>
                 </div>
-                {packingOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                <ChevronDown size={15} className={`chevron-icon ${packingOpen ? 'open' : ''}`} />
               </div>
 
-              {packingOpen && (
-                <div>
+              <div className={`nav-submenu ${packingOpen ? 'open' : ''}`}>
+                <div className="nav-submenu-content">
                   <NavLink
                     to="/create_packing"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
@@ -155,7 +359,7 @@ export const Layout: React.FC = () => {
                     <span>View Packing</span>
                   </NavLink>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -163,19 +367,18 @@ export const Layout: React.FC = () => {
           {(role === 'admin' || role === 'box') && (
             <div>
               <div
-                className="nav-link"
+                className="nav-link nav-dropdown-toggle"
                 onClick={() => setBoxOpen(!boxOpen)}
-                style={{ justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Box size={18} />
                   <span>Box</span>
                 </div>
-                {boxOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                <ChevronDown size={15} className={`chevron-icon ${boxOpen ? 'open' : ''}`} />
               </div>
 
-              {boxOpen && (
-                <div>
+              <div className={`nav-submenu ${boxOpen ? 'open' : ''}`}>
+                <div className="nav-submenu-content">
                   <NavLink
                     to="/create_box"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
@@ -189,7 +392,7 @@ export const Layout: React.FC = () => {
                     <span>View Box</span>
                   </NavLink>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -197,19 +400,18 @@ export const Layout: React.FC = () => {
           {(role === 'admin' || role === 'invoice') && (
             <div>
               <div
-                className="nav-link"
+                className="nav-link nav-dropdown-toggle"
                 onClick={() => setInvoiceOpen(!invoiceOpen)}
-                style={{ justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <FileText size={18} />
                   <span>Invoice</span>
                 </div>
-                {invoiceOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                <ChevronDown size={15} className={`chevron-icon ${invoiceOpen ? 'open' : ''}`} />
               </div>
 
-              {invoiceOpen && (
-                <div>
+              <div className={`nav-submenu ${invoiceOpen ? 'open' : ''}`}>
+                <div className="nav-submenu-content">
                   <NavLink
                     to="/create_invoice"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
@@ -217,7 +419,7 @@ export const Layout: React.FC = () => {
                     <span>Create Invoice</span>
                   </NavLink>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -225,19 +427,18 @@ export const Layout: React.FC = () => {
           {(role === 'admin' || role === 'gate') && (
             <div>
               <div
-                className="nav-link"
+                className="nav-link nav-dropdown-toggle"
                 onClick={() => setGateOpen(!gateOpen)}
-                style={{ justifyContent: 'space-between' }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <ShieldCheck size={18} />
                   <span>Gate-Security</span>
                 </div>
-                {gateOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                <ChevronDown size={15} className={`chevron-icon ${gateOpen ? 'open' : ''}`} />
               </div>
 
-              {gateOpen && (
-                <div>
+              <div className={`nav-submenu ${gateOpen ? 'open' : ''}`}>
+                <div className="nav-submenu-content">
                   <NavLink
                     to="/verify_invoice"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
@@ -251,7 +452,7 @@ export const Layout: React.FC = () => {
                     <span>Gate Out Report</span>
                   </NavLink>
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -268,21 +469,25 @@ export const Layout: React.FC = () => {
         {/* Top Navbar */}
         <header className="top-navbar">
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            {/* Hamburger button — always visible, toggles sidebar */}
             <button
               type="button"
+              id="sidebar-toggle-btn"
               className="btn btn-sm btn-secondary"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
+              onClick={toggleSidebar}
               style={{ padding: '6px 10px' }}
+              title="Toggle Sidebar Menu"
+              aria-label="Toggle Sidebar Menu"
             >
               <Menu size={16} />
             </button>
             <span style={{ fontWeight: 600, color: '#374151', fontSize: '15px' }}>
-              Barcode Stock Management & ERP System
+              Barcode Stock Management &amp; ERP System
             </span>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-            {/* Persona Switcher for convenient testing */}
+            {/* Role Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>Active Role:</span>
               <select

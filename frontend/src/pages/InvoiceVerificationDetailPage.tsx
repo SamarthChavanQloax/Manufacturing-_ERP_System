@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
 import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer } from 'lucide-react';
+import { GatePassModal } from '../components/GatePassModal';
 
 export const InvoiceVerificationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [data, setData] = useState<any>(null);
   const [boxBarcode, setBoxBarcode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showGatePassModal, setShowGatePassModal] = useState(false);
 
   const fetchMatchDetails = async () => {
     setLoading(true);
@@ -27,12 +29,13 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
 
   const handleScanBox = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!boxBarcode.trim()) return;
+    const barcodeVal = boxBarcode.trim() || (e.currentTarget.querySelector('input') as HTMLInputElement)?.value.trim();
+    if (!barcodeVal) return;
 
     try {
       await api.post('/verification/scan-box', {
         match_id: Number(id),
-        box_barcode: boxBarcode.trim(),
+        box_barcode: barcodeVal,
       });
       alert('Added Successfully');
       setBoxBarcode('');
@@ -88,7 +91,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
                   />
                 </div>
 
-                <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
+                <button type="submit" id="btn-scan-box-gate" className="btn btn-danger" style={{ height: '38px' }}>
                   Submit
                 </button>
               </form>
@@ -172,10 +175,11 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
               {isMatched && (
                 <button
                   type="button"
-                  onClick={() => window.print()}
+                  onClick={() => setShowGatePassModal(true)}
                   className="btn btn-sm btn-success"
+                  style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}
                 >
-                  <Printer size={14} /> Print Gate Pass
+                  <Printer size={15} /> Print Gate Pass
                 </button>
               )}
             </div>
@@ -222,6 +226,13 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Official Printable Gate Pass Modal */}
+      <GatePassModal
+        isOpen={showGatePassModal}
+        onClose={() => setShowGatePassModal(false)}
+        data={data}
+      />
     </div>
   );
 };

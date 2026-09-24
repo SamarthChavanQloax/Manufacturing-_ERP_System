@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import JsBarcode from 'jsbarcode';
-import { Printer, Download } from 'lucide-react';
+import { Printer } from 'lucide-react';
 
 interface BarcodeCardProps {
   partNumber: string;
@@ -10,6 +10,8 @@ interface BarcodeCardProps {
   barcode: string;
   customerName?: string;
   isBox?: boolean;
+  isInvoice?: boolean;
+  invoiceNumber?: string;
 }
 
 export const BarcodeCard: React.FC<BarcodeCardProps> = ({
@@ -20,6 +22,8 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
   barcode,
   customerName,
   isBox = false,
+  isInvoice = false,
+  invoiceNumber,
 }) => {
   const barcodeRef = useRef<SVGSVGElement | null>(null);
   const cardId = `barcode-card-${barcode}`;
@@ -30,7 +34,7 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
         JsBarcode(barcodeRef.current, String(barcode), {
           format: 'CODE128',
           width: 2,
-          height: 50,
+          height: 48,
           displayValue: false,
           margin: 0,
         });
@@ -50,16 +54,14 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
     win.document.write('<html><head><title>Print Barcode</title>');
     win.document.write(`
       <style>
-        body { font-family: sans-serif; margin: 20px; }
-        .card { border: 1px solid #ccc; padding: 15px; border-radius: 8px; max-width: 280px; font-weight: bold; background: #fff; }
-        .title { font-size: 18px; margin-bottom: 6px; }
-        .details { font-size: 14px; line-height: 1.5; }
-        .footer { font-size: 11px; color: #555; margin-top: 8px; border-top: 1px solid #ddd; padding-top: 4px; }
-        svg { width: 100%; max-height: 50px; margin: 6px 0; }
+        @page { size: auto; margin: 5mm; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 5px; }
+        .barcode-card { max-width: 280px; font-weight: bold; font-size: 15px; line-height: 1.4; color: #000; }
+        svg { width: 100%; max-height: 50px; margin: 5px 0; }
       </style>
     `);
     win.document.write('</head><body>');
-    win.document.write(printContent.innerHTML);
+    win.document.write('<div class="barcode-card">' + printContent.innerHTML + '</div>');
     win.document.write('</body></html>');
     win.document.close();
     win.focus();
@@ -74,7 +76,7 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
       <div
         id={cardId}
         style={{
-          background: '#f8f9fa',
+          background: '#ffffff',
           border: '1px solid #ced4da',
           borderRadius: '6px',
           padding: '14px',
@@ -82,43 +84,60 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
           color: '#212529',
           fontWeight: 600,
           boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+          textAlign: 'left',
         }}
       >
-        {customerName && (
-          <div style={{ fontSize: '16px', fontWeight: 700, color: '#1a56db', marginBottom: '4px' }}>
+        {/* Customer Name is ONLY shown for Master Box labels, matching legacy */}
+        {isBox && customerName && (
+          <div style={{ fontSize: '15px', fontWeight: 700, color: '#1a56db', marginBottom: '4px' }}>
             {customerName}
           </div>
         )}
 
-        <div style={{ fontSize: '15px', color: '#111827', marginBottom: '2px' }}>
-          {isBox ? 'Box Name (Part No): ' : 'Part No: '}
-          <span style={{ fontWeight: 700 }}>{partNumber}</span>
-        </div>
-
-        <div style={{ fontSize: '13px', color: '#4b5563' }}>
-          {isBox ? 'Part Qty: ' : 'Qty: '}
-          <span style={{ fontWeight: 700, color: '#111827' }}>{qty}</span>
-        </div>
-
-        <div style={{ fontSize: '13px', color: '#4b5563' }}>
-          {isBox ? 'Pkg Date: ' : 'Mfg.Date: '}
-          <span>{dateStr}</span>
-        </div>
-
-        {timeStr && (
-          <div style={{ fontSize: '13px', color: '#4b5563' }}>
-            Pkg time: <span>{timeStr}</span>
+        {/* Invoice Number if this is an invoice label */}
+        {isInvoice && invoiceNumber && (
+          <div style={{ fontSize: '15px', color: '#111827', marginBottom: '2px' }}>
+            Invoice Number : <span style={{ fontWeight: 700 }}>{invoiceNumber}</span>
           </div>
         )}
 
-        <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '2px' }}>
-          Bar Code: <span style={{ fontWeight: 700, letterSpacing: '0.5px' }}>{barcode}</span>
+        {/* Part Number */}
+        <div style={{ fontSize: '14px', color: '#111827', marginBottom: '2px' }}>
+          {isBox ? 'Box Name (Part No): ' : 'Part No : '}
+          <span style={{ fontWeight: 700 }}>{partNumber}</span>
         </div>
 
+        {/* Quantity */}
+        <div style={{ fontSize: '13px', color: '#4b5563' }}>
+          {isBox ? 'Part Qty: ' : isInvoice ? 'Total Part Qty: ' : 'Qty : '}
+          <span style={{ fontWeight: 700, color: '#111827' }}>{qty}</span>
+        </div>
+
+        {/* Date */}
+        <div style={{ fontSize: '13px', color: '#4b5563' }}>
+          {isBox || isInvoice ? 'Pkg Date : ' : 'Mfg.Date : '}
+          <span>{dateStr}</span>
+        </div>
+
+        {/* Time (for Box or Invoice) */}
+        {(isBox || isInvoice) && timeStr && (
+          <div style={{ fontSize: '13px', color: '#4b5563' }}>
+            Pkg Time : <span>{timeStr}</span>
+          </div>
+        )}
+
+        {/* Barcode Number */}
+        <div style={{ fontSize: '13px', color: '#4b5563', marginTop: '2px' }}>
+          {isBox ? 'Bar Code: ' : isInvoice ? 'Barcode: ' : 'Bar Code: '}
+          <span style={{ fontWeight: 700, letterSpacing: '0.5px' }}>{barcode}</span>
+        </div>
+
+        {/* Barcode SVG */}
         <div style={{ margin: '8px 0', textAlign: 'center' }}>
           <svg ref={barcodeRef} style={{ width: '100%', height: '48px' }}></svg>
         </div>
 
+        {/* Footer */}
         <div
           style={{
             fontSize: '11px',

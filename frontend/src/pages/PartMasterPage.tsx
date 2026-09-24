@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, Search, X } from 'lucide-react';
+import { Plus, Search, X, FileSpreadsheet } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Pagination } from '../components/Pagination';
+import { exportToExcel } from '../utils/excelExport';
 
 export const PartMasterPage: React.FC = () => {
   const { user } = useAuth();
@@ -36,6 +38,21 @@ export const PartMasterPage: React.FC = () => {
   useEffect(() => {
     fetchParts();
   }, [page, limit, search]);
+
+  const handleExportExcel = async () => {
+    try {
+      const res = await api.get('/parts', { params: { search, page: 1, limit: 1000000 } });
+      const exportData = res.data.items.map((p: any, idx: number) => ({
+        'Sr. No.': idx + 1,
+        'Part Number': p.part_number,
+        'Part Description': p.part_description,
+        'Packing Qty': p.qty || 1,
+      }));
+      exportToExcel(exportData, 'Part_Master', 'Part Master');
+    } catch (err) {
+      console.error('Error exporting parts', err);
+    }
+  };
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -74,16 +91,26 @@ export const PartMasterPage: React.FC = () => {
 
       <div className="content-body">
         <div className="card">
-          <div className="card-header">
-            {user?.type === 'admin' && (
-              <button
-                type="button"
-                onClick={() => setModalOpen(true)}
-                className="btn btn-primary"
-              >
-                <Plus size={15} /> Add
-              </button>
-            )}
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {user?.type === 'admin' && (
+                <button
+                  type="button"
+                  onClick={() => setModalOpen(true)}
+                  className="btn btn-primary"
+                >
+                  <Plus size={15} /> Add
+                </button>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              className="btn btn-sm btn-success"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+            >
+              <FileSpreadsheet size={14} /> Export Excel
+            </button>
           </div>
 
           <div className="card-body">
@@ -107,12 +134,15 @@ export const PartMasterPage: React.FC = () => {
                     setPage(1);
                   }}
                   className="form-control"
-                  style={{ width: '70px', padding: '4px 8px' }}
+                  style={{ width: '84px', padding: '4px 8px' }}
                 >
                   <option value={10}>10</option>
                   <option value={25}>25</option>
                   <option value={50}>50</option>
                   <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value={1000000}>All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -171,47 +201,14 @@ export const PartMasterPage: React.FC = () => {
               </table>
             </div>
 
-            {/* Pagination footer matching screenshot 03_part_master.png */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginTop: '16px',
-                flexWrap: 'wrap',
-                gap: '12px',
-              }}
-            >
-              <div style={{ fontSize: '13px', color: '#6b7280' }}>
-                Showing {startEntry} to {endEntry} of {total} entries
-              </div>
-
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button
-                  type="button"
-                  disabled={page <= 1}
-                  onClick={() => setPage(page - 1)}
-                  className="btn btn-sm btn-secondary"
-                >
-                  Previous
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-sm btn-primary"
-                  style={{ minWidth: '32px' }}
-                >
-                  {page}
-                </button>
-                <button
-                  type="button"
-                  disabled={page >= totalPages}
-                  onClick={() => setPage(page + 1)}
-                  className="btn btn-sm btn-secondary"
-                >
-                  Next
-                </button>
-              </div>
-            </div>
+            {/* Pagination footer with page shift (1, 2, 3... totalPages) */}
+            <Pagination
+              currentPage={page}
+              totalPages={totalPages}
+              totalEntries={total}
+              pageSize={limit}
+              onPageChange={setPage}
+            />
           </div>
         </div>
       </div>

@@ -36,14 +36,21 @@ export const CreatePackingPage: React.FC = () => {
 
   const handleCreatePacking = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartId) {
+    const form = e.currentTarget as HTMLFormElement;
+    const partSelect = form?.querySelector('select') as HTMLSelectElement;
+    const qtyInput = form?.querySelector('input[type="number"]') as HTMLInputElement;
+
+    const pId = selectedPartId || (partSelect?.value ? Number(partSelect.value) : '');
+    const qVal = partQty || (qtyInput?.value ? Number(qtyInput.value) : 1);
+
+    if (!pId) {
       alert('Please select a part');
       return;
     }
     try {
       const res = await api.post('/packing/single', {
-        part_id: selectedPartId,
-        part_qty: partQty,
+        part_id: pId,
+        part_qty: qVal,
       });
       setCreatedBarcode(res.data);
       setModalOpen(false);
@@ -51,6 +58,18 @@ export const CreatePackingPage: React.FC = () => {
       alert(err.response?.data?.message || 'Unable to Add');
     }
   };
+
+  const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
+
+  const filteredParts = parts.filter(
+    (p) =>
+      p.part_number?.toLowerCase().includes(search.toLowerCase()) ||
+      p.part_description?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const displayedRows =
+    limit === 'all' ? filteredParts : filteredParts.slice(0, Number(limit));
 
   return (
     <div>
@@ -110,12 +129,28 @@ export const CreatePackingPage: React.FC = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 marginBottom: '16px',
+                flexWrap: 'wrap',
+                gap: '12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
+                <select
+                  className="form-control"
+                  style={{ width: '84px', padding: '4px 8px' }}
+                  value={limit}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLimit(val === 'all' ? 'all' : Number(val));
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value="all">All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -125,6 +160,8 @@ export const CreatePackingPage: React.FC = () => {
                 <input
                   type="text"
                   placeholder="Search..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
                   style={{ width: '200px', padding: '6px 10px' }}
                 />
@@ -143,30 +180,42 @@ export const CreatePackingPage: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {parts.slice(0, 10).map((p, idx) => (
-                    <tr key={p.id}>
-                      <td>{idx + 1}</td>
-                      <td style={{ fontWeight: 600 }}>{p.part_number}</td>
-                      <td>{p.part_description}</td>
-                      <td>{p.qty || 1}</td>
-                      <td>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedPartId(p.id);
-                            setPartQty(p.qty || 1);
-                            setModalOpen(true);
-                          }}
-                          className="btn btn-sm btn-primary"
-                          title="Generate Barcode"
-                        >
-                          Pack
-                        </button>
+                  {displayedRows.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
+                        No data available in table
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    displayedRows.map((p, idx) => (
+                      <tr key={p.id}>
+                        <td>{idx + 1}</td>
+                        <td style={{ fontWeight: 600 }}>{p.part_number}</td>
+                        <td>{p.part_description}</td>
+                        <td>{p.qty || 1}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedPartId(p.id);
+                              setPartQty(p.qty || 1);
+                              setModalOpen(true);
+                            }}
+                            className="btn btn-sm btn-primary"
+                            title="Generate Barcode"
+                          >
+                            Pack
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
+            </div>
+
+            <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
+              Showing 1 to {displayedRows.length} of {filteredParts.length} entries
             </div>
           </div>
         </div>

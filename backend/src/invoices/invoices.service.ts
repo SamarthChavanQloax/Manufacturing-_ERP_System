@@ -32,6 +32,10 @@ export class InvoicesService {
       throw new BadRequestException('Invoice number, Part, and Quantity are required');
     }
 
+    if (data.invoice_number.trim().length > 20) {
+      throw new BadRequestException('Error : Invoice Number must not exceed 20 characters');
+    }
+
     const existing = await this.invoiceRepo.findOne({
       where: { invoice_number: data.invoice_number.trim() },
     });
@@ -99,7 +103,9 @@ export class InvoicesService {
       const box = await this.boxRepo.findOne({ where: { barcode: String(ib.box_id) } });
       let boxQty = 0;
       if (box) {
-        const boxPackings = await this.boxPackingRepo.find({ where: { box_id: box.id } });
+        const boxPackings = await this.boxPackingRepo.find({
+          where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+        });
         for (const bp of boxPackings) {
           boxQty += bp.part_qty || 0;
         }
@@ -108,14 +114,14 @@ export class InvoicesService {
       boxesWithDetails.push({
         ...ib,
         box_barcode: ib.box_id,
-        box_name: box?.box_name || '',
+        box_name: (box?.box_name || '').trim(),
         box_qty: boxQty,
       });
     }
 
     return {
       invoice,
-      part,
+      part: part ? { ...part, part_number: (part.part_number || '').trim() } : null,
       total_part_qty: totalPartQty,
       boxes: boxesWithDetails,
     };
@@ -125,23 +131,36 @@ export class InvoicesService {
     const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
 
+    if (invoice.lock_status === 'yes') {
+      throw new BadRequestException('Error: Invoice is already locked');
+    }
+
+    const cleanBoxBarcode = String(boxBarcode).trim();
+
     // 1. Verify box barcode exists and is pending
     const box = await this.boxRepo.findOne({
-      where: { barcode: String(boxBarcode), status: 'pending' },
+      where: { barcode: cleanBoxBarcode, status: 'pending' },
     });
     if (!box) {
       throw new BadRequestException('Error : Box barcode not found or already used in another invoice !!!!');
     }
 
-    // 2. Get box packing
-    const boxPackings = await this.boxPackingRepo.find({ where: { box_id: box.id } });
+    // 2. Get box packing using safe dual ID / barcode lookup
+    const boxPackings = await this.boxPackingRepo.find({
+      where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
+    });
     if (!boxPackings || boxPackings.length === 0) {
       throw new BadRequestException('Error 403 : Box barcode contains no packing items !!!!');
     }
 
     // 3. Verify box part matches invoice part
     const boxPartId = boxPackings[0].part_id;
-    if (boxPartId !== invoice.part_id) {
+    const invoicePart = await this.partRepo.findOne({ where: { id: invoice.part_id } });
+    const isPartMatch =
+      boxPartId === invoice.part_id ||
+      (invoicePart && box.box_name.trim() === invoicePart.part_number.trim());
+
+    if (!isPartMatch) {
       throw new BadRequestException('Error 405 : Packing Part Number Mismatch Please Try Again');
     }
 
@@ -151,7 +170,9 @@ export class InvoicesService {
     for (const eib of existingInvoiceBoxes) {
       const b = await this.boxRepo.findOne({ where: { barcode: String(eib.box_id) } });
       if (b) {
-        const bps = await this.boxPackingRepo.find({ where: { box_id: b.id } });
+        const bps = await this.boxPackingRepo.find({
+          where: [{ box_id: b.id }, { box_id: Number(b.barcode) }],
+        });
         for (const bp of bps) {
           currentInvoiceTotal += bp.part_qty || 0;
         }
@@ -169,22 +190,39 @@ export class InvoicesService {
 
     const { dateStr, timeStr } = this.getLegacyDateTime();
 
-    const invoiceBox = this.invoiceBoxRepo.create({
-      box_id: Number(box.barcode),
-      invoice_id: invoice.id,
-      created_by: userId,
-      created_date: dateStr,
-      created_time: timeStr,
-      status: 'used',
+    // 7. Map box to invoice inside a transaction
+    await this.invoiceRepo.manager.transaction(async (transactionManager) => {
+      const invoiceBox = transactionManager.create(InvoiceBox, {
+        box_id: Number(box.barcode),
+        invoice_id: invoice.id,
+        created_by: userId,
+        created_date: dateStr,
+        created_time: timeStr,
+        status: 'pending',
+      });
+      await transactionManager.save(InvoiceBox, invoiceBox);
+
+      // Update box status to used
+      box.status = 'used';
+      await transactionManager.save(Box, box);
+
+      // Update box_packing status to used (matching legacy update_data_new("box_packing", ...))
+      for (const bp of boxPackings) {
+        bp.status = 'used';
+        await transactionManager.save(BoxPacking, bp);
+      }
     });
 
-    await this.invoiceBoxRepo.save(invoiceBox);
-
-    // Update box status to used
-    box.status = 'used';
-    await this.boxRepo.save(box);
-
     return { success: true, message: 'Box Added to Invoice Successfully' };
+  }
+
+  async lockInvoice(invoiceId: number) {
+    const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
+    if (!invoice) throw new NotFoundException('Invoice not found');
+
+    invoice.lock_status = 'yes';
+    await this.invoiceRepo.save(invoice);
+    return { success: true, lock_status: 'yes', message: 'Invoice Locked Successfully' };
   }
 
   async delete(id: number) {

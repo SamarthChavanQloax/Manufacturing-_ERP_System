@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, RotateCcw, X, ShieldCheck } from 'lucide-react';
+import { Eye, RotateCcw, X, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { exportToExcel } from '../utils/excelExport';
 
 export const VerifyInvoicePage: React.FC = () => {
   const navigate = useNavigate();
   const [matches, setMatches] = useState<any[]>([]);
   const [invoiceBarcode, setInvoiceBarcode] = useState('');
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
 
   // Return Invoice modal
@@ -31,11 +33,12 @@ export const VerifyInvoicePage: React.FC = () => {
 
   const handleStartVerification = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invoiceBarcode.trim()) return;
+    const barcodeVal = invoiceBarcode.trim() || (e.currentTarget.querySelector('input') as HTMLInputElement)?.value.trim();
+    if (!barcodeVal) return;
 
     try {
       const res = await api.post('/verification/start', {
-        invoice_barcode: invoiceBarcode.trim(),
+        invoice_barcode: barcodeVal,
       });
       alert('Added Successfully');
       navigate(`/add_box_to_invoice_verify/${res.data.id}`);
@@ -63,6 +66,19 @@ export const VerifyInvoicePage: React.FC = () => {
     return m.invoice_number?.toLowerCase().includes(search.toLowerCase());
   });
 
+  const displayedRows =
+    limit === 'all' ? filtered : filtered.slice(0, Number(limit));
+
+  const handleExportExcel = () => {
+    const exportData = filtered.map((m, idx) => ({
+      'Sr. No.': idx + 1,
+      'Invoice Number (Barcode)': m.invoice_number,
+      'Status': m.status,
+      'Date': `${m.created_date || ''} ${m.created_time || ''}`,
+    }));
+    exportToExcel(exportData, 'Verification_List', 'Verification');
+  };
+
   return (
     <div>
       {/* Content Header matching screenshot 12_verify_invoice.png */}
@@ -77,7 +93,7 @@ export const VerifyInvoicePage: React.FC = () => {
 
       <div className="content-body">
         <div className="card">
-          <div className="card-header">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {/* Form matching screenshot 12_verify_invoice.png */}
             <form onSubmit={handleStartVerification} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
               <div style={{ width: '260px' }}>
@@ -95,10 +111,19 @@ export const VerifyInvoicePage: React.FC = () => {
                 />
               </div>
 
-              <button type="submit" className="btn btn-danger" style={{ height: '38px' }}>
+              <button type="submit" id="btn-start-verify-invoice" className="btn btn-danger" style={{ height: '38px' }}>
                 Submit
               </button>
             </form>
+
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              className="btn btn-sm btn-success"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+            >
+              <FileSpreadsheet size={14} /> Export Excel
+            </button>
           </div>
 
           <div className="card-body">
@@ -115,8 +140,22 @@ export const VerifyInvoicePage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
+                <select
+                  className="form-control"
+                  style={{ width: '84px', padding: '4px 8px' }}
+                  value={limit}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLimit(val === 'all' ? 'all' : Number(val));
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value="all">All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -153,14 +192,14 @@ export const VerifyInvoicePage: React.FC = () => {
                         Loading verification list...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : displayedRows.length === 0 ? (
                     <tr>
                       <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((m, idx) => (
+                    displayedRows.map((m, idx) => (
                       <tr key={m.id}>
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{m.invoice_number}</td>
@@ -197,7 +236,7 @@ export const VerifyInvoicePage: React.FC = () => {
             </div>
 
             <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
+              Showing 1 to {displayedRows.length} of {filtered.length} entries
             </div>
           </div>
         </div>

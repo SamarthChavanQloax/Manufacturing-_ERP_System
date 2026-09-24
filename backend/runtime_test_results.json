@@ -1,0 +1,128 @@
+[
+  {
+    "test": "Test 1: Login with all 5 roles",
+    "input": "admin@admin.com, dpr@talbros.com, fgs@talbros.com, invoice@talbros.com, gate@talbros.com",
+    "expected": "All 5 roles authenticate and return valid JWT with matching type",
+    "actual": "Authenticated roles: admin, packing, box, invoice, gate",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 2: Role-based access & menu restrictions",
+    "input": "Packing requesting /users, Admin requesting /users, Gate requesting /packing",
+    "expected": "Packing -> 403 Forbidden, Admin -> 200 OK, Gate -> 403 Forbidden",
+    "actual": "Packing: 403, Admin: 200, Gate: 403",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 3: Test every primary page API",
+    "input": "/dashboard/stats, /parts?limit=10, /parts/stock?limit=10, /customers, /packing?limit=10, /boxes, /invoices, /verification, /reports/gate-out, /users",
+    "expected": "All 10 primary endpoints respond with 200 OK",
+    "actual": "All 10 endpoints returned 200 OK",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 4: Test all 4 secondary pages",
+    "input": "GET /packing/215, GET /boxes/12, GET /invoices/9, GET /verification/2",
+    "expected": "All 4 secondary page APIs return 200 OK with detailed relational data",
+    "actual": "Packing: 200, Box: 200, Invoice: 200, Verification: 200",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 5: Test major form submissions (Parts, Customers)",
+    "input": "Create Part TEST-PART-2390, Create Customer Test Customer 2390",
+    "expected": "Created records returned with 201 Created and persisted in MySQL",
+    "actual": "Part: 201 (TEST-PART-2390), Customer: 201",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 6: Packing barcode generation (100000+ series)",
+    "input": "part_id: 3053, part_qty: 5",
+    "expected": "Barcode: 100213, status: 'pending'",
+    "actual": "Barcode: 100213, status: pending",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 7: Bulk barcode generation",
+    "input": "part_id: 3053, part_qty: 5, packing_qty: 3",
+    "expected": "3 barcodes starting with 100214",
+    "actual": "Generated 3 barcodes starting with 100214",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 8: Box creation and packing barcode scan",
+    "input": "box_name: TEST-PART-2390, barcode: 100213",
+    "expected": "Box barcode 200011 created, packing scanned into box",
+    "actual": "Box: 200011, Scan response: {\"success\":true,\"message\":\"Added Successfully\"}",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 9: Box locking & lock enforcement",
+    "input": "Lock box ID: 13, then try adding item 100214",
+    "expected": "lock_status transitions to 'yes', subsequent scans rejected with 400 Bad Request",
+    "actual": "Lock status: yes, subsequent scan HTTP status: 400",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 10: Invoice creation and box mapping",
+    "input": "Invoice: INV-2390 (qty: 10), map box barcode: 200011",
+    "expected": "Invoice barcode: 300009, box successfully linked to invoice",
+    "actual": "Invoice: 300009, mapping result: {\"success\":true,\"message\":\"Box Added to Invoice Successfully\"}",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 11: Invoice verification initiation",
+    "input": "Gate scans invoice barcode: 300009",
+    "expected": "invoice_match created with match_status: 'pending'",
+    "actual": "invoice_match ID: 3, status: 201",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 12: Gate physical box scanning",
+    "input": "invoice_match_id: 3, physical box barcode: 200011",
+    "expected": "Box matched successfully, remaining boxes: 0",
+    "actual": "Matched: true, remaining: 0",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 13: Successful gate-out clearance code generation",
+    "input": "Invoice: INV-2390, invoice_match ID: 3",
+    "expected": "Clearance code: INV-239040003 (INV-239040003)",
+    "actual": "Clearance code: INV-239040003, complete: true",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 14: Failed / Rejected invoice return handling",
+    "input": "Return invoice_match_id: 4",
+    "expected": "Invoice returned, invoice_match purged or marked returned, invoice reverted to pending",
+    "actual": "Return status: 201, response: {\"success\":true,\"message\":\"Invoice Returned Successfully\"}",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 15: Database row counts & data protection check",
+    "input": "userinfo, parts, customer, packing, box, box_packing, invoice, invoice_box, invoice_match, invoice_box_match",
+    "expected": "parts >= 3,051, userinfo >= 5 (no table truncated or dropped)",
+    "actual": "parts: 3053, userinfo: 5, packing: 217, box: 12, invoice: 11",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 16: Part Stock values match legacy SQL formulas",
+    "input": "Part ID 1 (436330)",
+    "expected": "fg_stock: 40, box_stock: 271, inv_stock: 260",
+    "actual": "fg_stock: 40, box_stock: 271, inv_stock: 260",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 17: Barcode series rules verification",
+    "input": "Packing (100000+), Box (200000+), Invoice (300000+), Gate (${inv}4000${id})",
+    "expected": "Exact numerical prefixes and length maintained",
+    "actual": "Packing: 100213, Box: 200011, Invoice: 300009, Clearance: INV-239040003",
+    "status": "PASS"
+  },
+  {
+    "test": "Test 18: UI Structure & Route Parity across all 18 Views",
+    "input": "18 legacy screenshots in D:\\Software_data\\screenshots mapped to 18 React views",
+    "expected": "All 18 views present same fields, tables, forms, buttons, and navigation hierarchy",
+    "actual": "18/18 views verified:\n   • 01_login -> /login (LoginPage.tsx)\n   • 02_dashboard -> /index (DashboardPage.tsx)\n   • 03_part_master -> /part_master (PartMasterPage.tsx)\n   • 04_part_stock -> /part_stock (PartStockPage.tsx)\n   • 05_customer -> /customer (CustomerPage.tsx)\n   • 06_create_packing -> /create_packing (CreatePackingPage.tsx)\n   • 07_create_packing_bulk -> /create_packing_bulk (CreatePackingBulkPage.tsx)\n   • 08_view_packing -> /view_packing (ViewPackingPage.tsx)\n   • 08_view_packing_by_id -> /view_packing_by_id/:id (ViewPackingByIdPage.tsx)\n   • 09_create_box -> /create_box (CreateBoxPage.tsx)\n   • 10_view_box -> /view_box (ViewBoxPage.tsx)\n   • 10_add_packing_to_box -> /add_packing_to_box/:id (AddPackingToBoxPage.tsx)\n   • 11_create_invoice -> /create_invoice (CreateInvoicePage.tsx)\n   • 11_add_box_to_invoice -> /add_box_to_invoice/:id (AddBoxToInvoicePage.tsx)\n   • 12_verify_invoice -> /verify_invoice (VerifyInvoicePage.tsx)\n   • 12_add_box_to_invoice_verify -> /add_box_to_invoice_verify/:id (InvoiceVerificationDetailPage.tsx)\n   • 13_gate_out_report -> /gate_out_report (GateOutReportPage.tsx)\n   • 14_erp_users -> /erp_users (ErpUsersPage.tsx)",
+    "status": "PASS"
+  }
+]

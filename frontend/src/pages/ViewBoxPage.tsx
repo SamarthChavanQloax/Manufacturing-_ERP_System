@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link } from 'react-router-dom';
-import { Eye, PackagePlus } from 'lucide-react';
+import { Eye, PackagePlus, FileSpreadsheet } from 'lucide-react';
+import { exportToExcel } from '../utils/excelExport';
 
 export const ViewBoxPage: React.FC = () => {
   const [boxes, setBoxes] = useState<any[]>([]);
@@ -10,6 +11,7 @@ export const ViewBoxPage: React.FC = () => {
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
 
   const fetchData = async () => {
@@ -56,6 +58,20 @@ export const ViewBoxPage: React.FC = () => {
     return b.box_name?.toLowerCase().includes(q) || b.barcode?.toLowerCase().includes(q);
   });
 
+  const displayedRows =
+    limit === 'all' ? filtered : filtered.slice(0, Number(limit));
+
+  const handleExportExcel = () => {
+    const exportData = filtered.map((b, idx) => ({
+      'Sr. No.': idx + 1,
+      'Box Name': b.box_name,
+      'Part Qty': b.part_qty,
+      'Status': b.lock_status === 'yes' ? 'Locked' : b.status,
+      'Barcode': b.barcode,
+    }));
+    exportToExcel(exportData, 'View_Boxes', 'Boxes');
+  };
+
   return (
     <div>
       {/* Content Header matching screenshot 10_view_box.png */}
@@ -71,6 +87,18 @@ export const ViewBoxPage: React.FC = () => {
       <div className="content-body">
         <div className="card">
           <div className="card-header" style={{ display: 'block' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 className="card-title">Box Packing Management</h3>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="btn btn-sm btn-success"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+              >
+                <FileSpreadsheet size={14} /> Export Excel
+              </button>
+            </div>
+
             {/* Top Form matching screenshot 10_view_box.png */}
             <form onSubmit={handleCreateBoxSubmit}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -150,8 +178,22 @@ export const ViewBoxPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
+                <select
+                  className="form-control"
+                  style={{ width: '84px', padding: '4px 8px' }}
+                  value={limit}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLimit(val === 'all' ? 'all' : Number(val));
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value="all">All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -189,14 +231,14 @@ export const ViewBoxPage: React.FC = () => {
                         Loading boxes...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : displayedRows.length === 0 ? (
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((b, idx) => (
+                    displayedRows.map((b, idx) => (
                       <tr key={b.id}>
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{b.box_name}</td>
@@ -231,7 +273,7 @@ export const ViewBoxPage: React.FC = () => {
             </div>
 
             <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
+              Showing 1 to {displayedRows.length} of {filtered.length} entries
             </div>
           </div>
         </div>

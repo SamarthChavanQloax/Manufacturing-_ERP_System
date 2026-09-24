@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Search, Trash2, X } from 'lucide-react';
+import { Search, Trash2, X, FileSpreadsheet } from 'lucide-react';
 import { BarcodeCard } from '../components/BarcodeCard';
+import { exportToExcel } from '../utils/excelExport';
 
 export const ViewPackingPage: React.FC = () => {
   const [packingList, setPackingList] = useState<any[]>([]);
@@ -9,6 +10,7 @@ export const ViewPackingPage: React.FC = () => {
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
 
   // Delete modal
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -57,6 +59,22 @@ export const ViewPackingPage: React.FC = () => {
     );
   });
 
+  const displayedRows =
+    limit === 'all' ? filtered : filtered.slice(0, Number(limit));
+
+  const handleExportExcel = () => {
+    const exportData = filtered.map((p, idx) => ({
+      'Sr. No.': idx + 1,
+      'Part Number': p.part_number,
+      'Part Description': p.part_description,
+      'Packing Qty': p.part_qty,
+      'Status': p.status,
+      'Barcode': p.barcode,
+      'Created Date': p.created_time || '',
+    }));
+    exportToExcel(exportData, 'Packing_Ledger', 'Packing');
+  };
+
   return (
     <div>
       {/* Content Header matching screenshot 08_view_packing.png */}
@@ -71,6 +89,17 @@ export const ViewPackingPage: React.FC = () => {
 
       <div className="content-body">
         <div className="card">
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={handleExportExcel}
+              className="btn btn-sm btn-success"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+            >
+              <FileSpreadsheet size={14} /> Export Excel
+            </button>
+          </div>
+
           <div className="card-body">
             {/* Date Filters matching screenshot 08_view_packing.png */}
             <form
@@ -127,10 +156,22 @@ export const ViewPackingPage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
-                  <option>25</option>
-                  <option>50</option>
+                <select
+                  className="form-control"
+                  style={{ width: '84px', padding: '4px 8px' }}
+                  value={limit}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLimit(val === 'all' ? 'all' : Number(val));
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value="all">All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -169,14 +210,14 @@ export const ViewPackingPage: React.FC = () => {
                         Loading packing ledger...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : displayedRows.length === 0 ? (
                     <tr>
                       <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((p, idx) => (
+                    displayedRows.map((p, idx) => (
                       <tr key={p.id}>
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{p.part_number}</td>
@@ -214,7 +255,7 @@ export const ViewPackingPage: React.FC = () => {
             </div>
 
             <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
+              Showing 1 to {displayedRows.length} of {filtered.length} entries
             </div>
           </div>
         </div>

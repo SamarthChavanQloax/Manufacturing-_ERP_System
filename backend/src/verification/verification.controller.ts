@@ -10,8 +10,9 @@ export class VerificationController {
 
   @Post('start')
   @Roles('admin', 'gate')
-  async start(@Body('invoice_barcode') invoiceBarcode: string, @Request() req: any) {
-    return this.verificationService.startVerification(invoiceBarcode, req.user.userId);
+  async start(@Body() body: { invoice_barcode?: string; invoice_number?: string }, @Request() req: any) {
+    const barcode = body.invoice_barcode || body.invoice_number || '';
+    return this.verificationService.startVerification(String(barcode), req.user.userId);
   }
 
   @Get()
@@ -29,15 +30,18 @@ export class VerificationController {
   @Post('scan-box')
   @Roles('admin', 'gate')
   async scanBox(
-    @Body() body: { match_id: number; box_barcode: string },
+    @Body() body: { match_id?: number; invoice_match_id?: number; box_barcode?: string; box_id?: string },
     @Request() req: any,
   ) {
-    return this.verificationService.scanBox(Number(body.match_id), String(body.box_barcode), req.user.userId);
+    const matchId = body.match_id || body.invoice_match_id || 0;
+    const boxBarcode = body.box_barcode || body.box_id || '';
+    return this.verificationService.scanBox(Number(matchId), String(boxBarcode), req.user.userId);
   }
 
   @Post('return')
   @Roles('admin', 'gate')
-  async returnInvoice(@Body() body: { match_id: number; invoice_barcode: string }) {
-    return this.verificationService.returnInvoice(Number(body.match_id), String(body.invoice_barcode));
+  async returnInvoice(@Body() body: { match_id?: number; invoice_match_id?: number; invoice_barcode?: string }) {
+    const matchId = body.match_id || body.invoice_match_id || 0;
+    return this.verificationService.returnInvoice(Number(matchId), body.invoice_barcode);
   }
 }

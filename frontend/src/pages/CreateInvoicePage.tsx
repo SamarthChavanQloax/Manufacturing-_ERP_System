@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link } from 'react-router-dom';
-import { Eye, Trash2, X } from 'lucide-react';
+import { Eye, Trash2, X, FileSpreadsheet } from 'lucide-react';
+import { exportToExcel } from '../utils/excelExport';
 
 export const CreateInvoicePage: React.FC = () => {
   const [invoices, setInvoices] = useState<any[]>([]);
@@ -12,6 +13,7 @@ export const CreateInvoicePage: React.FC = () => {
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
+  const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
 
   // Delete invoice modal
@@ -42,21 +44,36 @@ export const CreateInvoicePage: React.FC = () => {
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invoiceNumber.trim() || !selectedPartId || !qty) {
+    console.log('[CLIENT INVOICE] handleCreateInvoice START');
+    const form = e.currentTarget as HTMLFormElement;
+    const invInput = form?.querySelector('input[type="text"]') as HTMLInputElement;
+    const partSelect = form?.querySelector('select') as HTMLSelectElement;
+    const qtyInput = form?.querySelector('input[type="number"]') as HTMLInputElement;
+
+    const invNum = invoiceNumber.trim() || invInput?.value?.trim() || '';
+    const pId = selectedPartId || (partSelect?.value ? Number(partSelect.value) : '');
+    const qVal = qty || (qtyInput?.value ? Number(qtyInput.value) : '');
+
+    console.log('[CLIENT INVOICE] Values:', { invNum, pId, qVal, invoiceNumber, selectedPartId, qty });
+
+    if (!invNum || !pId || !qVal) {
+      console.warn('[CLIENT INVOICE] Missing fields!');
       alert('Please fill all required fields');
       return;
     }
     try {
-      await api.post('/invoices', {
-        invoice_number: invoiceNumber.trim(),
-        part_id: Number(selectedPartId),
-        qty: Number(qty),
+      const res = await api.post('/invoices', {
+        invoice_number: invNum,
+        part_id: Number(pId),
+        qty: Number(qVal),
       });
+      console.log('[CLIENT INVOICE] Response:', res.data);
       alert('Invoice Created Successfully');
       setInvoiceNumber('');
       setQty('');
       fetchData();
     } catch (err: any) {
+      console.error('[CLIENT INVOICE] Error:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Error : Invoice Number Already Exists');
     }
   };
@@ -83,6 +100,19 @@ export const CreateInvoicePage: React.FC = () => {
     return i.invoice_number?.toLowerCase().includes(q) || i.part_number?.toLowerCase().includes(q);
   });
 
+  const displayedRows =
+    limit === 'all' ? filtered : filtered.slice(0, Number(limit));
+
+  const handleExportExcel = () => {
+    const exportData = filtered.map((inv, idx) => ({
+      'Sr. No.': idx + 1,
+      'Invoice Number': inv.invoice_number,
+      'Part Number': inv.part_number,
+      'Target Qty': inv.qty,
+    }));
+    exportToExcel(exportData, 'Invoice_Generation_List', 'Invoices');
+  };
+
   return (
     <div>
       {/* Content Header matching screenshot 11_create_invoice.png */}
@@ -98,6 +128,18 @@ export const CreateInvoicePage: React.FC = () => {
       <div className="content-body">
         <div className="card">
           <div className="card-header" style={{ display: 'block' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 className="card-title">Invoice Generation</h3>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="btn btn-sm btn-success"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+              >
+                <FileSpreadsheet size={14} /> Export Excel
+              </button>
+            </div>
+
             {/* Top Form matching screenshot 11_create_invoice.png */}
             <form onSubmit={handleCreateInvoice}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
@@ -108,6 +150,7 @@ export const CreateInvoicePage: React.FC = () => {
                   <input
                     type="text"
                     required
+                    maxLength={20}
                     placeholder="Enter Invoice Number"
                     className="form-control"
                     value={invoiceNumber}
@@ -149,7 +192,7 @@ export const CreateInvoicePage: React.FC = () => {
                 </div>
 
                 <div>
-                  <button type="submit" className="btn btn-info" style={{ height: '38px' }}>
+                  <button type="submit" id="btn-create-invoice" className="btn btn-info" style={{ height: '38px' }}>
                     Submit
                   </button>
                 </div>
@@ -206,8 +249,22 @@ export const CreateInvoicePage: React.FC = () => {
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
-                <select className="form-control" style={{ width: '70px', padding: '4px 8px' }}>
-                  <option>10</option>
+                <select
+                  className="form-control"
+                  style={{ width: '84px', padding: '4px 8px' }}
+                  value={limit}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setLimit(val === 'all' ? 'all' : Number(val));
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                  <option value={250}>250</option>
+                  <option value={500}>500</option>
+                  <option value="all">All</option>
                 </select>
                 <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
               </div>
@@ -245,14 +302,14 @@ export const CreateInvoicePage: React.FC = () => {
                         Loading invoices...
                       </td>
                     </tr>
-                  ) : filtered.length === 0 ? (
+                  ) : displayedRows.length === 0 ? (
                     <tr>
                       <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    filtered.map((inv, idx) => (
+                    displayedRows.map((inv, idx) => (
                       <tr key={inv.id}>
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{inv.invoice_number}</td>
@@ -284,7 +341,7 @@ export const CreateInvoicePage: React.FC = () => {
             </div>
 
             <div style={{ marginTop: '16px', fontSize: '13px', color: '#6b7280' }}>
-              Showing 1 to {filtered.length} of {filtered.length} entries
+              Showing 1 to {displayedRows.length} of {filtered.length} entries
             </div>
           </div>
         </div>
