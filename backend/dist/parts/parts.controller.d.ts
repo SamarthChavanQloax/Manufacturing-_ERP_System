@@ -16,4 +16,9 @@ export declare class PartsController {
         part_desc: string;
         qty: number;
     }): Promise<import("../entities").Part>;
+    update(id: string, body: {
+        part_number?: string;
+        part_desc?: string;
+        qty?: number;
+    }): Promise<import("../entities").Part>;
 }

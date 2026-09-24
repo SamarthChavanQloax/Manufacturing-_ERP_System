@@ -6,6 +6,7 @@ export declare class PackingService {
     constructor(packingRepo: Repository<Packing>, partRepo: Repository<Part>);
     private getLegacyDateTime;
     createSingle(partId: number, partQty: number, userId: number): Promise<{
+        remaining_stock: number;
         part_number: string;
         part_description: string;
         id: number;

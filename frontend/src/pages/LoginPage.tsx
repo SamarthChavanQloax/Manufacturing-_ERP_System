@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   Mail,
@@ -18,10 +18,11 @@ import {
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const noticeParam = searchParams.get('notice');
   const [email, setEmail] = useState('admin@admin.com');
   const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState<'email' | 'password' | null>(null);
@@ -161,7 +162,7 @@ export const LoginPage: React.FC = () => {
           </div>
 
           {/* Form Welcome Header */}
-          <div style={{ marginBottom: '20px' }}>
+          <div style={{ marginBottom: '18px' }}>
             <h2
               style={{
                 fontSize: '17px',
@@ -173,9 +174,35 @@ export const LoginPage: React.FC = () => {
               Sign In
             </h2>
             <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-              Enter your email and password to log in
+              Please enter your credentials to login
             </p>
           </div>
+
+          {/* Login First Notice Banner */}
+          {!error && (
+            <div
+              style={{
+                background: '#f0f9ff',
+                color: '#0369a1',
+                border: '1px solid #bae6fd',
+                borderRadius: '10px',
+                padding: '11px 14px',
+                marginBottom: '18px',
+                fontSize: '13px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '9px',
+                fontWeight: 600,
+              }}
+            >
+              <Lock size={16} style={{ flexShrink: 0, color: '#0284c7' }} />
+              <span>
+                {noticeParam === 'session_expired'
+                  ? 'Session expired. Please log in first to continue.'
+                  : 'Please log in first to access the ERP dashboard.'}
+              </span>
+            </div>
+          )}
 
           {/* Error Alert */}
           {error && (
@@ -323,33 +350,23 @@ export const LoginPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Remember Me */}
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '20px' }}>
-              <label
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  fontSize: '13px',
-                  color: '#475569',
-                  userSelect: 'none',
-                }}
-              >
-                <input
-                  type="checkbox"
-                  checked={rememberMe}
-                  onChange={(e) => setRememberMe(e.target.checked)}
-                  style={{
-                    width: '16px',
-                    height: '16px',
-                    borderRadius: '4px',
-                    accentColor: '#0284c7',
-                    cursor: 'pointer',
-                  }}
-                />
-                Remember session
-              </label>
+            {/* Session Security Indicator */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '20px',
+                fontSize: '12.5px',
+                color: '#64748b',
+                background: '#f8fafc',
+                padding: '8px 12px',
+                borderRadius: '8px',
+                border: '1px solid #f1f5f9',
+              }}
+            >
+              <Shield size={14} style={{ color: '#0284c7', flexShrink: 0 }} />
+              <span>Session active until window/project is closed</span>
             </div>
 
             {/* Submit Button */}

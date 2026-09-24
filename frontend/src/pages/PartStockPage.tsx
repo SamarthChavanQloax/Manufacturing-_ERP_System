@@ -38,6 +38,7 @@ export const PartStockPage: React.FC = () => {
         'Sr. No.': idx + 1,
         'Part Number': s.part_number,
         'Part Description': s.part_description,
+        'Remaining Part stock': s.remaining_stock || 0,
         'FG Rack stock': s.fg_stock || 0,
         'Box pack stock': s.box_stock || 0,
         'Invoice Barcode Generated stock': s.inv_stock || 0,
@@ -135,6 +136,7 @@ export const PartStockPage: React.FC = () => {
                     <th style={{ width: '80px' }}>Sr. No.</th>
                     <th>Part Number</th>
                     <th>Part Description</th>
+                    <th style={{ width: '130px', textAlign: 'right' }}>Remaining Stock</th>
                     <th style={{ width: '130px', textAlign: 'right' }}>FG Rack stock</th>
                     <th style={{ width: '130px', textAlign: 'right' }}>Box pack stock</th>
                     <th style={{ width: '220px', textAlign: 'right' }}>
@@ -145,13 +147,13 @@ export const PartStockPage: React.FC = () => {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         Loading real-time stock balances...
                       </td>
                     </tr>
                   ) : stockList.length === 0 ? (
                     <tr>
-                      <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
@@ -161,6 +163,9 @@ export const PartStockPage: React.FC = () => {
                         <td>{startEntry + idx}</td>
                         <td style={{ fontWeight: 600, color: '#111827' }}>{s.part_number}</td>
                         <td>{s.part_description}</td>
+                        <td style={{ textAlign: 'right', fontWeight: 700, color: Number(s.remaining_stock ?? 0) > 0 ? '#15803d' : '#dc2626' }}>
+                          {s.remaining_stock ?? 0}
+                        </td>
                         <td style={{ textAlign: 'right', fontWeight: 600, color: '#0284c7' }}>
                           {s.fg_stock}
                         </td>

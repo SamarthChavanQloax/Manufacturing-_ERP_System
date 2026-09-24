@@ -6,6 +6,7 @@ export declare class PackingController {
         part_id: number;
         part_qty: number;
     }, req: any): Promise<{
+        remaining_stock: number;
         part_number: string;
         part_description: string;
         id: number;

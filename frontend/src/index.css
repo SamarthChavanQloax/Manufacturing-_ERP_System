@@ -394,7 +394,7 @@ table.data-table td {
 table.data-table thead th {
   background-color: #f8f9fa;
   color: #495057;
-  font-weight: 600;
+  font-weight: 700 !important;
 }
 
 table.data-table tbody tr:nth-child(even) {
@@ -602,7 +602,8 @@ table.data-table tbody tr:hover {
   }
 
   /* Reset outer layout for print page */
-  html, body, #root, .app-container, .main-content, .content-body {
+  html, body, #root, .app-container, .main-wrapper, .main-content, .content-body {
+    display: block !important;
     background: #ffffff !important;
     color: #000000 !important;
     margin: 0 !important;
@@ -612,6 +613,12 @@ table.data-table tbody tr:hover {
     min-height: auto !important;
     overflow: visible !important;
     box-shadow: none !important;
+    position: static !important;
+  }
+  
+  * {
+    animation: none !important;
+    transition: none !important;
   }
 
   .card {

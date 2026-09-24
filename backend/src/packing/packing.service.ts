@@ -24,6 +24,13 @@ export class PackingService {
     if (!part) throw new BadRequestException('Part not found');
     if (!partQty || partQty <= 0) throw new BadRequestException('Invalid quantity');
 
+    const availableStock = Number(part.qty) || 0;
+    if (partQty > availableStock) {
+      throw new BadRequestException(
+        `You don't have enough stock! Available stock is ${availableStock}, but requested is ${partQty}.`
+      );
+    }
+
     const count = await this.packingRepo.count();
     const barcode = String(100000 + count);
     const { dateStr, timeStr } = this.getLegacyDateTime();
@@ -40,8 +47,14 @@ export class PackingService {
     });
 
     const saved = await this.packingRepo.save(packing);
+
+    // Deduct packed quantity from remaining part stock
+    part.qty = Math.max(0, availableStock - partQty);
+    await this.partRepo.save(part);
+
     return {
       ...saved,
+      remaining_stock: part.qty,
       part_number: part.part_number,
       part_description: part.part_description,
     };
@@ -52,6 +65,14 @@ export class PackingService {
     if (!part) throw new BadRequestException('Part not found');
     if (!partQty || partQty <= 0) throw new BadRequestException('Invalid part quantity');
     if (!packingQty || packingQty <= 0) throw new BadRequestException('Invalid packing bulk quantity');
+
+    const totalRequired = partQty * packingQty;
+    const availableStock = Number(part.qty) || 0;
+    if (totalRequired > availableStock) {
+      throw new BadRequestException(
+        `You don't have enough stock! Available stock is ${availableStock}, but requested is ${totalRequired} (${packingQty} items × ${partQty}).`
+      );
+    }
 
     const createdItems: any[] = [];
     const { dateStr, timeStr } = this.getLegacyDateTime();
@@ -78,6 +99,10 @@ export class PackingService {
         part_description: part.part_description,
       });
     }
+
+    // Deduct bulk packed quantity from remaining part stock
+    part.qty = Math.max(0, availableStock - totalRequired);
+    await this.partRepo.save(part);
 
     return createdItems;
   }
@@ -144,6 +169,11 @@ export class PackingService {
   async delete(id: number) {
     const item = await this.packingRepo.findOne({ where: { id } });
     if (!item) throw new NotFoundException('Packing record not found');
+    const part = await this.partRepo.findOne({ where: { id: item.part_id } });
+    if (part) {
+      part.qty = (Number(part.qty) || 0) + Number(item.part_qty || 0);
+      await this.partRepo.save(part);
+    }
     return this.packingRepo.delete(id);
   }
 }
