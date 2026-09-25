@@ -149,7 +149,14 @@ export const ViewBoxPage: React.FC = () => {
                     required
                     className="form-control"
                     value={selectedPartNumber}
-                    onChange={(e) => setSelectedPartNumber(e.target.value)}
+                    onChange={(e) => {
+                      const newPartNum = e.target.value;
+                      setSelectedPartNumber(newPartNum);
+                      const selectedPart = parts.find(p => p.part_number === newPartNum);
+                      if (selectedPart) {
+                        setPartFilter(`${selectedPart.part_number} / ${selectedPart.part_description}`);
+                      }
+                    }}
                   >
                     {filteredParts.length === 0 ? (
                       <option value="">No matching parts found</option>

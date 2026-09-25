@@ -198,7 +198,14 @@ export const CreateInvoicePage: React.FC = () => {
                     required
                     className="form-control"
                     value={selectedPartId}
-                    onChange={(e) => setSelectedPartId(Number(e.target.value))}
+                    onChange={(e) => {
+                      const newId = Number(e.target.value);
+                      setSelectedPartId(newId);
+                      const selectedPart = parts.find(p => p.id === newId);
+                      if (selectedPart) {
+                        setPartFilter(`${selectedPart.part_number} / ${selectedPart.part_description}`);
+                      }
+                    }}
                   >
                     {filteredParts.length === 0 ? (
                       <option value="">No matching parts found</option>

@@ -414,14 +414,14 @@ export const Layout: React.FC = () => {
                 <div className="nav-submenu-content">
                   <NavLink
                     to="/create_invoice"
-                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                    className={() => `nav-link nav-tree-item ${location.pathname === '/create_invoice' && location.hash !== '#view' ? 'active' : ''}`}
                   >
                     <span>Create Invoice</span>
                   </NavLink>
                   <NavLink
-                    to="/create_invoice"
-                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
-                    style={({ isActive }) => ({ opacity: isActive ? 1 : 0.9 })}
+                    to="/create_invoice#view"
+                    className={() => `nav-link nav-tree-item ${location.pathname === '/create_invoice' && location.hash === '#view' ? 'active' : ''}`}
+                    style={() => ({ opacity: location.pathname === '/create_invoice' && location.hash === '#view' ? 1 : 0.9 })}
                   >
                     <span>View Invoice</span>
                   </NavLink>
