@@ -10,6 +10,7 @@
   --card-sub-bg: #f8fafc;
   --card-border: #e2e8f0;
   --border-color: #dee2e6;
+  --table-hover: #f1f5f9;
   --text-main: #0f172a;
   --text-muted: #64748b;
   --topbar-bg: #ffffff;
@@ -33,6 +34,7 @@
   --card-sub-bg: #1f2937;
   --card-border: #374151;
   --border-color: #374151;
+  --table-hover: #1e293b;
   --text-main: #f9fafb;
   --text-muted: #9ca3af;
   --topbar-bg: #111827;
@@ -479,9 +481,11 @@ table.data-table tbody tr:nth-child(even) {
   background-color: var(--card-sub-bg);
 }
 
-table.data-table tbody tr:hover {
-  background-color: var(--sidebar-hover);
-  color: #fff;
+table.data-table tbody tr:hover,
+table tbody tr:hover {
+  background-color: var(--table-hover) !important;
+  color: var(--text-main);
+  transition: background-color 0.15s ease;
 }
 
 /* Status Badges */
