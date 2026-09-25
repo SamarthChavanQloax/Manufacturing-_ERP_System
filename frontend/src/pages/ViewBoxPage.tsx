@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link } from 'react-router-dom';
+import Select from 'react-select';
 import { Eye, PackagePlus, FileSpreadsheet } from 'lucide-react';
 import { exportToExcel } from '../utils/excelExport';
 
@@ -8,7 +9,6 @@ export const ViewBoxPage: React.FC = () => {
   const [boxes, setBoxes] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
   const [selectedPartNumber, setSelectedPartNumber] = useState('');
-  const [partFilter, setPartFilter] = useState('');
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
@@ -38,31 +38,14 @@ export const ViewBoxPage: React.FC = () => {
     fetchData();
   }, []);
 
-  const handlePartFilterChange = (val: string) => {
-    setPartFilter(val);
-    const matches = parts.filter(
-      (p) =>
-        p.part_number?.toLowerCase().includes(val.toLowerCase()) ||
-        p.part_description?.toLowerCase().includes(val.toLowerCase())
-    );
-    if (matches.length > 0) {
-      if (!matches.some((p) => p.part_number === selectedPartNumber)) {
-        setSelectedPartNumber(matches[0].part_number);
-      }
-    } else {
-      setSelectedPartNumber('');
-    }
-  };
+
 
   const handleCreateBoxSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const form = e.currentTarget as HTMLFormElement;
-    const partSelect = form?.querySelector('select') as HTMLSelectElement;
-    const partNum = partSelect?.value || selectedPartNumber;
+    const partNum = selectedPartNumber;
     if (!partNum) return;
     try {
       await api.post('/boxes', { box_name: partNum });
-      setPartFilter('');
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
@@ -74,11 +57,7 @@ export const ViewBoxPage: React.FC = () => {
     fetchData();
   };
 
-  const filteredParts = parts.filter(
-    (p) =>
-      p.part_number?.toLowerCase().includes(partFilter.toLowerCase()) ||
-      p.part_description?.toLowerCase().includes(partFilter.toLowerCase())
-  );
+
 
   const filtered = boxes.filter((b) => {
     const q = search.toLowerCase();
@@ -133,41 +112,29 @@ export const ViewBoxPage: React.FC = () => {
             {/* Top Form matching screenshot 10_view_box.png */}
             <form onSubmit={handleCreateBoxSubmit}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <div style={{ width: '320px' }}>
+                <div style={{ width: '320px', zIndex: 10 }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                     Part Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
-                  <input
-                    type="text"
+                  <Select
+                    options={parts.map((p) => ({ value: p.part_number, label: `${p.part_number} / ${p.part_description}` }))}
+                    value={parts.map((p) => ({ value: p.part_number, label: `${p.part_number} / ${p.part_description}` })).find(o => o.value === selectedPartNumber) || null}
+                    onChange={(option) => setSelectedPartNumber(option ? option.value : '')}
                     placeholder="Search Part Number or Part Name..."
-                    value={partFilter}
-                    onChange={(e) => handlePartFilterChange(e.target.value)}
-                    className="form-control"
-                    style={{ marginBottom: '6px', padding: '4px 8px', fontSize: '12px' }}
-                  />
-                  <select
-                    required
-                    className="form-control"
-                    value={selectedPartNumber}
-                    onChange={(e) => {
-                      const newPartNum = e.target.value;
-                      setSelectedPartNumber(newPartNum);
-                      const selectedPart = parts.find(p => p.part_number === newPartNum);
-                      if (selectedPart) {
-                        setPartFilter(`${selectedPart.part_number} / ${selectedPart.part_description}`);
-                      }
+                    isClearable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '38px',
+                        fontSize: '14px',
+                        borderColor: '#ced4da',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          borderColor: '#80bdff'
+                        }
+                      })
                     }}
-                  >
-                    {filteredParts.length === 0 ? (
-                      <option value="">No matching parts found</option>
-                    ) : (
-                      filteredParts.map((p) => (
-                        <option key={p.id} value={p.part_number}>
-                          {p.part_number} / {p.part_description}
-                        </option>
-                      ))
-                    )}
-                  </select>
+                  />
                 </div>
 
                 <div>
