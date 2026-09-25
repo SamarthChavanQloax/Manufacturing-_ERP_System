@@ -17,7 +17,20 @@ let DashboardModule = class DashboardModule {
 exports.DashboardModule = DashboardModule;
 exports.DashboardModule = DashboardModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([entities_1.Part, entities_1.Packing, entities_1.Box, entities_1.Invoice, entities_1.UserInfo])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([
+                entities_1.Part,
+                entities_1.Packing,
+                entities_1.Box,
+                entities_1.BoxPacking,
+                entities_1.Invoice,
+                entities_1.InvoiceBox,
+                entities_1.InvoiceMatch,
+                entities_1.InvoiceBoxMatch,
+                entities_1.Customer,
+                entities_1.UserInfo,
+            ]),
+        ],
         providers: [dashboard_service_1.DashboardService],
         controllers: [dashboard_controller_1.DashboardController],
         exports: [dashboard_service_1.DashboardService],
