@@ -113,7 +113,7 @@ export const ViewBoxPage: React.FC = () => {
             <form onSubmit={handleCreateBoxSubmit}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <div style={{ width: '320px', zIndex: 10 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Part Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <Select
@@ -122,18 +122,7 @@ export const ViewBoxPage: React.FC = () => {
                     onChange={(option) => setSelectedPartNumber(option ? option.value : '')}
                     placeholder="Search Part Number or Part Name..."
                     isClearable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '38px',
-                        fontSize: '14px',
-                        borderColor: '#ced4da',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          borderColor: '#80bdff'
-                        }
-                      })
-                    }}
+                    classNamePrefix="react-select"
                   />
                 </div>
 
@@ -258,7 +247,7 @@ export const ViewBoxPage: React.FC = () => {
                     displayedRows.map((b, idx) => (
                       <tr key={b.id}>
                         <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{b.box_name}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{b.box_name}</td>
                         <td style={{ fontWeight: 600 }}>{b.part_qty}</td>
                         <td>
                           <span

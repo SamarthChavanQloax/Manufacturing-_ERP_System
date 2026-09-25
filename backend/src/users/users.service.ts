@@ -36,4 +36,19 @@ export class UsersService {
 
     return this.userRepository.save(user);
   }
+
+  async delete(targetUserId: number, currentUserId?: number) {
+    if (currentUserId && Number(targetUserId) === Number(currentUserId)) {
+      throw new BadRequestException('You cannot delete your own admin account');
+    }
+
+    const user = await this.userRepository.findOne({ where: { id: targetUserId } });
+    if (!user) {
+      throw new BadRequestException('User not found');
+    }
+
+    await this.userRepository.delete(targetUserId);
+    return { success: true, message: `User "${user.user_name}" deleted successfully` };
+  }
 }
+

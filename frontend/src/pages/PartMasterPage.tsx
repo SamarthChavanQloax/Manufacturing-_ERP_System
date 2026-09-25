@@ -218,7 +218,7 @@ export const PartMasterPage: React.FC = () => {
                     parts.map((p, idx) => (
                       <tr key={p.id}>
                         <td>{startEntry + idx}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{p.part_number}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{p.part_number}</td>
                         <td>{p.part_description}</td>
                         <td>
                           <span

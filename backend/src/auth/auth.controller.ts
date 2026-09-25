@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, UseGuards, Request } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from './guards';
 
@@ -16,6 +16,29 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getProfile(@Request() req: any) {
-    return this.authService.getProfile(req.user.userId);
+    const userId = req.user.userId || req.user.id;
+    return this.authService.getProfile(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('profile-details')
+  async getProfileDetails(@Request() req: any) {
+    const userId = req.user.userId || req.user.id;
+    return this.authService.getProfileDetails(userId);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('profile')
+  async updateProfile(@Request() req: any, @Body() body: { user_name?: string; mobile?: string }) {
+    const userId = req.user.userId || req.user.id;
+    return this.authService.updateProfile(userId, body);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Put('change-password')
+  async changePassword(@Request() req: any, @Body() body: { currentPassword?: string; newPassword?: string }) {
+    const userId = req.user.userId || req.user.id;
+    return this.authService.changePassword(userId, body.currentPassword || '', body.newPassword || '');
   }
 }
+

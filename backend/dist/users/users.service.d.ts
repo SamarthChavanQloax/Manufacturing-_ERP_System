@@ -10,4 +10,8 @@ export declare class UsersService {
         user_password: string;
         user_role: string;
     }): Promise<UserInfo>;
+    delete(targetUserId: number, currentUserId?: number): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

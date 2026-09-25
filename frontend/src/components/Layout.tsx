@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
 import {
   LayoutDashboard,
   Database,
@@ -12,10 +13,16 @@ import {
   LogOut,
   ChevronDown,
   Menu,
+  User,
+  Settings,
+  Globe,
 } from 'lucide-react';
+
+import { getUserAvatarColor, getUserProfilePhoto } from '../utils/userProfileStorage';
 
 export const Layout: React.FC = () => {
   const { user, logout, switchRole } = useAuth();
+  const { t, language, setLanguage, playSound } = usePreferences();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -42,6 +49,23 @@ export const Layout: React.FC = () => {
   const [gateOpen, setGateOpen] = useState(true);
 
   const role = (user?.type || '').toLowerCase();
+
+  const [avatarColor, setAvatarColor] = useState(() => getUserAvatarColor(user));
+  const [profilePhoto, setProfilePhoto] = useState(() => getUserProfilePhoto(user));
+
+  useEffect(() => {
+    const handleAvatarUpdate = () => {
+      setAvatarColor(getUserAvatarColor(user));
+      setProfilePhoto(getUserProfilePhoto(user));
+    };
+    handleAvatarUpdate();
+    window.addEventListener('storage', handleAvatarUpdate);
+    window.addEventListener('avatar_color_changed', handleAvatarUpdate);
+    return () => {
+      window.removeEventListener('storage', handleAvatarUpdate);
+      window.removeEventListener('avatar_color_changed', handleAvatarUpdate);
+    };
+  }, [user]);
 
   const handleRoleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value;
@@ -254,9 +278,32 @@ export const Layout: React.FC = () => {
           <div className="brand-text">SofTech ERP</div>
         </div>
 
-        <div className="user-panel">
-          <div className="user-avatar">
-            {user?.user_name ? user.user_name.charAt(0).toUpperCase() : 'U'}
+        <div 
+          className="user-panel" 
+          onClick={() => navigate('/profile')} 
+          style={{ cursor: 'pointer' }}
+          title="Click to view My Profile"
+        >
+          <div 
+            className="user-avatar" 
+            style={{ 
+              background: avatarColor, 
+              overflow: 'hidden', 
+              transition: 'background 0.2s ease, border-color 0.2s ease',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {profilePhoto ? (
+              <img 
+                src={profilePhoto} 
+                alt="Profile" 
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} 
+              />
+            ) : (
+              user?.user_name ? user.user_name.charAt(0).toUpperCase() : 'U'
+            )}
           </div>
           <div className="user-info">
             <div className="user-name">Name: {user?.user_name || 'Admin'}</div>
@@ -271,7 +318,25 @@ export const Layout: React.FC = () => {
             className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
           >
             <LayoutDashboard size={18} />
-            <span>Dashboard</span>
+            <span>{t('dashboard')}</span>
+          </NavLink>
+
+          {/* Profile */}
+          <NavLink
+            to="/profile"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <User size={18} />
+            <span>{t('profile')}</span>
+          </NavLink>
+
+          {/* Settings */}
+          <NavLink
+            to="/settings"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <Settings size={18} />
+            <span>{t('settings')}</span>
           </NavLink>
 
           {/* Master Menu (admin, packing) */}
@@ -283,7 +348,7 @@ export const Layout: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Database size={18} />
-                  <span>Master</span>
+                  <span>{t('master')}</span>
                 </div>
                 <ChevronDown size={15} className={`chevron-icon ${masterOpen ? 'open' : ''}`} />
               </div>
@@ -296,7 +361,7 @@ export const Layout: React.FC = () => {
                       className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                     >
                       <Users size={15} />
-                      <span>Users</span>
+                      <span>{t('users')}</span>
                     </NavLink>
                   )}
                   <NavLink
@@ -304,14 +369,14 @@ export const Layout: React.FC = () => {
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
                     <Layers size={15} />
-                    <span>Part Master</span>
+                    <span>{t('partMaster')}</span>
                   </NavLink>
                   <NavLink
                     to="/part_stock"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
                     <Layers size={15} />
-                    <span>Part Stock</span>
+                    <span>{t('partStock')}</span>
                   </NavLink>
                   {role === 'admin' && (
                     <NavLink
@@ -319,7 +384,7 @@ export const Layout: React.FC = () => {
                       className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                     >
                       <Users size={15} />
-                      <span>Customer</span>
+                      <span>{t('customer')}</span>
                     </NavLink>
                   )}
                 </div>
@@ -336,7 +401,7 @@ export const Layout: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Layers size={18} />
-                  <span>Packing</span>
+                  <span>{t('packing')}</span>
                 </div>
                 <ChevronDown size={15} className={`chevron-icon ${packingOpen ? 'open' : ''}`} />
               </div>
@@ -347,19 +412,19 @@ export const Layout: React.FC = () => {
                     to="/create_packing"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>Create Packing</span>
+                    <span>{t('createPacking')}</span>
                   </NavLink>
                   <NavLink
                     to="/create_packing_bulk"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>Create Bulk Packing</span>
+                    <span>{t('createBulkPacking')}</span>
                   </NavLink>
                   <NavLink
                     to="/view_packing"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>View Packing</span>
+                    <span>{t('viewPacking')}</span>
                   </NavLink>
                 </div>
               </div>
@@ -375,7 +440,7 @@ export const Layout: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <Box size={18} />
-                  <span>Box</span>
+                  <span>{t('box')}</span>
                 </div>
                 <ChevronDown size={15} className={`chevron-icon ${boxOpen ? 'open' : ''}`} />
               </div>
@@ -386,13 +451,13 @@ export const Layout: React.FC = () => {
                     to="/create_box"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>Create Box</span>
+                    <span>{t('createBox')}</span>
                   </NavLink>
                   <NavLink
                     to="/view_box"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>View Box</span>
+                    <span>{t('viewBox')}</span>
                   </NavLink>
                 </div>
               </div>
@@ -408,7 +473,7 @@ export const Layout: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <FileText size={18} />
-                  <span>Invoice</span>
+                  <span>{t('invoice')}</span>
                 </div>
                 <ChevronDown size={15} className={`chevron-icon ${invoiceOpen ? 'open' : ''}`} />
               </div>
@@ -419,13 +484,13 @@ export const Layout: React.FC = () => {
                     to="/create_invoice"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>Create Invoice</span>
+                    <span>{t('createInvoice')}</span>
                   </NavLink>
                   <NavLink
                     to="/view_invoice"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>View Invoice</span>
+                    <span>{t('viewInvoice')}</span>
                   </NavLink>
                 </div>
               </div>
@@ -441,7 +506,7 @@ export const Layout: React.FC = () => {
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <ShieldCheck size={18} />
-                  <span>Gate-Security</span>
+                  <span>{t('gateSecurity')}</span>
                 </div>
                 <ChevronDown size={15} className={`chevron-icon ${gateOpen ? 'open' : ''}`} />
               </div>
@@ -452,13 +517,13 @@ export const Layout: React.FC = () => {
                     to="/verify_invoice"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>Verify Invoice</span>
+                    <span>{t('verifyInvoice')}</span>
                   </NavLink>
                   <NavLink
                     to="/gate_out_report"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
-                    <span>Gate Out Report</span>
+                    <span>{t('gateOutReport')}</span>
                   </NavLink>
                 </div>
               </div>
@@ -468,7 +533,7 @@ export const Layout: React.FC = () => {
           {/* Logout */}
           <div className="nav-link" onClick={logout} style={{ marginTop: '20px' }}>
             <LogOut size={18} />
-            <span>Logout</span>
+            <span>{t('logout')}</span>
           </div>
         </nav>
       </aside>
@@ -490,26 +555,62 @@ export const Layout: React.FC = () => {
             >
               <Menu size={16} />
             </button>
-            <span style={{ fontWeight: 600, color: '#374151', fontSize: '15px' }}>
-              Barcode Stock Management &amp; ERP System
+            <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '15px' }}>
+              {t('erpTitle')}
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {/* Quick Language Selector */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--card-sub-bg)', border: '1px solid var(--border-color)', padding: '3px 6px', borderRadius: '6px' }}>
+              <Globe size={14} style={{ color: 'var(--text-muted)' }} />
+              <select
+                value={language}
+                onChange={(e) => {
+                  setLanguage(e.target.value as any);
+                  playSound('success');
+                }}
+                style={{
+                  border: 'none',
+                  background: 'transparent',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: 'var(--text-main)',
+                  cursor: 'pointer',
+                  outline: 'none',
+                }}
+                title="Change Interface Language"
+              >
+                <option value="en">EN (English)</option>
+                <option value="hi">HI (हिंदी)</option>
+                <option value="mr">MR (मराठी)</option>
+              </select>
+            </div>
+
+            {/* Quick Settings Button */}
+            <button
+              onClick={() => navigate('/settings')}
+              className="btn btn-sm btn-secondary"
+              style={{ padding: '5px 8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}
+              title="System & Station Settings"
+            >
+              <Settings size={13} />
+            </button>
+
             {/* Role Switcher */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px', color: '#6b7280', fontWeight: 600 }}>Active Role:</span>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>{t('activeRole')}:</span>
               <select
                 value={role}
                 onChange={handleRoleChange}
                 style={{
                   padding: '4px 8px',
                   borderRadius: '4px',
-                  border: '1px solid #d1d5db',
+                  border: '1px solid var(--border-color)',
                   fontSize: '12.5px',
                   fontWeight: 600,
-                  background: '#f9fafb',
-                  color: '#1f2937',
+                  background: 'var(--input-bg)',
+                  color: 'var(--text-main)',
                   cursor: 'pointer',
                 }}
               >
@@ -526,7 +627,7 @@ export const Layout: React.FC = () => {
               className="btn btn-sm btn-danger"
               style={{ fontSize: '12px' }}
             >
-              <LogOut size={13} /> Logout
+              <LogOut size={13} /> {t('logout')}
             </button>
           </div>
         </header>

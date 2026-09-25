@@ -22,4 +22,38 @@ export declare class AuthController {
         user_email: string;
         type: string;
     }>;
+    getProfileDetails(req: any): Promise<{
+        id: number;
+        user_name: string;
+        user_email: string;
+        type: string;
+        user_role: string;
+        employee_id: string;
+        mobile: string;
+        department: string;
+        status: string;
+        last_login: string;
+        drawing_download: string;
+        drawing_upload: string;
+    }>;
+    updateProfile(req: any, body: {
+        user_name?: string;
+        mobile?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        user: {
+            id: number;
+            user_name: string;
+            user_email: string;
+            type: string;
+        };
+    }>;
+    changePassword(req: any, body: {
+        currentPassword?: string;
+        newPassword?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

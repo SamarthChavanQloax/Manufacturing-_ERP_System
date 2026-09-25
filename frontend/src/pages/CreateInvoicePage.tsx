@@ -100,7 +100,7 @@ export const CreateInvoicePage: React.FC = () => {
                 </div>
 
                 <div style={{ width: '320px', zIndex: 10 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Select Part <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <Select
@@ -109,23 +109,12 @@ export const CreateInvoicePage: React.FC = () => {
                     onChange={(option) => setSelectedPartId(option ? option.value : '')}
                     placeholder="Filter by Part Number or Part Name..."
                     isClearable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '38px',
-                        fontSize: '14px',
-                        borderColor: '#ced4da',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          borderColor: '#80bdff'
-                        }
-                      })
-                    }}
+                    classNamePrefix="react-select"
                   />
                 </div>
 
                 <div style={{ width: '180px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Invoice Quantity <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input

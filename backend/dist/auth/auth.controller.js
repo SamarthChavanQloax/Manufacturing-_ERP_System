@@ -26,7 +26,20 @@ let AuthController = class AuthController {
         return this.authService.login(email, password);
     }
     async getProfile(req) {
-        return this.authService.getProfile(req.user.userId);
+        const userId = req.user.userId || req.user.id;
+        return this.authService.getProfile(userId);
+    }
+    async getProfileDetails(req) {
+        const userId = req.user.userId || req.user.id;
+        return this.authService.getProfileDetails(userId);
+    }
+    async updateProfile(req, body) {
+        const userId = req.user.userId || req.user.id;
+        return this.authService.updateProfile(userId, body);
+    }
+    async changePassword(req, body) {
+        const userId = req.user.userId || req.user.id;
+        return this.authService.changePassword(userId, body.currentPassword || '', body.newPassword || '');
     }
 };
 exports.AuthController = AuthController;
@@ -45,6 +58,32 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "getProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(guards_1.JwtAuthGuard),
+    (0, common_1.Get)('profile-details'),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "getProfileDetails", null);
+__decorate([
+    (0, common_1.UseGuards)(guards_1.JwtAuthGuard),
+    (0, common_1.Put)('profile'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "updateProfile", null);
+__decorate([
+    (0, common_1.UseGuards)(guards_1.JwtAuthGuard),
+    (0, common_1.Put)('change-password'),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "changePassword", null);
 exports.AuthController = AuthController = __decorate([
     (0, common_1.Controller)('api/auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])

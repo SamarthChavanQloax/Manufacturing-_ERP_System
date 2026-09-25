@@ -27,6 +27,10 @@ let UsersController = class UsersController {
     async create(body) {
         return this.usersService.create(body);
     }
+    async delete(id, req) {
+        const currentUserId = req.user?.userId || req.user?.id;
+        return this.usersService.delete(Number(id), currentUserId);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -42,6 +46,14 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "create", null);
+__decorate([
+    (0, common_1.Delete)(':id'),
+    __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, common_1.Req)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "delete", null);
 exports.UsersController = UsersController = __decorate([
     (0, common_1.Controller)('api/users'),
     (0, common_1.UseGuards)(guards_1.JwtAuthGuard, guards_1.RolesGuard),

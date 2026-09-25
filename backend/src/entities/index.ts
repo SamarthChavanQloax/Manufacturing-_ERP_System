@@ -109,6 +109,9 @@ export class Customer {
 
   @Column({ type: 'varchar', length: 255 })
   customer_name: string;
+
+  @Column({ type: 'text', nullable: true })
+  customer_image?: string;
 }
 
 @Entity('packing')

@@ -9,4 +9,8 @@ export declare class UsersController {
         user_password: string;
         user_role: string;
     }): Promise<import("../entities").UserInfo>;
+    delete(id: string, req: any): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

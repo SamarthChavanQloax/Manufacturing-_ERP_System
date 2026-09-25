@@ -61,6 +61,65 @@ let AuthService = class AuthService {
             type: user.type,
         };
     }
+    async getProfileDetails(userId) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user)
+            throw new common_1.UnauthorizedException('User not found');
+        const departmentMap = {
+            admin: 'Executive & Management',
+            packing: 'Finished Goods Packing Line',
+            box: 'Master Carton Dispatch Packaging',
+            invoice: 'Commercial Invoicing & Logistics',
+            gate: 'Security & Outward Gate Control',
+        };
+        return {
+            id: user.id,
+            user_name: user.user_name,
+            user_email: user.user_email,
+            type: user.type,
+            user_role: user.user_role || user.type,
+            employee_id: `EMP-${1000 + user.id}`,
+            mobile: '+91 98' + String(user.id).padStart(2, '0') + ' 44' + String(user.id * 7).padStart(4, '0'),
+            department: departmentMap[user.type.toLowerCase()] || 'Plant Operations',
+            status: 'Active',
+            last_login: user.date && user.time ? `${user.date} ${user.time}` : new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }),
+            drawing_download: user.drawing_download,
+            drawing_upload: user.drawing_upload,
+        };
+    }
+    async updateProfile(userId, data) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user)
+            throw new common_1.UnauthorizedException('User not found');
+        if (data.user_name && data.user_name.trim()) {
+            user.user_name = data.user_name.trim();
+        }
+        await this.userRepository.save(user);
+        return {
+            success: true,
+            message: 'Profile updated successfully',
+            user: {
+                id: user.id,
+                user_name: user.user_name,
+                user_email: user.user_email,
+                type: user.type,
+            },
+        };
+    }
+    async changePassword(userId, currentPass, newPass) {
+        const user = await this.userRepository.findOne({ where: { id: userId } });
+        if (!user)
+            throw new common_1.UnauthorizedException('User not found');
+        if (user.user_password !== currentPass) {
+            throw new common_1.UnauthorizedException('Current password does not match');
+        }
+        if (!newPass || newPass.trim().length < 3) {
+            throw new common_1.UnauthorizedException('New password must be at least 3 characters long');
+        }
+        user.user_password = newPass.trim();
+        await this.userRepository.save(user);
+        return { success: true, message: 'Password changed successfully' };
+    }
 };
 exports.AuthService = AuthService;
 exports.AuthService = AuthService = __decorate([

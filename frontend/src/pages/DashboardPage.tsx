@@ -21,7 +21,11 @@ import {
   Lock,
   CheckCircle2,
   ScanLine,
+  ChevronRight,
+  Archive,
+  Users,
 } from 'lucide-react';
+
 import {
   BarChart,
   Bar,
@@ -147,7 +151,7 @@ export const DashboardPage: React.FC = () => {
       {/* ── SECTION 2: WHAT NEEDS ATTENTION? (ACTIONABLE ALERTS) ── */}
       {alerts.length > 0 && (
         <div style={{ marginBottom: '24px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <AlertTriangle size={16} color="#f59e0b" /> What Needs Attention Now?
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
@@ -178,7 +182,7 @@ export const DashboardPage: React.FC = () => {
                       <AlertTriangle size={18} color={btnBg} />
                       <strong style={{ fontSize: '15px', color: textColor }}>{alert.title}</strong>
                     </div>
-                    <p style={{ margin: 0, fontSize: '13px', color: '#475569' }}>{alert.message}</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>{alert.message}</p>
                   </div>
                   <Link
                     to={alert.actionUrl}
@@ -213,7 +217,7 @@ export const DashboardPage: React.FC = () => {
         <>
           {/* Quick Actions for Packing */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={16} color="#16a34a" /> Packing Station Actions
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
@@ -245,8 +249,8 @@ export const DashboardPage: React.FC = () => {
               <Link
                 to="/create_packing_bulk"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
                   border: '2px solid #16a34a',
                   borderRadius: '14px',
                   padding: '22px',
@@ -261,16 +265,16 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>Bulk Batch Packing</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>Generate multiple barcodes</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>Generate multiple barcodes</p>
                 </div>
               </Link>
 
               <Link
                 to="/view_packing"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
+                  border: '1px solid var(--card-border)',
                   borderRadius: '14px',
                   padding: '22px',
                   display: 'flex',
@@ -279,21 +283,21 @@ export const DashboardPage: React.FC = () => {
                   textDecoration: 'none',
                 }}
               >
-                <div style={{ background: '#f1f5f9', color: '#475569', padding: '12px', borderRadius: '12px' }}>
+                <div style={{ background: '#f1f5f9', color: 'var(--text-muted)', padding: '12px', borderRadius: '12px' }}>
                   <Layers size={28} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>View Shelf Packings</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>Check active 100k+ items</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>Check active 100k+ items</p>
                 </div>
               </Link>
 
               <Link
                 to="/part_master"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
+                  border: '1px solid var(--card-border)',
                   borderRadius: '14px',
                   padding: '22px',
                   display: 'flex',
@@ -307,7 +311,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>Check Part Catalog</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>Part numbers & descriptions</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>Part numbers & descriptions</p>
                 </div>
               </Link>
 
@@ -316,40 +320,40 @@ export const DashboardPage: React.FC = () => {
 
           {/* Summary Cards */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
               Today's Packing Summary
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Packed Today</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Packed Today</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#16a34a' }}>
                   {loading ? '...' : (data?.summary?.todayPackedUnits ?? 0).toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 600 }}>pcs</span>
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>{data?.summary?.todayPackingBatches ?? 0} batches processed</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>{data?.summary?.todayPackingBatches ?? 0} batches processed</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Ready on FG Shelf</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Ready on FG Shelf</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#0284c7' }}>
                   {loading ? '...' : (data?.summary?.pendingPackingsCount ?? 0).toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 600 }}>batches</span>
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>{(data?.summary?.pendingPackingsQty ?? 0).toLocaleString()} units waiting for box</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>{(data?.summary?.pendingPackingsQty ?? 0).toLocaleString()} units waiting for box</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Packed into Master Boxes</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Packed into Master Boxes</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#d97706' }}>
                   {loading ? '...' : (data?.summary?.usedPackingsCount ?? 0).toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 600 }}>batches</span>
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>{(data?.summary?.usedPackingsQty ?? 0).toLocaleString()} units boxed</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>{(data?.summary?.usedPackingsQty ?? 0).toLocaleString()} units boxed</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Total Packing Records</span>
-                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#0f172a' }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Packing Records</span>
+                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>
                   {loading ? '...' : (data?.summary?.totalPackingsCount ?? 0).toLocaleString()}
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Lifetime FG barcodes</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Lifetime FG barcodes</span>
               </div>
             </div>
           </div>
@@ -357,8 +361,8 @@ export const DashboardPage: React.FC = () => {
           {/* Charts Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
             {/* Chart 1: Daily Trend */}
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#16a34a" /> Packing Output (Last 7 Days)
               </h3>
               <div style={{ height: '240px' }}>
@@ -375,8 +379,8 @@ export const DashboardPage: React.FC = () => {
             </div>
 
             {/* Chart 2: Status */}
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <PieIcon size={18} color="#0284c7" /> Packing Shelf Status
               </h3>
               <div style={{ height: '200px' }}>
@@ -415,7 +419,7 @@ export const DashboardPage: React.FC = () => {
         <>
           {/* Quick Actions for Box */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={16} color="#d97706" /> Master Box Actions
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
@@ -446,8 +450,8 @@ export const DashboardPage: React.FC = () => {
               <Link
                 to="/view_box"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
                   border: '2px solid #d97706',
                   borderRadius: '14px',
                   padding: '22px',
@@ -462,16 +466,16 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>Scan Items into Box</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>Add packings & lock box</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>Add packings & lock box</p>
                 </div>
               </Link>
 
               <Link
                 to="/view_box"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
+                  border: '1px solid var(--card-border)',
                   borderRadius: '14px',
                   padding: '22px',
                   display: 'flex',
@@ -480,12 +484,12 @@ export const DashboardPage: React.FC = () => {
                   textDecoration: 'none',
                 }}
               >
-                <div style={{ background: '#f1f5f9', color: '#475569', padding: '12px', borderRadius: '12px' }}>
+                <div style={{ background: '#f1f5f9', color: 'var(--text-muted)', padding: '12px', borderRadius: '12px' }}>
                   <Box size={28} />
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>View All Boxes</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>Inspect box manifests & seals</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>Inspect box manifests & seals</p>
                 </div>
               </Link>
 
@@ -494,48 +498,48 @@ export const DashboardPage: React.FC = () => {
 
           {/* Summary Cards */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
               Master Box Summary
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Boxes Created Today</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Boxes Created Today</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#d97706' }}>
                   {loading ? '...' : (data?.summary?.todayBoxesCount ?? 0).toLocaleString()}
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Containers initialized</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Containers initialized</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Sealed & Locked Boxes</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Sealed & Locked Boxes</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#16a34a' }}>
                   {loading ? '...' : (data?.summary?.lockedBoxesCount ?? 0).toLocaleString()}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#16a34a', fontWeight: 600 }}>Ready for Invoicing</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Open / Unlocked Boxes</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Open / Unlocked Boxes</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#dc2626' }}>
                   {loading ? '...' : (data?.summary?.unlockedBoxesCount ?? 0).toLocaleString()}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#dc2626', fontWeight: 600 }}>Needs packing & locking</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Items Inside Boxes</span>
-                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#0f172a' }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Items Inside Boxes</span>
+                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>
                   {loading ? '...' : (data?.summary?.totalItemsInBoxes ?? 0).toLocaleString()} <span style={{ fontSize: '14px', fontWeight: 600 }}>pcs</span>
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Total packed inventory</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Total packed inventory</span>
               </div>
             </div>
           </div>
 
           {/* Charts Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#d97706" /> Boxes Created (Last 7 Days)
               </h3>
               <div style={{ height: '240px' }}>
@@ -551,8 +555,8 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <PieIcon size={18} color="#d97706" /> Box Seal Status
               </h3>
               <div style={{ height: '200px' }}>
@@ -591,7 +595,7 @@ export const DashboardPage: React.FC = () => {
         <>
           {/* Quick Actions for Invoice */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={16} color="#dc2626" /> Dispatch & Invoice Actions
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
@@ -622,8 +626,8 @@ export const DashboardPage: React.FC = () => {
               <Link
                 to="/create_invoice"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
                   border: '2px solid #dc2626',
                   borderRadius: '14px',
                   padding: '22px',
@@ -638,7 +642,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '17px', fontWeight: 800 }}>Map Master Boxes</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: '#64748b' }}>Assign sealed boxes to orders</p>
+                  <p style={{ margin: '4px 0 0', fontSize: '12.5px', color: 'var(--text-muted)' }}>Assign sealed boxes to orders</p>
                 </div>
               </Link>
 
@@ -647,48 +651,48 @@ export const DashboardPage: React.FC = () => {
 
           {/* Summary Cards */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
               Dispatch & Invoicing Summary
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Invoices Created Today</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Invoices Created Today</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#dc2626' }}>
                   {loading ? '...' : (data?.summary?.todayInvoicesCount ?? 0).toLocaleString()}
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Orders generated</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Orders generated</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Pending Box Mapping</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Pending Box Mapping</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#d97706' }}>
                   {loading ? '...' : (data?.summary?.pendingInvoicesCount ?? 0).toLocaleString()}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#d97706', fontWeight: 600 }}>Needs boxes assigned</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Available Sealed Boxes</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Available Sealed Boxes</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#16a34a' }}>
                   {loading ? '...' : (data?.summary?.availableLockedBoxesCount ?? 0).toLocaleString()}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#16a34a', fontWeight: 600 }}>Ready to assign</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Total Invoices</span>
-                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#0f172a' }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Invoices</span>
+                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>
                   {loading ? '...' : (data?.summary?.totalInvoicesCount ?? 0).toLocaleString()}
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Lifetime orders</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Lifetime orders</span>
               </div>
             </div>
           </div>
 
           {/* Charts Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#dc2626" /> Daily Invoices Created (Last 7 Days)
               </h3>
               <div style={{ height: '240px' }}>
@@ -704,8 +708,8 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <PieIcon size={18} color="#dc2626" /> Invoice Allocation Status
               </h3>
               <div style={{ height: '200px' }}>
@@ -744,7 +748,7 @@ export const DashboardPage: React.FC = () => {
         <>
           {/* Main Prominent Action for Gate */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Sparkles size={16} color="#7c3aed" /> Primary Exit Gate Operation
             </div>
 
@@ -781,8 +785,8 @@ export const DashboardPage: React.FC = () => {
               <Link
                 to="/gate_out_report"
                 style={{
-                  background: '#fff',
-                  color: '#0f172a',
+                  background: 'var(--card-bg)',
+                  color: 'var(--text-main)',
                   border: '2px solid #7c3aed',
                   borderRadius: '16px',
                   padding: '28px',
@@ -797,7 +801,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800 }}>Gate-Out Audit Log</h3>
-                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#64748b' }}>
+                  <p style={{ margin: '4px 0 0', fontSize: '13px', color: 'var(--text-muted)' }}>
                     View verified vehicles & reprint clearance passes
                   </p>
                 </div>
@@ -808,48 +812,48 @@ export const DashboardPage: React.FC = () => {
 
           {/* Summary Cards */}
           <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
+            <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px' }}>
               Gate Clearance Summary
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Cleared Passes Today</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Cleared Passes Today</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#16a34a' }}>
                   {loading ? '...' : (data?.summary?.todayGatePassesCount ?? 0).toLocaleString()}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#16a34a', fontWeight: 600 }}>Vehicles exited</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>In Verification Queue</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>In Verification Queue</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#0284c7' }}>
                   {loading ? '...' : (data?.summary?.pendingGateVerificationsCount ?? 0).toLocaleString()}
                 </h3>
                 <span style={{ fontSize: '12.5px', color: '#0284c7', fontWeight: 600 }}>Awaiting physical box scans</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Total Cleared Dispatches</span>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Cleared Dispatches</span>
                 <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#7c3aed' }}>
                   {loading ? '...' : (data?.summary?.verifiedGatePassesCount ?? 0).toLocaleString()}
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Passed inspection</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Passed inspection</span>
               </div>
 
-              <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e2e8f0' }}>
-                <span style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Total Gate Records</span>
-                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: '#0f172a' }}>
+              <div style={{ background: 'var(--card-bg)', borderRadius: '12px', padding: '20px', border: '1px solid var(--card-border)' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>Total Gate Records</span>
+                <h3 style={{ margin: '6px 0 2px', fontSize: '28px', fontWeight: 800, color: 'var(--text-main)' }}>
                   {loading ? '...' : (data?.summary?.totalGatePassesCount ?? 0).toLocaleString()}
                 </h3>
-                <span style={{ fontSize: '12.5px', color: '#64748b' }}>Lifetime gate logs</span>
+                <span style={{ fontSize: '12.5px', color: 'var(--text-muted)' }}>Lifetime gate logs</span>
               </div>
             </div>
           </div>
 
           {/* Charts Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#7c3aed" /> Daily Cleared Vehicles (Last 7 Days)
               </h3>
               <div style={{ height: '240px' }}>
@@ -865,8 +869,8 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <PieIcon size={18} color="#7c3aed" /> Gate Verification Status
               </h3>
               <div style={{ height: '200px' }}>
@@ -903,154 +907,104 @@ export const DashboardPage: React.FC = () => {
       {/* ========================================================================= */}
       {userRole === 'admin' && (
         <>
-          {/* 4-Step Factory Actions Control Grid */}
-          <div style={{ marginBottom: '28px' }}>
-            <div style={{ fontSize: '14px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Sparkles size={16} color="#0284c7" /> Factory Operations Control Panel
+          {/* 5 Classic Color Stat Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '28px' }}>
+            
+            {/* Total Parts */}
+            <div style={{ background: '#0284c7', borderRadius: '12px', padding: '20px', color: '#fff', boxShadow: '0 4px 12px rgba(2, 132, 199, 0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '130px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '30px', fontWeight: 800 }}>
+                    {loading ? '...' : (data?.systemCounts?.parts ?? 0).toLocaleString()}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13.5px', opacity: 0.9 }}>Total Parts</p>
+                </div>
+                <Package size={34} style={{ opacity: 0.7 }} />
+              </div>
+              <Link to="/part_master" style={{ borderTop: '1px solid rgba(255,255,255,0.25)', marginTop: '16px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>
+                <span>View Parts</span>
+                <ChevronRight size={14} />
+              </Link>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-              {/* Step 1 */}
-              <div style={{ background: '#fff', borderRadius: '14px', padding: '20px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            {/* Active Packings */}
+            <div style={{ background: '#16a34a', borderRadius: '12px', padding: '20px', color: '#fff', boxShadow: '0 4px 12px rgba(22, 163, 74, 0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '130px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#dcfce7', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      1
-                    </div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Pack Items</h4>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Finished Goods (100k+)</span>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px' }}>
-                    Print thermal barcode stickers for finished parts.
-                  </p>
+                  <h3 style={{ margin: 0, fontSize: '30px', fontWeight: 800 }}>
+                    {loading ? '...' : (data?.systemCounts?.packings ?? 0).toLocaleString()}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13.5px', opacity: 0.9 }}>Active Packings</p>
                 </div>
-                <Link to="/create_packing" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#16a34a', color: '#fff', padding: '10px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none' }}>
-                  <PlusCircle size={15} /> Start Packing
-                </Link>
+                <Archive size={34} style={{ opacity: 0.7 }} />
               </div>
-
-              {/* Step 2 */}
-              <div style={{ background: '#fff', borderRadius: '14px', padding: '20px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef3c7', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      2
-                    </div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Fill & Lock Box</h4>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Master Box (200k+)</span>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px' }}>
-                    Scan packings into master carton and seal box.
-                  </p>
-                </div>
-                <Link to="/create_box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#d97706', color: '#fff', padding: '10px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none' }}>
-                  <PlusCircle size={15} /> Create Master Box
-                </Link>
-              </div>
-
-              {/* Step 3 */}
-              <div style={{ background: '#fff', borderRadius: '14px', padding: '20px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      3
-                    </div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Dispatch Invoice</h4>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Billing & Orders (300k+)</span>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px' }}>
-                    Create invoice order and map sealed boxes.
-                  </p>
-                </div>
-                <Link to="/create_invoice" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#dc2626', color: '#fff', padding: '10px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none' }}>
-                  <PlusCircle size={15} /> Create Invoice
-                </Link>
-              </div>
-
-              {/* Step 4 */}
-              <div style={{ background: '#fff', borderRadius: '14px', padding: '20px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ede9fe', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800 }}>
-                      4
-                    </div>
-                    <div>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>Gate Clearance</h4>
-                      <span style={{ fontSize: '12px', color: '#64748b' }}>Security Exit Pass</span>
-                    </div>
-                  </div>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 16px' }}>
-                    Verify boxes against invoice at factory exit.
-                  </p>
-                </div>
-                <Link to="/verify_invoice" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', background: '#7c3aed', color: '#fff', padding: '10px', borderRadius: '8px', fontWeight: 600, fontSize: '13px', textDecoration: 'none' }}>
-                  <ShieldCheck size={15} /> Scan & Clear
-                </Link>
-              </div>
+              <Link to="/view_packing" style={{ borderTop: '1px solid rgba(255,255,255,0.25)', marginTop: '16px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>
+                <span>View Packings</span>
+                <ChevronRight size={14} />
+              </Link>
             </div>
+
+            {/* Master Boxes */}
+            <div style={{ background: '#d97706', borderRadius: '12px', padding: '20px', color: '#fff', boxShadow: '0 4px 12px rgba(217, 119, 6, 0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '130px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '30px', fontWeight: 800 }}>
+                    {loading ? '...' : (data?.systemCounts?.boxes ?? 0).toLocaleString()}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13.5px', opacity: 0.9 }}>Master Boxes</p>
+                </div>
+                <Box size={34} style={{ opacity: 0.7 }} />
+              </div>
+              <Link to="/view_box" style={{ borderTop: '1px solid rgba(255,255,255,0.25)', marginTop: '16px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>
+                <span>View Boxes</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            {/* Dispatch Invoices */}
+            <div style={{ background: '#dc2626', borderRadius: '12px', padding: '20px', color: '#fff', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '130px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '30px', fontWeight: 800 }}>
+                    {loading ? '...' : (data?.systemCounts?.invoices ?? 0).toLocaleString()}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13.5px', opacity: 0.9 }}>Dispatch Invoices</p>
+                </div>
+                <FileText size={34} style={{ opacity: 0.7 }} />
+              </div>
+              <Link to="/create_invoice" style={{ borderTop: '1px solid rgba(255,255,255,0.25)', marginTop: '16px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>
+                <span>View Invoices</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+
+            {/* System Users */}
+            <div style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%)', borderRadius: '12px', padding: '20px', color: '#fff', boxShadow: '0 4px 12px rgba(124, 58, 237, 0.2)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '130px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '30px', fontWeight: 800 }}>
+                    {loading ? '...' : (data?.systemCounts?.users ?? 0).toLocaleString()}
+                  </h3>
+                  <p style={{ margin: '4px 0 0', fontSize: '13.5px', opacity: 0.9 }}>System Users</p>
+                </div>
+                <Users size={34} style={{ opacity: 0.7 }} />
+              </div>
+              <Link to="/erp_users" style={{ borderTop: '1px solid rgba(255,255,255,0.25)', marginTop: '16px', paddingTop: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#fff', textDecoration: 'none', fontWeight: 600 }}>
+                <span>View Users</span>
+                <ChevronRight size={14} />
+              </Link>
+            </div>
+
           </div>
 
-          {/* Admin 5-Stage Pipeline */}
-          <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0', marginBottom: '28px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-              <div>
-                <h3 style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Layers size={20} color="#0284c7" /> Full Manufacturing & Dispatch Pipeline
-                </h3>
-                <span style={{ fontSize: '13px', color: '#64748b' }}>Live units moving through the 5 operational stages</span>
-              </div>
-              <span style={{ background: '#e0f2fe', color: '#0284c7', fontSize: '12px', fontWeight: 700, padding: '4px 12px', borderRadius: '99px' }}>
-                Total System Inventory: {(data?.stockDistribution?.totalStock ?? 0).toLocaleString()} pcs
-              </span>
-            </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px' }}>
-              {(data?.pipeline || []).map((stage: any, index: number) => (
-                <div
-                  key={stage.id}
-                  style={{
-                    background: stage.bg,
-                    border: `1px solid ${stage.color}25`,
-                    borderRadius: '12px',
-                    padding: '16px',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                  }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 800, color: stage.color, textTransform: 'uppercase' }}>
-                        Stage {stage.id}
-                      </span>
-                      {index < (data?.pipeline?.length || 0) - 1 && (
-                        <span style={{ color: stage.color, opacity: 0.6, fontSize: '12px', fontWeight: 700 }}>→</span>
-                      )}
-                    </div>
-                    <h4 style={{ margin: '0 0 6px', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>{stage.stage}</h4>
-                    <div style={{ fontSize: '22px', fontWeight: 800, color: stage.color }}>
-                      {loading ? '...' : (stage.quantity ?? 0).toLocaleString()}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#475569', marginTop: '2px' }}>{stage.unit}</div>
-                  </div>
-                  <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: `1px solid ${stage.color}20`, fontSize: '11.5px', fontWeight: 600, color: stage.color }}>
-                    {stage.status}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+
+
 
           {/* Admin Charts Row */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '24px', marginBottom: '28px' }}>
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#16a34a" /> 7-Day Factory Packing Output
               </h3>
               <div style={{ height: '240px' }}>
@@ -1066,8 +1020,8 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+              <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <PieIcon size={18} color="#0284c7" /> 4-Stage Warehouse Stock
               </h3>
               <div style={{ height: '200px' }}>
@@ -1119,12 +1073,12 @@ export const DashboardPage: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
         
         {/* Recent Activity Feed */}
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Clock size={18} color={currentRole.color} /> Recent {currentRole.title} Activity
             </h3>
-            <span style={{ fontSize: '12px', color: '#64748b' }}>Latest events</span>
+            <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Latest events</span>
           </div>
 
           {recentActivities.length === 0 ? (
@@ -1142,8 +1096,8 @@ export const DashboardPage: React.FC = () => {
                     justifyContent: 'space-between',
                     padding: '12px 14px',
                     borderRadius: '10px',
-                    background: '#f8fafc',
-                    border: '1px solid #f1f5f9',
+                    background: 'var(--card-sub-bg)',
+                    border: '1px solid var(--card-border)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -1170,8 +1124,8 @@ export const DashboardPage: React.FC = () => {
                       )}
                     </div>
                     <div>
-                      <div style={{ fontSize: '13.5px', fontWeight: 700, color: '#0f172a' }}>{act.title}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>{act.description}</div>
+                      <div style={{ fontSize: '13.5px', fontWeight: 700, color: 'var(--text-main)' }}>{act.title}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{act.description}</div>
                     </div>
                   </div>
                   <div style={{ textAlign: 'right' }}>
@@ -1196,8 +1150,8 @@ export const DashboardPage: React.FC = () => {
         </div>
 
         {/* Quick Reports */}
-        <div style={{ background: '#fff', borderRadius: '16px', padding: '24px', border: '1px solid #e2e8f0' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
+          <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <FileText size={18} color="#0284c7" /> Fast Module Navigation
           </h3>
 
@@ -1211,15 +1165,15 @@ export const DashboardPage: React.FC = () => {
                   gap: '12px',
                   padding: '12px 14px',
                   borderRadius: '10px',
-                  background: '#f8fafc',
-                  border: '1px solid #f1f5f9',
+                  background: 'var(--card-sub-bg)',
+                  border: '1px solid var(--card-border)',
                   textDecoration: 'none',
                 }}
               >
                 <Truck size={16} color="#7c3aed" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Gate-Out Clearance Report</div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>Printable vehicle exit passes</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>Gate-Out Clearance Report</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Printable vehicle exit passes</div>
                 </div>
                 <ArrowRight size={13} color="#94a3b8" />
               </Link>
@@ -1234,15 +1188,15 @@ export const DashboardPage: React.FC = () => {
                   gap: '12px',
                   padding: '12px 14px',
                   borderRadius: '10px',
-                  background: '#f8fafc',
-                  border: '1px solid #f1f5f9',
+                  background: 'var(--card-sub-bg)',
+                  border: '1px solid var(--card-border)',
                   textDecoration: 'none',
                 }}
               >
                 <Layers size={16} color="#0284c7" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Part Stock Balances</div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>Check warehouse stage inventory</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>Part Stock Balances</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Check warehouse stage inventory</div>
                 </div>
                 <ArrowRight size={13} color="#94a3b8" />
               </Link>
@@ -1257,15 +1211,15 @@ export const DashboardPage: React.FC = () => {
                   gap: '12px',
                   padding: '12px 14px',
                   borderRadius: '10px',
-                  background: '#f8fafc',
-                  border: '1px solid #f1f5f9',
+                  background: 'var(--card-sub-bg)',
+                  border: '1px solid var(--card-border)',
                   textDecoration: 'none',
                 }}
               >
                 <Package size={16} color="#16a34a" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Finished Goods History</div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>View thermal 100k+ barcode cards</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>Finished Goods History</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>View thermal 100k+ barcode cards</div>
                 </div>
                 <ArrowRight size={13} color="#94a3b8" />
               </Link>
@@ -1280,15 +1234,15 @@ export const DashboardPage: React.FC = () => {
                   gap: '12px',
                   padding: '12px 14px',
                   borderRadius: '10px',
-                  background: '#f8fafc',
-                  border: '1px solid #f1f5f9',
+                  background: 'var(--card-sub-bg)',
+                  border: '1px solid var(--card-border)',
                   textDecoration: 'none',
                 }}
               >
                 <Box size={16} color="#d97706" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Master Box Inventory</div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>View box manifests & seal status</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>Master Box Inventory</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>View box manifests & seal status</div>
                 </div>
                 <ArrowRight size={13} color="#94a3b8" />
               </Link>
@@ -1303,15 +1257,15 @@ export const DashboardPage: React.FC = () => {
                   gap: '12px',
                   padding: '12px 14px',
                   borderRadius: '10px',
-                  background: '#f8fafc',
-                  border: '1px solid #f1f5f9',
+                  background: 'var(--card-sub-bg)',
+                  border: '1px solid var(--card-border)',
                   textDecoration: 'none',
                 }}
               >
                 <FileText size={16} color="#dc2626" />
                 <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#0f172a' }}>Active Dispatch Invoices</div>
-                  <div style={{ fontSize: '11.5px', color: '#64748b' }}>View 300k+ commercial orders</div>
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)' }}>Active Dispatch Invoices</div>
+                  <div style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>View 300k+ commercial orders</div>
                 </div>
                 <ArrowRight size={13} color="#94a3b8" />
               </Link>

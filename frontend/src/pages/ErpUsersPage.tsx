@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../api/client';
+import { useAuth } from '../context/AuthContext';
 import {
   Users,
   Plus,
@@ -17,7 +18,10 @@ import {
   FileText,
   Truck,
   UserPlus,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
+
 
 interface ErpUser {
   id: number;
@@ -29,14 +33,21 @@ interface ErpUser {
 }
 
 export const ErpUsersPage: React.FC = () => {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<ErpUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
   const [search, setSearch] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [modalShowPassword, setModalShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  // Delete modal state
+  const [userToDelete, setUserToDelete] = useState<ErpUser | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [formData, setFormData] = useState({
     user_name: '',
@@ -57,6 +68,24 @@ export const ErpUsersPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return;
+    setDeleting(true);
+    try {
+      const res = await api.delete(`/users/${userToDelete.id}`);
+      setShowDeleteModal(false);
+      setUserToDelete(null);
+      setSuccessMsg(res.data?.message || 'User deleted successfully');
+      setTimeout(() => setSuccessMsg(''), 4000);
+      fetchUsers();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to delete user');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
 
   useEffect(() => {
     fetchUsers();
@@ -235,6 +264,22 @@ export const ErpUsersPage: React.FC = () => {
 
           <div className="card-body" style={{ padding: 0 }}>
             {error && <div className="alert alert-danger" style={{ margin: '1rem' }}>{error}</div>}
+            {successMsg && (
+              <div
+                className="alert alert-success"
+                style={{
+                  margin: '1rem',
+                  background: '#dcfce7',
+                  color: '#166534',
+                  border: '1px solid #bbf7d0',
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                }}
+              >
+                {successMsg}
+              </div>
+            )}
 
             {loading ? (
               <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b' }}>
@@ -244,15 +289,16 @@ export const ErpUsersPage: React.FC = () => {
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
                   <colgroup>
-                    <col style={{ width: '72px' }} />
+                    <col style={{ width: '60px' }} />
                     <col style={{ width: '180px' }} />
-                    <col style={{ width: '230px' }} />
-                    <col style={{ width: '170px' }} />
-                    <col />
+                    <col style={{ width: '220px' }} />
+                    <col style={{ width: '150px' }} />
+                    <col style={{ width: '150px' }} />
+                    <col style={{ width: '120px' }} />
                   </colgroup>
                   <thead>
-                    <tr style={{ background: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-                      {['Sr No', 'Full Name', 'Email Address', 'Password', 'Assigned Role'].map(
+                    <tr style={{ background: 'var(--card-sub-bg)', borderBottom: '2px solid var(--card-border)' }}>
+                      {['Sr No', 'Full Name', 'Email Address', 'Password', 'Assigned Role', 'Actions'].map(
                         (h) => (
                           <th
                             key={h}
@@ -260,8 +306,8 @@ export const ErpUsersPage: React.FC = () => {
                               padding: '11px 16px',
                               fontSize: '11.5px',
                               fontWeight: 700,
-                              color: '#6b7280',
-                              textAlign: 'left',
+                              color: 'var(--text-muted)',
+                              textAlign: h === 'Actions' ? 'center' : 'left',
                               textTransform: 'uppercase',
                               letterSpacing: '0.06em',
                               whiteSpace: 'nowrap',
@@ -277,11 +323,11 @@ export const ErpUsersPage: React.FC = () => {
                     {filteredUsers.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={5}
+                          colSpan={6}
                           style={{
                             textAlign: 'center',
                             padding: '2.5rem',
-                            color: '#94a3b8',
+                            color: 'var(--text-muted)',
                             fontSize: 14,
                           }}
                         >
@@ -289,112 +335,156 @@ export const ErpUsersPage: React.FC = () => {
                         </td>
                       </tr>
                     ) : (
-                      filteredUsers.map((u, idx) => (
-                        <tr
-                          key={u.id}
-                          style={{
-                            borderBottom: '1px solid #e9ecef',
-                            background: idx % 2 !== 0 ? '#f9fafb' : '#fff',
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.background = '#eff6ff')}
-                          onMouseLeave={(e) =>
-                            (e.currentTarget.style.background = idx % 2 !== 0 ? '#f9fafb' : '#fff')
-                          }
-                        >
-                          {/* Sr No */}
-                          <td
+                      filteredUsers.map((u, idx) => {
+                        const isSelf =
+                          u.id === currentUser?.id ||
+                          (currentUser?.user_email &&
+                            u.user_email.toLowerCase() === currentUser?.user_email.toLowerCase());
+
+                        return (
+                          <tr
+                            key={u.id}
                             style={{
-                              padding: '12px 16px',
-                              fontSize: '13px',
-                              color: '#9ca3af',
-                              fontWeight: 600,
+                              borderBottom: '1px solid var(--border-color)',
+                              background: idx % 2 !== 0 ? 'var(--card-sub-bg)' : 'var(--card-bg)',
+                              color: 'var(--text-main)',
                             }}
                           >
-                            {idx + 1}
-                          </td>
+                            {/* Sr No */}
+                            <td
+                              style={{
+                                padding: '12px 16px',
+                                fontSize: '13px',
+                                color: 'var(--text-muted)',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {idx + 1}
+                            </td>
 
-                          {/* Full Name with avatar */}
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
-                              <span
-                                style={{
-                                  width: 28,
-                                  height: 28,
-                                  borderRadius: '50%',
-                                  background: '#dbeafe',
-                                  color: '#1d4ed8',
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  fontWeight: 700,
-                                  fontSize: 11,
-                                  flexShrink: 0,
-                                }}
-                              >
-                                {(u.user_name || '?')[0].toUpperCase()}
-                              </span>
-                              <span
-                                style={{
-                                  fontWeight: 600,
-                                  color: '#111827',
-                                  fontSize: 13.5,
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {u.user_name}
-                              </span>
-                            </div>
-                          </td>
+                            {/* Full Name with avatar */}
+                            <td style={{ padding: '12px 16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                                <span
+                                  style={{
+                                    width: 28,
+                                    height: 28,
+                                    borderRadius: '50%',
+                                    background: '#dbeafe',
+                                    color: '#1d4ed8',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontWeight: 700,
+                                    fontSize: 11,
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {(u.user_name || '?')[0].toUpperCase()}
+                                </span>
+                                <span
+                                  style={{
+                                    fontWeight: 600,
+                                    color: 'var(--text-main)',
+                                    fontSize: 13.5,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {u.user_name}
+                                </span>
+                              </div>
+                            </td>
 
-                          {/* Email */}
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                              <Mail size={13} color="#94a3b8" style={{ flexShrink: 0 }} />
-                              <span
-                                style={{
-                                  fontSize: 13.5,
-                                  color: '#374151',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {u.user_email}
-                              </span>
-                            </div>
-                          </td>
+                            {/* Email */}
+                            <td style={{ padding: '12px 16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                                <Mail size={13} color="#94a3b8" style={{ flexShrink: 0 }} />
+                                <span
+                                  style={{
+                                    fontSize: 13.5,
+                                    color: '#374151',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {u.user_email}
+                                </span>
+                              </div>
+                            </td>
 
-                          {/* Password */}
-                          <td style={{ padding: '12px 16px' }}>
-                            {showPassword ? (
-                              <span
-                                style={{
-                                  fontFamily: 'monospace',
-                                  fontSize: 12.5,
-                                  background: '#fef9c3',
-                                  color: '#92400e',
-                                  padding: '2px 8px',
-                                  borderRadius: 4,
-                                  border: '1px solid #fde68a',
-                                }}
-                              >
-                                {u.user_password}
-                              </span>
-                            ) : (
-                              <span style={{ letterSpacing: 4, color: '#9ca3af', fontSize: 13 }}>
-                                ••••••••
-                              </span>
-                            )}
-                          </td>
+                            {/* Password */}
+                            <td style={{ padding: '12px 16px' }}>
+                              {showPassword ? (
+                                <span
+                                  style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: 12.5,
+                                    background: '#fef9c3',
+                                    color: '#92400e',
+                                    padding: '2px 8px',
+                                    borderRadius: 4,
+                                    border: '1px solid #fde68a',
+                                  }}
+                                >
+                                  {u.user_password}
+                                </span>
+                              ) : (
+                                <span style={{ letterSpacing: 4, color: '#9ca3af', fontSize: 13 }}>
+                                  ••••••••
+                                </span>
+                              )}
+                            </td>
 
-                          {/* Assigned Role */}
-                          <td style={{ padding: '12px 16px' }}>
-                            {getRoleBadge(u.user_role || u.type)}
-                          </td>
-                        </tr>
-                      ))
+                            {/* Assigned Role */}
+                            <td style={{ padding: '12px 16px' }}>
+                              {getRoleBadge(u.user_role || u.type)}
+                            </td>
+
+                            {/* Actions */}
+                            <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                              {isSelf ? (
+                                <span
+                                  style={{
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    color: '#64748b',
+                                    background: '#f1f5f9',
+                                    border: '1px solid #e2e8f0',
+                                    padding: '3px 8px',
+                                    borderRadius: '12px',
+                                    display: 'inline-block',
+                                  }}
+                                  title="You cannot delete your own logged-in admin account"
+                                >
+                                  You (Current)
+                                </span>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="btn btn-sm btn-danger"
+                                  style={{
+                                    fontSize: '12px',
+                                    padding: '4px 10px',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '4px',
+                                    borderRadius: '6px',
+                                  }}
+                                  onClick={() => {
+                                    setUserToDelete(u);
+                                    setShowDeleteModal(true);
+                                  }}
+                                >
+                                  <Trash2 size={13} /> Delete
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -404,7 +494,106 @@ export const ErpUsersPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Delete User Warning Confirmation Modal */}
+      {showDeleteModal && userToDelete && (
+        <div
+          className="modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !deleting) setShowDeleteModal(false);
+          }}
+        >
+          <div
+            className="modal-container"
+            style={{
+              maxWidth: '480px',
+              borderRadius: '16px',
+              padding: 0,
+              overflow: 'hidden',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ padding: '24px 28px', textAlign: 'center' }}>
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: '#fee2e2',
+                  color: '#dc2626',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 16px',
+                }}
+              >
+                <AlertTriangle size={30} />
+              </div>
+
+              <h3 style={{ fontSize: '20px', fontWeight: 800, color: '#0f172a', margin: '0 0 8px' }}>
+                Delete ERP User?
+              </h3>
+
+              <p style={{ fontSize: '14px', color: '#475569', lineHeight: 1.5, margin: '0 0 16px' }}>
+                Are you sure you want to delete user <strong style={{ color: '#0f172a' }}>"{userToDelete.user_name}"</strong> ({userToDelete.user_email}) with role <strong style={{ color: '#dc2626' }}>{userToDelete.user_role}</strong>?
+              </p>
+
+              <div
+                style={{
+                  background: '#fffbeb',
+                  border: '1px solid #fde68a',
+                  borderRadius: '10px',
+                  padding: '12px 14px',
+                  fontSize: '12.5px',
+                  color: '#92400e',
+                  marginBottom: '24px',
+                  textAlign: 'left',
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'flex-start',
+                }}
+              >
+                <AlertTriangle size={16} color="#d97706" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <strong>Warning:</strong> This action is permanent. This user will immediately lose all login access and session permissions for the ERP system.
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ padding: '9px 20px', fontWeight: 600, fontSize: '13.5px' }}
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  style={{
+                    padding: '9px 20px',
+                    fontWeight: 600,
+                    fontSize: '13.5px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                  onClick={handleDeleteConfirm}
+                  disabled={deleting}
+                >
+                  <Trash2 size={15} />
+                  {deleting ? 'Deleting...' : 'Yes, Delete User'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modern, Clean & Attractive Add ERP User Modal */}
+
       {showModal && (
         <div
           className="modal-overlay"

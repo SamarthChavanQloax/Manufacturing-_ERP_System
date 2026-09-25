@@ -21,6 +21,7 @@ const invoices_module_1 = require("./invoices/invoices.module");
 const verification_module_1 = require("./verification/verification.module");
 const reports_module_1 = require("./reports/reports.module");
 const dashboard_module_1 = require("./dashboard/dashboard.module");
+const settings_module_1 = require("./settings/settings.module");
 const health_controller_1 = require("./health/health.controller");
 dotenv.config();
 const isSslEnabled = process.env.DB_SSL === 'true';
@@ -66,6 +67,7 @@ exports.AppModule = AppModule = __decorate([
             verification_module_1.VerificationModule,
             reports_module_1.ReportsModule,
             dashboard_module_1.DashboardModule,
+            settings_module_1.SettingsModule,
         ],
         controllers: [health_controller_1.HealthController],
     })

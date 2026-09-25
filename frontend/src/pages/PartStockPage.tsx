@@ -161,7 +161,7 @@ export const PartStockPage: React.FC = () => {
                     stockList.map((s, idx) => (
                       <tr key={s.id}>
                         <td>{startEntry + idx}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{s.part_number}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{s.part_number}</td>
                         <td>{s.part_description}</td>
                         <td style={{ textAlign: 'right', fontWeight: 700, color: Number(s.remaining_stock ?? 0) > 0 ? '#15803d' : '#dc2626' }}>
                           {s.remaining_stock ?? 0}

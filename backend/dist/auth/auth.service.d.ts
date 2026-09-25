@@ -21,4 +21,35 @@ export declare class AuthService {
         user_email: string;
         type: string;
     }>;
+    getProfileDetails(userId: number): Promise<{
+        id: number;
+        user_name: string;
+        user_email: string;
+        type: string;
+        user_role: string;
+        employee_id: string;
+        mobile: string;
+        department: string;
+        status: string;
+        last_login: string;
+        drawing_download: string;
+        drawing_upload: string;
+    }>;
+    updateProfile(userId: number, data: {
+        user_name?: string;
+        mobile?: string;
+    }): Promise<{
+        success: boolean;
+        message: string;
+        user: {
+            id: number;
+            user_name: string;
+            user_email: string;
+            type: string;
+        };
+    }>;
+    changePassword(userId: number, currentPass: string, newPass: string): Promise<{
+        success: boolean;
+        message: string;
+    }>;
 }

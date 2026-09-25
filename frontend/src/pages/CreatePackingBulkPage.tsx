@@ -359,18 +359,7 @@ export const CreatePackingBulkPage: React.FC = () => {
                     onChange={(option) => setSelectedPartId(option ? option.value : '')}
                     placeholder="-- Select Part --"
                     isClearable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '38px',
-                        fontSize: '14px',
-                        borderColor: '#ced4da',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          borderColor: '#80bdff'
-                        }
-                      })
-                    }}
+                    classNamePrefix="react-select"
                   />
                 </div>
 

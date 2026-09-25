@@ -14,17 +14,18 @@ export class CustomersService {
     return this.customerRepo.find({ order: { id: 'ASC' } });
   }
 
-  async create(customerName: string): Promise<Customer> {
+  async create(customerName: string, customerImage?: string): Promise<Customer> {
     if (!customerName || !customerName.trim()) {
       throw new BadRequestException('Customer Name is required');
     }
     const customer = this.customerRepo.create({
       customer_name: customerName.trim(),
+      customer_image: customerImage || null,
     });
     return this.customerRepo.save(customer);
   }
 
-  async update(id: number, customerName: string): Promise<Customer> {
+  async update(id: number, customerName: string, customerImage?: string): Promise<Customer> {
     if (!customerName || !customerName.trim()) {
       throw new BadRequestException('Customer Name is required');
     }
@@ -33,6 +34,9 @@ export class CustomersService {
       throw new BadRequestException('Customer not found');
     }
     customer.customer_name = customerName.trim();
+    if (customerImage !== undefined) {
+      customer.customer_image = customerImage;
+    }
     return this.customerRepo.save(customer);
   }
 }
