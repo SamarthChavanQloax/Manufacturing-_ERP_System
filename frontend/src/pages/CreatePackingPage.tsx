@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Plus, X, Eye, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 import { BarcodeCard } from '../components/BarcodeCard';
 import { BarcodeInlineTable } from '../components/BarcodeInlineTable';
 
@@ -164,11 +165,11 @@ export const CreatePackingPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search by Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '200px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>
@@ -255,28 +256,36 @@ export const CreatePackingPage: React.FC = () => {
             </div>
             <form onSubmit={handleCreatePacking}>
               <div className="modal-body">
-                <div className="form-group">
+                <div className="form-group" style={{ zIndex: 10 }}>
                   <label>Select Part Type *</label>
-                  <select
-                    required
-                    className="form-control"
-                    value={selectedPartId}
-                    onChange={(e) => {
-                      const newId = Number(e.target.value);
+                  <Select
+                    options={parts.map((p) => ({ value: p.id, label: `${p.part_number} / ${p.part_description} (Stock: ${p.qty ?? 0})` }))}
+                    value={parts.map((p) => ({ value: p.id, label: `${p.part_number} / ${p.part_description} (Stock: ${p.qty ?? 0})` })).find(o => o.value === selectedPartId) || null}
+                    onChange={(option) => {
+                      const newId = option ? option.value : '';
                       setSelectedPartId(newId);
-                      const p = parts.find((part) => part.id === newId);
-                      if (p && Number(p.qty) > 0 && Number(partQty) > Number(p.qty)) {
-                        setPartQty(Number(p.qty));
+                      if (newId) {
+                        const p = parts.find((part) => part.id === newId);
+                        if (p && Number(p.qty) > 0 && Number(partQty) > Number(p.qty)) {
+                          setPartQty(Number(p.qty));
+                        }
                       }
                     }}
-                  >
-                    <option value="">-- Select Part --</option>
-                    {parts.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.part_number} / {p.part_description} (Stock: {p.qty ?? 0})
-                      </option>
-                    ))}
-                  </select>
+                    placeholder="-- Select Part --"
+                    isClearable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '38px',
+                        fontSize: '14px',
+                        borderColor: '#ced4da',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          borderColor: '#80bdff'
+                        }
+                      })
+                    }}
+                  />
                 </div>
 
                 {selectedPartId !== '' && (() => {
@@ -312,6 +321,7 @@ export const CreatePackingPage: React.FC = () => {
                     type="number"
                     required
                     min={1}
+                    placeholder="Enter Packing Quantity (e.g. 10)..."
                     className="form-control"
                     value={partQty === 0 ? '' : partQty}
                     onFocus={() => { if (partQty === 0) setPartQty(''); }}

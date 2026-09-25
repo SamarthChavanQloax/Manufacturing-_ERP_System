@@ -17,14 +17,18 @@ export class PartsService {
   ) {}
 
   async findAll(search?: string, page = 1, limit = 50): Promise<{ items: Part[]; total: number }> {
-    const where: any = {};
+    let where: any = {};
     if (search && search.trim()) {
-      where.part_number = Like(`%${search.trim()}%`);
+      const q = `%${search.trim()}%`;
+      where = [
+        { part_number: Like(q) },
+        { part_description: Like(q) },
+      ];
     }
 
     const [items, total] = await this.partRepo.findAndCount({
       where,
-      order: { id: 'ASC' },
+      order: { id: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
     });
@@ -50,12 +54,15 @@ export class PartsService {
     return part;
   }
 
-  async create(data: { part_number: string; part_desc: string; qty: number }) {
+  async create(data: { part_number: string; part_desc: string; qty: number }, userId = 3) {
     if (!data.part_number || !data.part_desc) {
       throw new BadRequestException('Part number and description are required');
     }
 
-    const existing = await this.partRepo.findOne({ where: { part_number: data.part_number } });
+    const trimmedPartNumber = data.part_number.trim();
+    const trimmedPartDesc = data.part_desc.trim();
+
+    const existing = await this.partRepo.findOne({ where: { part_number: trimmedPartNumber } });
     if (existing) {
       throw new BadRequestException('Part Number already exists');
     }
@@ -65,13 +72,13 @@ export class PartsService {
     const timeStr = now.toTimeString().split(' ')[0];
 
     const part = this.partRepo.create({
-      part_number: data.part_number,
-      part_description: data.part_desc,
+      part_number: trimmedPartNumber,
+      part_description: trimmedPartDesc,
       qty: Number(data.qty) || 0,
       customer_id: 0,
       customer_part_id: 0,
       part_family: '',
-      created_id: 3,
+      created_id: userId,
       date: dateStr,
       time: timeStr,
       uom: '',
@@ -125,7 +132,7 @@ export class PartsService {
         GROUP BY part_id
       ) inv ON inv.part_id = p.id
       ${whereClause}
-      ORDER BY p.id ASC
+      ORDER BY p.id DESC
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
 

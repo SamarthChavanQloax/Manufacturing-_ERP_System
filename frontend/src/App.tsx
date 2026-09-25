@@ -17,6 +17,7 @@ import { CreateBoxPage } from './pages/CreateBoxPage';
 import { ViewBoxPage } from './pages/ViewBoxPage';
 import { AddPackingToBoxPage } from './pages/AddPackingToBoxPage';
 import { CreateInvoicePage } from './pages/CreateInvoicePage';
+import { ViewInvoicePage } from './pages/ViewInvoicePage';
 import { AddBoxToInvoicePage } from './pages/AddBoxToInvoicePage';
 import { VerifyInvoicePage } from './pages/VerifyInvoicePage';
 import { InvoiceVerificationDetailPage } from './pages/InvoiceVerificationDetailPage';
@@ -185,6 +186,14 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedRoles={['admin', 'invoice']}>
                   <CreateInvoicePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/view_invoice"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'invoice']}>
+                  <ViewInvoicePage />
                 </ProtectedRoute>
               }
             />

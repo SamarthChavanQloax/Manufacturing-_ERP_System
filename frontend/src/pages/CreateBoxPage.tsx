@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { useNavigate } from 'react-router-dom';
+import Select from 'react-select';
 
 export const CreateBoxPage: React.FC = () => {
   const navigate = useNavigate();
@@ -41,15 +42,18 @@ export const CreateBoxPage: React.FC = () => {
     fetchData();
   }, []);
 
+
+
   const handleCreateBox = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartNumber) {
+    const partNum = selectedPartNumber;
+    if (!partNum) {
       alert('Please select a Part');
       return;
     }
     try {
       const res = await api.post('/boxes', {
-        box_name: selectedPartNumber,
+        box_name: partNum,
         customer_id: selectedCustomerId || undefined,
       });
       // Redirect to add packing to box matching legacy flow
@@ -89,22 +93,29 @@ export const CreateBoxPage: React.FC = () => {
             {/* Top Form matching screenshot 09_create_box.png */}
             <form onSubmit={handleCreateBox}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <div style={{ width: '280px' }}>
+                <div style={{ width: '320px', zIndex: 10 }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                     Part Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
-                  <select
-                    required
-                    className="form-control"
-                    value={selectedPartNumber}
-                    onChange={(e) => setSelectedPartNumber(e.target.value)}
-                  >
-                    {parts.map((p) => (
-                      <option key={p.id} value={p.part_number}>
-                        {p.part_number} / {p.part_description}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    options={parts.map((p) => ({ value: p.part_number, label: `${p.part_number} / ${p.part_description}` }))}
+                    value={parts.map((p) => ({ value: p.part_number, label: `${p.part_number} / ${p.part_description}` })).find(o => o.value === selectedPartNumber) || null}
+                    onChange={(option) => setSelectedPartNumber(option ? option.value : '')}
+                    placeholder="Search Part Number or Part Name..."
+                    isClearable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '38px',
+                        fontSize: '14px',
+                        borderColor: '#ced4da',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          borderColor: '#80bdff'
+                        }
+                      })
+                    }}
+                  />
                 </div>
 
                 <div style={{ width: '220px' }}>

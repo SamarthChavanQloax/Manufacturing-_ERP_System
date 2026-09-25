@@ -1,73 +1,59 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Link, useNavigate } from 'react-router-dom';
-import { Eye, RotateCcw, X, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Eye, X, FileSpreadsheet } from 'lucide-react';
 import { exportToExcel } from '../utils/excelExport';
 
-export const VerifyInvoicePage: React.FC = () => {
-  const navigate = useNavigate();
-  const [matches, setMatches] = useState<any[]>([]);
-  const [invoiceBarcode, setInvoiceBarcode] = useState('');
+export const ViewInvoicePage: React.FC = () => {
+  const [invoices, setInvoices] = useState<any[]>([]);
+  const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
+  const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
 
-  // Return Invoice modal
-  const [returnMatch, setReturnMatch] = useState<any | null>(null);
+  // Delete invoice modal
+  const [deleteInvoiceId, setDeleteInvoiceId] = useState<number | null>(null);
 
-  const fetchMatches = async () => {
+  const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await api.get('/verification');
-      setMatches(res.data);
+      const res = await api.get('/invoices', { params: { from_date: fromDate, to_date: toDate } });
+      setInvoices(res.data);
     } catch (err) {
-      console.error('Error fetching verification matches', err);
+      console.error('Error fetching invoices', err);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMatches();
+    fetchData();
   }, []);
 
-  const handleStartVerification = async (e: React.FormEvent) => {
+  const handleDeleteInvoice = async () => {
+    if (!deleteInvoiceId) return;
+    try {
+      await api.delete(`/invoices/${deleteInvoiceId}`);
+      alert('Invoice Deleted Successfully');
+      setDeleteInvoiceId(null);
+      fetchData();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error deleting invoice');
+    }
+  };
+
+  const handleDateSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    const barcodeVal = invoiceBarcode.trim() || (e.currentTarget.querySelector('input') as HTMLInputElement)?.value.trim();
-    if (!barcodeVal) return;
-
-    try {
-      const res = await api.post('/verification/start', {
-        invoice_barcode: barcodeVal,
-      });
-      alert('Added Successfully');
-      navigate(`/add_box_to_invoice_verify/${res.data.id}`);
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Error starting verification');
-    }
+    fetchData();
   };
 
-  const handleReturnInvoice = async () => {
-    if (!returnMatch) return;
-    try {
-      await api.post('/verification/return', {
-        match_id: returnMatch.id,
-        invoice_barcode: returnMatch.invoice_number,
-      });
-      alert('Invoice Returned Successfully');
-      setReturnMatch(null);
-      fetchMatches();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Error returning invoice');
-    }
-  };
-
-  const filtered = matches.filter((m) => {
+  const filtered = invoices.filter((i) => {
     const q = search.toLowerCase();
     return (
-      m.invoice_number?.toLowerCase().includes(q) ||
-      m.part_number?.toLowerCase().includes(q) ||
-      m.part_description?.toLowerCase().includes(q)
+      i.invoice_number?.toLowerCase().includes(q) ||
+      i.part_number?.toLowerCase().includes(q) ||
+      i.part_description?.toLowerCase().includes(q)
     );
   });
 
@@ -75,64 +61,75 @@ export const VerifyInvoicePage: React.FC = () => {
     limit === 'all' ? filtered : filtered.slice(0, Number(limit));
 
   const handleExportExcel = () => {
-    const exportData = filtered.map((m, idx) => ({
+    const exportData = filtered.map((inv, idx) => ({
       'Sr. No.': idx + 1,
-      'Invoice Number (Barcode)': m.invoice_number,
-      'Status': m.status,
-      'Date': `${m.created_date || ''} ${m.created_time || ''}`,
+      'Invoice Number': inv.invoice_number,
+      'Part Number': inv.part_number,
+      'Invoice Quantity Required': inv.qty,
     }));
-    exportToExcel(exportData, 'Verification_List', 'Verification');
+    exportToExcel(exportData, 'Invoice_Generation_List', 'Invoices');
   };
 
   return (
     <div>
-      {/* Content Header matching screenshot 12_verify_invoice.png */}
       <div className="content-header">
-        <h1>Verify Invoice</h1>
+        <h1>View Invoice</h1>
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Part Master</span>
+          <span style={{ color: '#212529', fontWeight: 600 }}>View Invoice</span>
         </div>
       </div>
 
       <div className="content-body">
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            {/* Form matching screenshot 12_verify_invoice.png */}
-            <form onSubmit={handleStartVerification} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
-              <div style={{ width: '320px' }}>
+          <div className="card-header" style={{ display: 'block' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 className="card-title">Invoice Generation List</h3>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                className="btn btn-sm btn-success"
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+              >
+                <FileSpreadsheet size={14} /> Export Excel
+              </button>
+            </div>
+
+            <form onSubmit={handleDateSearch} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+              <div style={{ width: '180px' }}>
                 <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                  Invoice Barcode <span style={{ color: '#dc2626' }}>*</span>
+                  From Date
                 </label>
                 <input
-                  type="text"
+                  type="date"
                   required
-                  placeholder="Scan / Enter Invoice Barcode (e.g. INV-1001)..."
                   className="form-control"
-                  value={invoiceBarcode}
-                  onChange={(e) => setInvoiceBarcode(e.target.value)}
-                  autoFocus
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
                 />
               </div>
 
-              <button type="submit" id="btn-start-verify-invoice" className="btn btn-danger" style={{ height: '38px' }}>
-                Submit
+              <div style={{ width: '180px' }}>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  To Date
+                </label>
+                <input
+                  type="date"
+                  required
+                  className="form-control"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+
+              <button type="submit" className="btn btn-success" style={{ height: '38px' }}>
+                Search
               </button>
             </form>
-
-            <button
-              type="button"
-              onClick={handleExportExcel}
-              className="btn btn-sm btn-success"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
-            >
-              <FileSpreadsheet size={14} /> Export Excel
-            </button>
           </div>
 
           <div className="card-body">
-            {/* Table controls matching screenshot 12_verify_invoice.png */}
             <div
               style={{
                 display: 'flex',
@@ -178,59 +175,62 @@ export const VerifyInvoicePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Table matching screenshot 12_verify_invoice.png */}
             <div className="table-responsive">
               <table className="data-table">
                 <thead>
                   <tr>
                     <th style={{ width: '80px' }}>Sr. No.</th>
-                    <th>Invoice Number (Barcode)</th>
-                    <th>Status</th>
-                    <th style={{ width: '130px' }}>View Details</th>
-                    <th style={{ width: '150px' }}>Return Invoice</th>
+                    <th>Invoice Number</th>
+                    <th>Part Number</th>
+                    <th>Invoice Quantity Required</th>
+                    <th style={{ width: '100px' }}>Status</th>
+                    <th style={{ width: '120px' }}>Add Boxes</th>
+                    <th style={{ width: '140px' }}>Delete</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
-                        Loading verification list...
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
+                        Loading invoices...
                       </td>
                     </tr>
                   ) : displayedRows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
+                      <td colSpan={7} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
                   ) : (
-                    displayedRows.map((m, idx) => (
-                      <tr key={m.id}>
+                    displayedRows.map((inv, idx) => (
+                      <tr key={inv.id}>
                         <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{m.invoice_number}</td>
+                        <td style={{ fontWeight: 600, color: '#111827' }}>{inv.invoice_number}</td>
+                        <td>{inv.part_number}</td>
+                        <td style={{ fontWeight: 600 }}>{inv.qty}</td>
                         <td>
                           <span
-                            className={`badge ${m.status === 'verified' ? 'badge-verified' : 'badge-pending'}`}
+                            className={`badge ${inv.status === 'used' ? 'badge-used' : 'badge-pending'}`}
                           >
-                            {m.status}
+                            {inv.status || 'pending'}
                           </span>
                         </td>
                         <td>
                           <Link
-                            to={`/add_box_to_invoice_verify/${m.id}`}
+                            to={`/add_box_to_invoice/${inv.id}`}
                             className="btn btn-sm btn-primary"
-                            title="Verify and Scan Boxes"
+                            title="Add Boxes to Invoice"
                           >
-                            <Eye size={14} /> View
+                            <Eye size={14} />
                           </Link>
                         </td>
                         <td>
                           <button
                             type="button"
-                            onClick={() => setReturnMatch(m)}
+                            onClick={() => setDeleteInvoiceId(inv.id)}
                             className="btn btn-sm btn-danger"
                           >
-                            Return Invoice
+                            Delete Invoice
                           </button>
                         </td>
                       </tr>
@@ -247,15 +247,14 @@ export const VerifyInvoicePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Return Invoice Confirmation Modal matching legacy */}
-      {returnMatch && (
+      {deleteInvoiceId && (
         <div className="modal-backdrop">
           <div className="modal-dialog">
             <div className="modal-header">
               <h5 className="modal-title">Return</h5>
               <button
                 type="button"
-                onClick={() => setReturnMatch(null)}
+                onClick={() => setDeleteInvoiceId(null)}
                 style={{ background: 'none', border: 'none', cursor: 'pointer' }}
               >
                 <X size={18} />
@@ -263,20 +262,21 @@ export const VerifyInvoicePage: React.FC = () => {
             </div>
             <div className="modal-body">
               <p style={{ fontSize: '15px', color: '#374151' }}>
-                Are You Sure Want To Return This Invoice ? (Barcode: {returnMatch.invoice_number})
+                Are You Sure Want To Delete This Invoice ? All mapped master boxes will be returned
+                to pending status.
               </p>
             </div>
             <div className="modal-footer">
               <button
                 type="button"
-                onClick={() => setReturnMatch(null)}
+                onClick={() => setDeleteInvoiceId(null)}
                 className="btn btn-secondary"
               >
                 Close
               </button>
               <button
                 type="button"
-                onClick={handleReturnInvoice}
+                onClick={handleDeleteInvoice}
                 className="btn btn-danger"
               >
                 Save changes

@@ -76,14 +76,14 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
             {/* Box Barcode Scan input (if not yet matched) */}
             {!isMatched ? (
               <form onSubmit={handleScanBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end', marginBottom: '16px' }}>
-                <div style={{ width: '260px' }}>
+                <div style={{ width: '300px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                    Scan Code
+                    Scan Code <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Barcode Number (e.g. 200000)"
+                    placeholder="Scan / Enter Box Barcode (e.g. 200000)..."
                     className="form-control"
                     value={boxBarcode}
                     onChange={(e) => setBoxBarcode(e.target.value)}

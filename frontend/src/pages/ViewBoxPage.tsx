@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link } from 'react-router-dom';
+import Select from 'react-select';
 import { Eye, PackagePlus, FileSpreadsheet } from 'lucide-react';
 import { exportToExcel } from '../utils/excelExport';
 
@@ -37,11 +38,14 @@ export const ViewBoxPage: React.FC = () => {
     fetchData();
   }, []);
 
+
+
   const handleCreateBoxSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartNumber) return;
+    const partNum = selectedPartNumber;
+    if (!partNum) return;
     try {
-      await api.post('/boxes', { box_name: selectedPartNumber });
+      await api.post('/boxes', { box_name: partNum });
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
@@ -53,9 +57,15 @@ export const ViewBoxPage: React.FC = () => {
     fetchData();
   };
 
+
+
   const filtered = boxes.filter((b) => {
     const q = search.toLowerCase();
-    return b.box_name?.toLowerCase().includes(q) || b.barcode?.toLowerCase().includes(q);
+    return (
+      b.box_name?.toLowerCase().includes(q) ||
+      b.part_description?.toLowerCase().includes(q) ||
+      b.barcode?.toLowerCase().includes(q)
+    );
   });
 
   const displayedRows =
@@ -102,22 +112,29 @@ export const ViewBoxPage: React.FC = () => {
             {/* Top Form matching screenshot 10_view_box.png */}
             <form onSubmit={handleCreateBoxSubmit}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <div style={{ width: '280px' }}>
+                <div style={{ width: '320px', zIndex: 10 }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                     Part Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
-                  <select
-                    required
-                    className="form-control"
-                    value={selectedPartNumber}
-                    onChange={(e) => setSelectedPartNumber(e.target.value)}
-                  >
-                    {parts.map((p) => (
-                      <option key={p.id} value={p.part_number}>
-                        {p.part_number} / {p.part_description}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    options={parts.map((p) => ({ value: p.part_number, label: `${p.part_number} / ${p.part_description}` }))}
+                    value={parts.map((p) => ({ value: p.part_number, label: `${p.part_number} / ${p.part_description}` })).find(o => o.value === selectedPartNumber) || null}
+                    onChange={(option) => setSelectedPartNumber(option ? option.value : '')}
+                    placeholder="Search Part Number or Part Name..."
+                    isClearable
+                    styles={{
+                      control: (base) => ({
+                        ...base,
+                        minHeight: '38px',
+                        fontSize: '14px',
+                        borderColor: '#ced4da',
+                        boxShadow: 'none',
+                        '&:hover': {
+                          borderColor: '#80bdff'
+                        }
+                      })
+                    }}
+                  />
                 </div>
 
                 <div>
@@ -202,11 +219,11 @@ export const ViewBoxPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search Box..."
+                  placeholder="Search by Barcode, Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '220px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>

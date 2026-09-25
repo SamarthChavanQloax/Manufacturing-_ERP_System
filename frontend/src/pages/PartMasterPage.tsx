@@ -60,17 +60,23 @@ export const PartMasterPage: React.FC = () => {
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!partNumber.trim() || !partDesc.trim()) {
+      alert('Part Number and Part Description are required.');
+      return;
+    }
     try {
       await api.post('/parts', {
-        part_number: partNumber,
-        part_desc: partDesc,
-        qty: Number(qty),
+        part_number: partNumber.trim(),
+        part_desc: partDesc.trim(),
+        qty: Number(qty) || 0,
       });
-      alert('Part Added Successfully');
+      alert('Part Added Successfully to Master');
       setModalOpen(false);
       setPartNumber('');
       setPartDesc('');
-      setQty(1);
+      setQty(0);
+      setSearch('');
+      setPage(1);
       fetchParts();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error Adding Part');
@@ -112,7 +118,7 @@ export const PartMasterPage: React.FC = () => {
         <div className="card">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: '8px' }}>
-              {user?.type === 'admin' && (
+              {['admin', 'packing'].includes((user?.type || '').toLowerCase()) && (
                 <button
                   type="button"
                   onClick={() => setModalOpen(true)}
@@ -170,14 +176,14 @@ export const PartMasterPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search Part Number..."
+                  placeholder="Search by Part Number or Part Name..."
                   value={search}
                   onChange={(e) => {
                     setSearch(e.target.value);
                     setPage(1);
                   }}
                   className="form-control"
-                  style={{ width: '220px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>
@@ -290,18 +296,18 @@ export const PartMasterPage: React.FC = () => {
                   <input
                     type="text"
                     required
-                    placeholder="Enter Part Number"
+                    placeholder="Enter Part Number (e.g. 1234567890)..."
                     className="form-control"
                     value={partNumber}
                     onChange={(e) => setPartNumber(e.target.value)}
                   />
                 </div>
                 <div className="form-group">
-                  <label>Part Description *</label>
+                  <label>Part Description / Name *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Enter Description"
+                    placeholder="Enter Part Name / Description (e.g. Front Brake Disc)..."
                     className="form-control"
                     value={partDesc}
                     onChange={(e) => setPartDesc(e.target.value)}
@@ -313,6 +319,7 @@ export const PartMasterPage: React.FC = () => {
                     type="number"
                     required
                     min={0}
+                    placeholder="Enter Initial Stock Quantity (e.g. 100)..."
                     className="form-control"
                     value={qty === 0 ? '' : qty}
                     onFocus={() => { if (qty === 0) setQty(''); }}
