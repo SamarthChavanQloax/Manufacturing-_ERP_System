@@ -132,7 +132,7 @@ export const CreateInvoicePage: React.FC = () => {
       'Sr. No.': idx + 1,
       'Invoice Number': inv.invoice_number,
       'Part Number': inv.part_number,
-      'Target Qty': inv.qty,
+      'Invoice Quantity Required': inv.qty,
     }));
     exportToExcel(exportData, 'Invoice_Generation_List', 'Invoices');
   };
@@ -220,7 +220,7 @@ export const CreateInvoicePage: React.FC = () => {
                     type="number"
                     required
                     min={1}
-                    placeholder="Enter Target Qty (e.g. 50)..."
+                    placeholder="Enter Invoice Quantity Required (e.g. 50)..."
                     className="form-control"
                     value={qty === 0 ? '' : qty}
                     onFocus={() => { if (qty === 0) setQty(''); }}
@@ -328,7 +328,7 @@ export const CreateInvoicePage: React.FC = () => {
                     <th style={{ width: '80px' }}>Sr. No.</th>
                     <th>Invoice Number</th>
                     <th>Part Number</th>
-                    <th>Target Qty</th>
+                    <th>Invoice Quantity Required</th>
                     <th style={{ width: '100px' }}>Status</th>
                     <th style={{ width: '120px' }}>Add Boxes</th>
                     <th style={{ width: '140px' }}>Delete</th>

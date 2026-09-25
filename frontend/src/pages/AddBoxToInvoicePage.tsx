@@ -209,7 +209,7 @@ export const AddBoxToInvoicePage: React.FC = () => {
               </div>
 
               <div>
-                <span style={{ fontSize: '12px', color: '#64748b' }}>Target Quantity:</span>
+                <span style={{ fontSize: '12px', color: '#64748b' }}>Invoice Quantity Required:</span>
                 <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a' }}>
                   {invoice?.qty} Pcs
                 </div>
