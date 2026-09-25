@@ -235,11 +235,14 @@ export const Layout: React.FC = () => {
   return (
     <div className="app-container">
       {/* Backdrop overlay — click to close sidebar on mobile */}
-      <div
-        ref={overlayRef}
-        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
-        onClick={closeSidebar}
-      />
+      {!isDesktop() && sidebarOpen && (
+        <div
+          ref={overlayRef}
+          className="sidebar-overlay active"
+          onClick={closeSidebar}
+        />
+      )}
+
 
       {/* Sidebar */}
       <aside
@@ -529,10 +532,11 @@ export const Layout: React.FC = () => {
         </header>
 
         {/* Page Content */}
-        <main style={{ flex: 1 }}>
+        <main style={{ flex: 1, minWidth: 0, width: '100%', overflowX: 'hidden' }}>
           <Outlet />
         </main>
       </div>
     </div>
+
   );
 };

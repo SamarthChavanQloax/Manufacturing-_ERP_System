@@ -86,14 +86,31 @@ a:hover {
   -webkit-backdrop-filter: blur(2px);
   z-index: 999;
   opacity: 0;
-  pointer-events: none;
+  pointer-events: none !important;
   transition: opacity 0.3s ease;
+  display: none;
 }
 
-.sidebar-overlay.active {
-  opacity: 1;
-  pointer-events: auto;
+@media (max-width: 992px) {
+  .sidebar-overlay {
+    display: block;
+  }
+  .sidebar-overlay.active {
+    opacity: 1;
+    pointer-events: auto !important;
+  }
 }
+
+@media (min-width: 993px) {
+  .sidebar-overlay,
+  .sidebar-overlay.active {
+    display: none !important;
+    pointer-events: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+  }
+}
+
 
 /* Left-edge swipe is handled via JS touch/pointer listeners — no DOM element needed */
 
