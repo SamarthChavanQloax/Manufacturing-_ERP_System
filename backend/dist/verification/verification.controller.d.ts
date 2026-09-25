@@ -16,7 +16,18 @@ export declare class VerificationController {
         status: string;
         total_stock: number;
     }>;
-    getAll(): Promise<import("../entities").InvoiceMatch[]>;
+    getAll(): Promise<{
+        part_number: string;
+        part_description: string;
+        id: number;
+        barcode: string;
+        invoice_number: string;
+        created_by: number;
+        created_date: string;
+        created_time: string;
+        status: string;
+        total_stock: number;
+    }[]>;
     getOne(id: string): Promise<{
         match: import("../entities").InvoiceMatch;
         invoice: import("../entities").Invoice;

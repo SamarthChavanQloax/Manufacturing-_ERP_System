@@ -30,6 +30,7 @@ export const GateOutReportPage: React.FC = () => {
     return (
       r.invoice_number?.toLowerCase().includes(q) ||
       r.part_number?.toLowerCase().includes(q) ||
+      r.part_description?.toLowerCase().includes(q) ||
       r.gateout_code?.toLowerCase().includes(q)
     );
   });
@@ -187,11 +188,11 @@ export const GateOutReportPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search invoice, part, gate code..."
+                  placeholder="Search by Invoice, Part Number, Part Name or Gate Out Code..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '240px', padding: '6px 10px' }}
+                  style={{ width: '320px', padding: '6px 10px' }}
                 />
               </div>
             </div>

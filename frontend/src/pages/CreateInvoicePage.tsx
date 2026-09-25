@@ -9,6 +9,7 @@ export const CreateInvoicePage: React.FC = () => {
   const [parts, setParts] = useState<any[]>([]);
   const [invoiceNumber, setInvoiceNumber] = useState('');
   const [selectedPartId, setSelectedPartId] = useState<number | ''>('');
+  const [partFilter, setPartFilter] = useState('');
   const [qty, setQty] = useState<number | string>(0);
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
@@ -42,38 +43,51 @@ export const CreateInvoicePage: React.FC = () => {
     fetchData();
   }, []);
 
+  const handlePartFilterChange = (val: string) => {
+    setPartFilter(val);
+    const matches = parts.filter(
+      (p) =>
+        p.part_number?.toLowerCase().includes(val.toLowerCase()) ||
+        p.part_description?.toLowerCase().includes(val.toLowerCase())
+    );
+    if (matches.length > 0) {
+      if (!matches.some((p) => p.id === Number(selectedPartId))) {
+        setSelectedPartId(matches[0].id);
+      }
+    } else {
+      setSelectedPartId('');
+    }
+  };
+
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[CLIENT INVOICE] handleCreateInvoice START');
     const form = e.currentTarget as HTMLFormElement;
     const invInput = form?.querySelector('input[type="text"]') as HTMLInputElement;
     const partSelect = form?.querySelector('select') as HTMLSelectElement;
     const qtyInput = form?.querySelector('input[type="number"]') as HTMLInputElement;
 
     const invNum = invoiceNumber.trim() || invInput?.value?.trim() || '';
-    const pId = selectedPartId || (partSelect?.value ? Number(partSelect.value) : '');
+    // Priority: the actual value selected in the DOM select element, fallback to state
+    const domPartId = partSelect?.value ? Number(partSelect.value) : '';
+    const pId = domPartId || selectedPartId;
     const qVal = qty || (qtyInput?.value ? Number(qtyInput.value) : '');
 
-    console.log('[CLIENT INVOICE] Values:', { invNum, pId, qVal, invoiceNumber, selectedPartId, qty });
-
     if (!invNum || !pId || !qVal) {
-      console.warn('[CLIENT INVOICE] Missing fields!');
       alert('Please fill all required fields');
       return;
     }
     try {
-      const res = await api.post('/invoices', {
+      await api.post('/invoices', {
         invoice_number: invNum,
         part_id: Number(pId),
         qty: Number(qVal),
       });
-      console.log('[CLIENT INVOICE] Response:', res.data);
       alert('Invoice Created Successfully');
       setInvoiceNumber('');
       setQty('');
+      setPartFilter('');
       fetchData();
     } catch (err: any) {
-      console.error('[CLIENT INVOICE] Error:', err.response?.data || err.message);
       alert(err.response?.data?.message || 'Error : Invoice Number Already Exists');
     }
   };
@@ -95,9 +109,19 @@ export const CreateInvoicePage: React.FC = () => {
     fetchData();
   };
 
+  const filteredParts = parts.filter(
+    (p) =>
+      p.part_number?.toLowerCase().includes(partFilter.toLowerCase()) ||
+      p.part_description?.toLowerCase().includes(partFilter.toLowerCase())
+  );
+
   const filtered = invoices.filter((i) => {
     const q = search.toLowerCase();
-    return i.invoice_number?.toLowerCase().includes(q) || i.part_number?.toLowerCase().includes(q);
+    return (
+      i.invoice_number?.toLowerCase().includes(q) ||
+      i.part_number?.toLowerCase().includes(q) ||
+      i.part_description?.toLowerCase().includes(q)
+    );
   });
 
   const displayedRows =
@@ -151,28 +175,40 @@ export const CreateInvoicePage: React.FC = () => {
                     type="text"
                     required
                     maxLength={20}
-                    placeholder="Enter Invoice Number"
+                    placeholder="Enter Invoice Number (e.g. INV-2026-001)..."
                     className="form-control"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
                   />
                 </div>
 
-                <div style={{ width: '280px' }}>
+                <div style={{ width: '320px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                     Select Part <span style={{ color: '#dc2626' }}>*</span>
                   </label>
+                  <input
+                    type="text"
+                    placeholder="Filter by Part Number or Part Name..."
+                    value={partFilter}
+                    onChange={(e) => handlePartFilterChange(e.target.value)}
+                    className="form-control"
+                    style={{ marginBottom: '6px', padding: '4px 8px', fontSize: '12px' }}
+                  />
                   <select
                     required
                     className="form-control"
                     value={selectedPartId}
                     onChange={(e) => setSelectedPartId(Number(e.target.value))}
                   >
-                    {parts.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.part_number} / {p.part_description}
-                      </option>
-                    ))}
+                    {filteredParts.length === 0 ? (
+                      <option value="">No matching parts found</option>
+                    ) : (
+                      filteredParts.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.part_number} / {p.part_description}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 
@@ -184,6 +220,7 @@ export const CreateInvoicePage: React.FC = () => {
                     type="number"
                     required
                     min={1}
+                    placeholder="Enter Target Qty (e.g. 50)..."
                     className="form-control"
                     value={qty === 0 ? '' : qty}
                     onFocus={() => { if (qty === 0) setQty(''); }}
@@ -274,11 +311,11 @@ export const CreateInvoicePage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search by Invoice, Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '220px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>

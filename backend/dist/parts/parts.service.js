@@ -25,13 +25,17 @@ let PartsService = class PartsService {
         this.invoiceRepo = invoiceRepo;
     }
     async findAll(search, page = 1, limit = 50) {
-        const where = {};
+        let where = {};
         if (search && search.trim()) {
-            where.part_number = (0, typeorm_2.Like)(`%${search.trim()}%`);
+            const q = `%${search.trim()}%`;
+            where = [
+                { part_number: (0, typeorm_2.Like)(q) },
+                { part_description: (0, typeorm_2.Like)(q) },
+            ];
         }
         const [items, total] = await this.partRepo.findAndCount({
             where,
-            order: { id: 'ASC' },
+            order: { id: 'DESC' },
             skip: (page - 1) * limit,
             take: limit,
         });
@@ -54,11 +58,13 @@ let PartsService = class PartsService {
             throw new common_1.BadRequestException('Part not found');
         return part;
     }
-    async create(data) {
+    async create(data, userId = 3) {
         if (!data.part_number || !data.part_desc) {
             throw new common_1.BadRequestException('Part number and description are required');
         }
-        const existing = await this.partRepo.findOne({ where: { part_number: data.part_number } });
+        const trimmedPartNumber = data.part_number.trim();
+        const trimmedPartDesc = data.part_desc.trim();
+        const existing = await this.partRepo.findOne({ where: { part_number: trimmedPartNumber } });
         if (existing) {
             throw new common_1.BadRequestException('Part Number already exists');
         }
@@ -66,13 +72,13 @@ let PartsService = class PartsService {
         const dateStr = now.toISOString().split('T')[0];
         const timeStr = now.toTimeString().split(' ')[0];
         const part = this.partRepo.create({
-            part_number: data.part_number,
-            part_description: data.part_desc,
+            part_number: trimmedPartNumber,
+            part_description: trimmedPartDesc,
             qty: Number(data.qty) || 0,
             customer_id: 0,
             customer_part_id: 0,
             part_family: '',
-            created_id: 3,
+            created_id: userId,
             date: dateStr,
             time: timeStr,
             uom: '',
@@ -120,7 +126,7 @@ let PartsService = class PartsService {
         GROUP BY part_id
       ) inv ON inv.part_id = p.id
       ${whereClause}
-      ORDER BY p.id ASC
+      ORDER BY p.id DESC
       LIMIT ${Number(limit)} OFFSET ${Number(offset)}
     `;
         const items = await this.partRepo.query(dataQuery, params);

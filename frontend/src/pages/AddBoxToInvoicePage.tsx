@@ -99,14 +99,14 @@ export const AddBoxToInvoicePage: React.FC = () => {
             <div>
               {!isLocked && !isMatched && (
                 <form onSubmit={handleAddBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
-                  <div style={{ width: '260px' }}>
+                  <div style={{ width: '300px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                      Scan Box Barcode
+                      Scan Box Barcode <span style={{ color: '#dc2626' }}>*</span>
                     </label>
                     <input
                       type="text"
                       required
-                      placeholder="Enter Box Barcode (e.g. 200000)"
+                      placeholder="Scan / Enter Box Barcode (e.g. 200000)..."
                       className="form-control"
                       value={boxBarcode}
                       onChange={(e) => setBoxBarcode(e.target.value)}

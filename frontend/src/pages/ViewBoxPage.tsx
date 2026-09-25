@@ -8,6 +8,7 @@ export const ViewBoxPage: React.FC = () => {
   const [boxes, setBoxes] = useState<any[]>([]);
   const [parts, setParts] = useState<any[]>([]);
   const [selectedPartNumber, setSelectedPartNumber] = useState('');
+  const [partFilter, setPartFilter] = useState('');
   const [fromDate, setFromDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [toDate, setToDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [search, setSearch] = useState('');
@@ -37,11 +38,31 @@ export const ViewBoxPage: React.FC = () => {
     fetchData();
   }, []);
 
+  const handlePartFilterChange = (val: string) => {
+    setPartFilter(val);
+    const matches = parts.filter(
+      (p) =>
+        p.part_number?.toLowerCase().includes(val.toLowerCase()) ||
+        p.part_description?.toLowerCase().includes(val.toLowerCase())
+    );
+    if (matches.length > 0) {
+      if (!matches.some((p) => p.part_number === selectedPartNumber)) {
+        setSelectedPartNumber(matches[0].part_number);
+      }
+    } else {
+      setSelectedPartNumber('');
+    }
+  };
+
   const handleCreateBoxSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedPartNumber) return;
+    const form = e.currentTarget as HTMLFormElement;
+    const partSelect = form?.querySelector('select') as HTMLSelectElement;
+    const partNum = partSelect?.value || selectedPartNumber;
+    if (!partNum) return;
     try {
-      await api.post('/boxes', { box_name: selectedPartNumber });
+      await api.post('/boxes', { box_name: partNum });
+      setPartFilter('');
       fetchData();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Unable to Add');
@@ -53,9 +74,19 @@ export const ViewBoxPage: React.FC = () => {
     fetchData();
   };
 
+  const filteredParts = parts.filter(
+    (p) =>
+      p.part_number?.toLowerCase().includes(partFilter.toLowerCase()) ||
+      p.part_description?.toLowerCase().includes(partFilter.toLowerCase())
+  );
+
   const filtered = boxes.filter((b) => {
     const q = search.toLowerCase();
-    return b.box_name?.toLowerCase().includes(q) || b.barcode?.toLowerCase().includes(q);
+    return (
+      b.box_name?.toLowerCase().includes(q) ||
+      b.part_description?.toLowerCase().includes(q) ||
+      b.barcode?.toLowerCase().includes(q)
+    );
   });
 
   const displayedRows =
@@ -102,21 +133,33 @@ export const ViewBoxPage: React.FC = () => {
             {/* Top Form matching screenshot 10_view_box.png */}
             <form onSubmit={handleCreateBoxSubmit}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
-                <div style={{ width: '280px' }}>
+                <div style={{ width: '320px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                     Part Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
+                  <input
+                    type="text"
+                    placeholder="Search Part Number or Part Name..."
+                    value={partFilter}
+                    onChange={(e) => handlePartFilterChange(e.target.value)}
+                    className="form-control"
+                    style={{ marginBottom: '6px', padding: '4px 8px', fontSize: '12px' }}
+                  />
                   <select
                     required
                     className="form-control"
                     value={selectedPartNumber}
                     onChange={(e) => setSelectedPartNumber(e.target.value)}
                   >
-                    {parts.map((p) => (
-                      <option key={p.id} value={p.part_number}>
-                        {p.part_number} / {p.part_description}
-                      </option>
-                    ))}
+                    {filteredParts.length === 0 ? (
+                      <option value="">No matching parts found</option>
+                    ) : (
+                      filteredParts.map((p) => (
+                        <option key={p.id} value={p.part_number}>
+                          {p.part_number} / {p.part_description}
+                        </option>
+                      ))
+                    )}
                   </select>
                 </div>
 
@@ -202,11 +245,11 @@ export const ViewBoxPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search Box..."
+                  placeholder="Search by Barcode, Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '220px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>

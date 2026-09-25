@@ -30,8 +30,9 @@ let PartsController = class PartsController {
     async getStock(search, page, limit) {
         return this.partsService.getStockList(search, Number(page) || 1, Number(limit) || 50);
     }
-    async create(body) {
-        return this.partsService.create(body);
+    async create(body, req) {
+        const userId = req.user?.id || 3;
+        return this.partsService.create(body, userId);
     }
     async update(id, body) {
         return this.partsService.update(Number(id), body);
@@ -67,10 +68,11 @@ __decorate([
 ], PartsController.prototype, "getStock", null);
 __decorate([
     (0, common_1.Post)(),
-    (0, roles_decorator_1.Roles)('admin'),
+    (0, roles_decorator_1.Roles)('admin', 'packing'),
     __param(0, (0, common_1.Body)()),
+    __param(1, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", [Object, Object]),
     __metadata("design:returntype", Promise)
 ], PartsController.prototype, "create", null);
 __decorate([

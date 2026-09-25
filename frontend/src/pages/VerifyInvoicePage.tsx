@@ -63,7 +63,12 @@ export const VerifyInvoicePage: React.FC = () => {
   };
 
   const filtered = matches.filter((m) => {
-    return m.invoice_number?.toLowerCase().includes(search.toLowerCase());
+    const q = search.toLowerCase();
+    return (
+      m.invoice_number?.toLowerCase().includes(q) ||
+      m.part_number?.toLowerCase().includes(q) ||
+      m.part_description?.toLowerCase().includes(q)
+    );
   });
 
   const displayedRows =
@@ -96,14 +101,14 @@ export const VerifyInvoicePage: React.FC = () => {
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {/* Form matching screenshot 12_verify_invoice.png */}
             <form onSubmit={handleStartVerification} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
-              <div style={{ width: '260px' }}>
+              <div style={{ width: '320px' }}>
                 <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                   Invoice Barcode <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Enter Invoice Barcode (e.g. 300000)"
+                  placeholder="Scan / Enter Invoice Barcode (e.g. INV-1001)..."
                   className="form-control"
                   value={invoiceBarcode}
                   onChange={(e) => setInvoiceBarcode(e.target.value)}
@@ -164,11 +169,11 @@ export const VerifyInvoicePage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search by Invoice, Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '220px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>

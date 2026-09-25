@@ -21,7 +21,18 @@ export declare class VerificationService {
         status: string;
         total_stock: number;
     }>;
-    findAll(): Promise<InvoiceMatch[]>;
+    findAll(): Promise<{
+        part_number: string;
+        part_description: string;
+        id: number;
+        barcode: string;
+        invoice_number: string;
+        created_by: number;
+        created_date: string;
+        created_time: string;
+        status: string;
+        total_stock: number;
+    }[]>;
     findOne(matchId: number): Promise<{
         match: InvoiceMatch;
         invoice: Invoice;

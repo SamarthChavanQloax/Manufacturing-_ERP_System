@@ -69,7 +69,28 @@ export class VerificationService {
   }
 
   async findAll() {
-    return this.invoiceMatchRepo.find({ order: { id: 'DESC' } });
+    const matches = await this.invoiceMatchRepo.find({ order: { id: 'DESC' } });
+    return Promise.all(
+      matches.map(async (m) => {
+        let partNumber = '';
+        let partDesc = '';
+        const invoice = await this.invoiceRepo.findOne({
+          where: { barcode: m.invoice_number },
+        });
+        if (invoice) {
+          const part = await this.partRepo.findOne({ where: { id: invoice.part_id } });
+          if (part) {
+            partNumber = (part.part_number || '').trim();
+            partDesc = (part.part_description || '').trim();
+          }
+        }
+        return {
+          ...m,
+          part_number: partNumber,
+          part_description: partDesc,
+        };
+      }),
+    );
   }
 
   async findOne(matchId: number) {

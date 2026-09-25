@@ -88,14 +88,14 @@ export const AddPackingToBoxPage: React.FC = () => {
               {!isLocked ? (
                 <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                   <form onSubmit={handleScanPacking} style={{ display: 'flex', gap: '12px', alignItems: 'flex-end' }}>
-                    <div style={{ width: '240px' }}>
+                    <div style={{ width: '300px' }}>
                       <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
-                        Scan Code
+                        Scan Code <span style={{ color: '#dc2626' }}>*</span>
                       </label>
                       <input
                         type="text"
                         required
-                        placeholder="Enter Packing Barcode"
+                        placeholder="Scan / Enter Packing Barcode (e.g. 100001)..."
                         className="form-control"
                         value={scanCode}
                         onChange={(e) => setScanCode(e.target.value)}

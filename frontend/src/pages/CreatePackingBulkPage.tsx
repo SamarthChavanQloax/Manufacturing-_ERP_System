@@ -259,11 +259,11 @@ export const CreatePackingBulkPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search by Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '200px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>
@@ -401,6 +401,7 @@ export const CreatePackingBulkPage: React.FC = () => {
                     required
                     min={1}
                     className="form-control"
+                    placeholder="Enter Quantity Per Package (e.g. 10)..."
                     value={partQty === 0 ? '' : partQty}
                     onFocus={() => { if (partQty === 0) setPartQty(''); }}
                     onBlur={() => { if (partQty === '') setPartQty(0); }}
@@ -416,6 +417,7 @@ export const CreatePackingBulkPage: React.FC = () => {
                     min={1}
                     max={50}
                     className="form-control"
+                    placeholder="Enter Number of Labels to Generate (e.g. 5)..."
                     value={packingQty === 0 ? '' : packingQty}
                     onFocus={() => { if (packingQty === 0) setPackingQty(''); }}
                     onBlur={() => { if (packingQty === '') setPackingQty(0); }}

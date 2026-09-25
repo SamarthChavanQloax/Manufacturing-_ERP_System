@@ -164,11 +164,11 @@ export const CreatePackingPage: React.FC = () => {
                 <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search by Part Number or Part Name..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="form-control"
-                  style={{ width: '200px', padding: '6px 10px' }}
+                  style={{ width: '280px', padding: '6px 10px' }}
                 />
               </div>
             </div>
@@ -312,6 +312,7 @@ export const CreatePackingPage: React.FC = () => {
                     type="number"
                     required
                     min={1}
+                    placeholder="Enter Packing Quantity (e.g. 10)..."
                     className="form-control"
                     value={partQty === 0 ? '' : partQty}
                     onFocus={() => { if (partQty === 0) setPartQty(''); }}

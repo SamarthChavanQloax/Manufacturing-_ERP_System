@@ -16,7 +16,7 @@ export declare class PartsService {
         part_number: string;
         part_desc: string;
         qty: number;
-    }): Promise<Part>;
+    }, userId?: number): Promise<Part>;
     getStockList(search?: string, page?: number, limit?: number): Promise<{
         items: any[];
         total: number;
