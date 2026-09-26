@@ -116,17 +116,14 @@ export const CreateBoxPage: React.FC = () => {
                   <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Customer Name
                   </label>
-                  <select
-                    className="form-control"
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(Number(e.target.value))}
-                  >
-                    {customers.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.customer_name}
-                      </option>
-                    ))}
-                  </select>
+                  <Select
+                    options={customers.map((c) => ({ value: c.id, label: c.customer_name }))}
+                    value={customers.map((c) => ({ value: c.id, label: c.customer_name })).find(o => o.value === selectedCustomerId) || null}
+                    onChange={(option) => setSelectedCustomerId(option ? Number(option.value) : '')}
+                    placeholder="Select Customer..."
+                    isClearable
+                    classNamePrefix="react-select"
+                  />
                 </div>
 
                 <div>
