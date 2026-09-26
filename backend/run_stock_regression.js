@@ -95,7 +95,7 @@ async function runStockRegression() {
   // Test with Part 1825 (D16.064.34.0.PR)
   const partId = 1825;
   const partNumber = 'D16.064.34.0.PR';
-  const testQty = 6;
+  const testQty = 1;
 
   console.log(`Testing Part: ${partNumber} (ID: ${partId}) with Test Qty: ${testQty}\n`);
 
