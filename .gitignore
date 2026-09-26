@@ -14,6 +14,8 @@ frontend/.env
 dist/
 backend/dist/
 frontend/dist/
+.vite/
+*.tsbuildinfo
 
 # Vercel & Deployment
 .vercel/
