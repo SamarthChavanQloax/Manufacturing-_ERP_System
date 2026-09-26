@@ -129,20 +129,20 @@ export class AiService {
 
     // 1. Off-Hours Activity (Gate / Verification)
     const recentVerifications = await this.verificationRepo.find({
-      where: { created_date: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
+      where: { created_time: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
     });
     
     for (const verif of recentVerifications) {
-      if (!verif.created_time) continue;
+      if (!verif.created_date) continue; // created_date stores time in this legacy DB
       // Parse time (e.g. "23:45:12")
-      const hour = parseInt(verif.created_time.split(':')[0], 10);
+      const hour = parseInt(verif.created_date.split(':')[0], 10);
       if (hour >= 22 || hour < 6) { // Between 10 PM and 6 AM
         anomalies.push({
           id: `off_hours_${verif.id}`,
           type: 'Off-Hours Dispatch',
           severity: 'HIGH',
-          description: `Invoice ${verif.invoice_number} was verified at the gate at ${verif.created_time}, which is outside normal operating hours.`,
-          timestamp: `${verif.created_date} ${verif.created_time}`,
+          description: `Invoice ${verif.invoice_number} was verified at the gate at ${verif.created_date}, which is outside normal operating hours.`,
+          timestamp: `${verif.created_time} ${verif.created_date}`,
           entity_id: verif.invoice_number,
           actor_id: verif.created_by,
         });
@@ -152,23 +152,24 @@ export class AiService {
     // 2. Workflow Bypass (Time-Delta Anomaly)
     // Find recent boxes
     const recentBoxes = await this.boxesRepo.find({
-      where: { created_date: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
+      where: { created_time: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
     });
 
     const recentInvoices = await this.invoicesRepo.find({
-      where: { created_date: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
+      where: { created_time: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
     });
 
     for (const inv of recentInvoices) {
       // Find boxes associated with this invoice (in our simplified logic, we just find boxes created by same user on same day)
       // Ideally we would join InvoiceBox, but since we are detecting anomalies on metadata:
-      const invDateTime = new Date(`${inv.created_date}T${inv.created_time}`);
+      // Note: created_time stores Date (YYYY-MM-DD), created_date stores Time (HH:MM:SS)
+      const invDateTime = new Date(`${inv.created_time}T${inv.created_date}`);
       
       // Look for a box created exactly within 2 minutes before the invoice
       const suspiciouslyFastBoxes = recentBoxes.filter(b => {
         if (b.created_by !== inv.created_by) return false;
-        if (b.created_date !== inv.created_date) return false;
-        const boxDateTime = new Date(`${b.created_date}T${b.created_time}`);
+        if (b.created_time !== inv.created_time) return false;
+        const boxDateTime = new Date(`${b.created_time}T${b.created_date}`);
         const diffMs = invDateTime.getTime() - boxDateTime.getTime();
         return diffMs >= 0 && diffMs < 120000; // less than 2 minutes
       });
