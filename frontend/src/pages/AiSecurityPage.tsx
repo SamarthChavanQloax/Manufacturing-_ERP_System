@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { AlertTriangle, ShieldAlert, Clock, Activity, Search, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, ShieldAlert, Clock, Activity, Search, ShieldCheck, CheckCircle } from 'lucide-react';
 
 interface Anomaly {
   id: string;
@@ -22,6 +22,12 @@ export const AiSecurityPage: React.FC = () => {
   // Track logged investigations locally for the demo
   const [investigatedIds, setInvestigatedIds] = useState<string[]>(() => {
     const saved = localStorage.getItem('ai_investigations');
+    return saved ? JSON.parse(saved) : [];
+  });
+  
+  // Track completed investigations
+  const [completedIds, setCompletedIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('ai_completed_investigations');
     return saved ? JSON.parse(saved) : [];
   });
 
@@ -98,6 +104,15 @@ export const AiSecurityPage: React.FC = () => {
     setSelectedAnomaly(null);
   };
 
+  const handleCompleteInvestigation = () => {
+    if (selectedAnomaly && !completedIds.includes(selectedAnomaly.id)) {
+      const newIds = [...completedIds, selectedAnomaly.id];
+      setCompletedIds(newIds);
+      localStorage.setItem('ai_completed_investigations', JSON.stringify(newIds));
+    }
+    setSelectedAnomaly(null);
+  };
+
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', fontFamily: "'Inter', sans-serif", position: 'relative' }}>
       {/* Detail Modal Overlay */}
@@ -166,13 +181,31 @@ export const AiSecurityPage: React.FC = () => {
               >
                 Close
               </button>
-              <button 
-                className="btn" 
-                style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
-                onClick={handleLogInvestigation}
-              >
-                Log Investigation
-              </button>
+              
+              {completedIds.includes(selectedAnomaly.id) ? (
+                <button 
+                  disabled
+                  style={{ background: '#f3f4f6', color: '#9ca3af', border: '1px solid #e5e7eb', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}
+                >
+                  <CheckCircle size={16} /> Investigation Complete
+                </button>
+              ) : investigatedIds.includes(selectedAnomaly.id) ? (
+                <button 
+                  className="btn" 
+                  style={{ background: '#10b981', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}
+                  onClick={handleCompleteInvestigation}
+                >
+                  <CheckCircle size={16} /> Mark as Resolved
+                </button>
+              ) : (
+                <button 
+                  className="btn" 
+                  style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+                  onClick={handleLogInvestigation}
+                >
+                  Log Investigation
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -311,7 +344,23 @@ export const AiSecurityPage: React.FC = () => {
                     </p>
                     
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      {investigatedIds.includes(anomaly.id) ? (
+                      {completedIds.includes(anomaly.id) ? (
+                        <span style={{ 
+                          fontSize: '12px', 
+                          fontWeight: 600, 
+                          color: '#059669',
+                          background: '#ecfdf5',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          border: `1px solid #05966940`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <CheckCircle size={12} />
+                          RESOLVED
+                        </span>
+                      ) : investigatedIds.includes(anomaly.id) ? (
                         <span style={{ 
                           fontSize: '12px', 
                           fontWeight: 600, 
