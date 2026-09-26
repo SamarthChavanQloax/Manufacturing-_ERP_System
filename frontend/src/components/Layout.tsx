@@ -18,13 +18,18 @@ import {
   Settings,
   Globe,
   ShieldAlert,
+  Bell,
 } from 'lucide-react';
 
 import { getUserAvatarColor, getUserProfilePhoto } from '../utils/userProfileStorage';
+import { NotificationBellPopover } from './NotificationBellPopover';
+import { ToastNotification } from './ToastNotification';
+import { useNotifications } from '../context/NotificationContext';
 
 export const Layout: React.FC = () => {
   const { user, logout, switchRole } = useAuth();
   const { t, language, setLanguage, playSound } = usePreferences();
+  const { unreadCount, criticalCount, pendingCount, hasPending } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -333,6 +338,68 @@ export const Layout: React.FC = () => {
             <span>{t('profile')}</span>
           </NavLink>
 
+          {/* Notification Center */}
+          {(() => {
+            const isPending = hasPending || unreadCount > 0 || pendingCount > 0;
+            return (
+              <NavLink
+                to="/notifications"
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <Bell size={18} style={{ color: isPending ? '#3b82f6' : 'inherit' }} />
+                    {isPending && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '-2px',
+                          right: '-2px',
+                          width: '7px',
+                          height: '7px',
+                          borderRadius: '50%',
+                          backgroundColor: '#2563eb',
+                          boxShadow: '0 0 6px #3b82f6',
+                          animation: 'blueDotBlink 1.4s infinite ease-in-out',
+                        }}
+                      />
+                    )}
+                  </div>
+                  <span>Notifications</span>
+                </div>
+                {unreadCount > 0 ? (
+                  <span
+                    style={{
+                      background: criticalCount > 0 ? '#ef4444' : '#2563eb',
+                      color: '#fff',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '10px',
+                      padding: '1px 7px',
+                    }}
+                  >
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                ) : isPending ? (
+                  <span
+                    style={{
+                      background: 'rgba(59, 130, 246, 0.18)',
+                      color: '#3b82f6',
+                      fontSize: '11px',
+                      fontWeight: 600,
+                      borderRadius: '10px',
+                      padding: '1px 7px',
+                      border: '1px solid rgba(59, 130, 246, 0.3)',
+                    }}
+                  >
+                    {pendingCount} open
+                  </span>
+                ) : null}
+              </NavLink>
+            );
+          })()}
+
           {/* AI Insights Menu */}
           {(role === 'admin' || role === 'gate') && (
             <div>
@@ -365,6 +432,22 @@ export const Layout: React.FC = () => {
                   >
                     <ShieldAlert size={15} />
                     <span>Security Hub</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/ai_gate_risk"
+                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                  >
+                    <ShieldCheck size={15} />
+                    <span>Gate Risk Analysis</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/ai_security_briefing"
+                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                  >
+                    <FileText size={15} />
+                    <span>Daily Security Briefing</span>
                   </NavLink>
                 </div>
               </div>
@@ -552,6 +635,12 @@ export const Layout: React.FC = () => {
                     <span>{t('verifyInvoice')}</span>
                   </NavLink>
                   <NavLink
+                    to="/ai_gate_risk"
+                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                  >
+                    <span>AI Gate Risk Hub</span>
+                  </NavLink>
+                  <NavLink
                     to="/gate_out_report"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
@@ -619,6 +708,9 @@ export const Layout: React.FC = () => {
               </select>
             </div>
 
+            {/* Notification Bell Popover */}
+            <NotificationBellPopover />
+
             {/* Quick Settings Button */}
             <button
               onClick={() => navigate('/settings')}
@@ -669,6 +761,9 @@ export const Layout: React.FC = () => {
           <Outlet />
         </main>
       </div>
+
+      {/* Floating In-App Toast Alerts for Critical ERP Events */}
+      <ToastNotification />
     </div>
 
   );

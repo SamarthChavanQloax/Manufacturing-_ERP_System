@@ -12,6 +12,11 @@ import {
   InvoiceBox,
   InvoiceMatch,
   InvoiceBoxMatch,
+  GateRiskAnalysis,
+  GateScanLog,
+  GateRiskConfig,
+  DailySecurityBriefing,
+  Notification,
 } from './entities';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
@@ -25,6 +30,7 @@ import { ReportsModule } from './reports/reports.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AiModule } from './ai/ai.module';
 import { SettingsModule } from './settings/settings.module';
+import { NotificationsModule } from './notifications/notifications.module';
 import { HealthController } from './health/health.controller';
 
 dotenv.config();
@@ -56,6 +62,11 @@ const isSslEnabled = process.env.DB_SSL === 'true';
         InvoiceBox,
         InvoiceMatch,
         InvoiceBoxMatch,
+        GateRiskAnalysis,
+        GateScanLog,
+        GateRiskConfig,
+        DailySecurityBriefing,
+        Notification,
       ],
       synchronize: false, // Do not alter the legacy database schema!
     }),
@@ -71,6 +82,7 @@ const isSslEnabled = process.env.DB_SSL === 'true';
     DashboardModule,
     AiModule,
     SettingsModule,
+    NotificationsModule,
   ],
   controllers: [HealthController],
 })

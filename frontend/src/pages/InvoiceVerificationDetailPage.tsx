@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer, ShieldAlert } from 'lucide-react';
 import { GatePassModal } from '../components/GatePassModal';
+import { AiGateRiskCard } from '../components/AiGateRiskCard';
 
 export const InvoiceVerificationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -42,6 +43,8 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
       fetchMatchDetails();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error scanning box');
+      // Refresh to update failed scan counters on risk card
+      fetchMatchDetails();
     }
   };
 
@@ -52,6 +55,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
   const isMatched = data?.checked === true;
   const invoice = data?.invoice;
   const match = data?.match;
+  const aiRisk = data?.ai_risk;
 
   return (
     <div>
@@ -71,6 +75,14 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
       </div>
 
       <div className="content-body">
+        {/* Live AI Gate Risk Assessment Card */}
+        {aiRisk && (
+          <AiGateRiskCard
+            analysis={aiRisk}
+            onRefresh={fetchMatchDetails}
+          />
+        )}
+
         <div className="card">
           <div className="card-header" style={{ display: 'block' }}>
             {/* Box Barcode Scan input (if not yet matched) */}

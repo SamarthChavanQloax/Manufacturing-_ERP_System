@@ -183,23 +183,24 @@ export const VerifyInvoicePage: React.FC = () => {
               <table className="data-table">
                 <thead>
                   <tr>
-                    <th style={{ width: '80px' }}>Sr. No.</th>
+                    <th style={{ width: '70px' }}>Sr. No.</th>
                     <th>Invoice Number (Barcode)</th>
+                    <th style={{ width: '130px' }}>AI Gate Risk</th>
                     <th>Status</th>
-                    <th style={{ width: '130px' }}>View Details</th>
+                    <th style={{ width: '120px' }}>View Details</th>
                     <th style={{ width: '150px' }}>Return Invoice</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
                         Loading verification list...
                       </td>
                     </tr>
                   ) : displayedRows.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '24px' }}>
+                      <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>
                         No data available in table
                       </td>
                     </tr>
@@ -208,6 +209,40 @@ export const VerifyInvoicePage: React.FC = () => {
                       <tr key={m.id}>
                         <td>{idx + 1}</td>
                         <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{m.invoice_number}</td>
+                        <td>
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              fontSize: '11.5px',
+                              fontWeight: 700,
+                              padding: '3px 8px',
+                              borderRadius: '12px',
+                              background:
+                                m.risk_level === 'HIGH'
+                                  ? '#fef2f2'
+                                  : m.risk_level === 'MEDIUM'
+                                  ? '#fffbeb'
+                                  : '#f0fdf4',
+                              color:
+                                m.risk_level === 'HIGH'
+                                  ? '#dc2626'
+                                  : m.risk_level === 'MEDIUM'
+                                  ? '#d97706'
+                                  : '#16a34a',
+                              border: `1px solid ${
+                                m.risk_level === 'HIGH'
+                                  ? '#fecaca'
+                                  : m.risk_level === 'MEDIUM'
+                                  ? '#fde68a'
+                                  : '#bbf7d0'
+                              }`,
+                            }}
+                          >
+                            {m.risk_level || 'LOW'} ({m.risk_score || 0})
+                          </span>
+                        </td>
                         <td>
                           <span
                             className={`badge ${m.status === 'verified' ? 'badge-verified' : 'badge-pending'}`}

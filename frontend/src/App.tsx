@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PreferencesProvider } from './context/PreferencesContext';
+import { NotificationProvider } from './context/NotificationContext';
 import { Layout } from './components/Layout';
 
 // Module Pages
@@ -9,6 +10,7 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { PartMasterPage } from './pages/PartMasterPage';
 import { PartStockPage } from './pages/PartStockPage';
 import { CustomerPage } from './pages/CustomerPage';
@@ -28,6 +30,8 @@ import { GateOutReportPage } from './pages/GateOutReportPage';
 import { ErpUsersPage } from './pages/ErpUsersPage';
 import { AiStockIntelligencePage } from './pages/AiStockIntelligencePage';
 import { AiSecurityPage } from './pages/AiSecurityPage';
+import { AiGateRiskDashboardPage } from './pages/AiGateRiskDashboardPage';
+import { AiDailySecurityBriefingPage } from './pages/AiDailySecurityBriefingPage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -75,7 +79,8 @@ export const App: React.FC = () => {
   return (
     <AuthProvider>
       <PreferencesProvider>
-        <BrowserRouter>
+        <NotificationProvider>
+          <BrowserRouter>
           <Routes>
             <Route path="/login" element={<LoginPage />} />
 
@@ -258,11 +263,36 @@ export const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/ai_gate_risk"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'gate']}>
+                  <AiGateRiskDashboardPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ai_security_briefing"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'gate']}>
+                  <AiDailySecurityBriefingPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/notifications"
+              element={
+                <ProtectedRoute>
+                  <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
           </Route>
 
           <Route path="*" element={<Navigate to="/index" replace />} />
         </Routes>
       </BrowserRouter>
+        </NotificationProvider>
     </PreferencesProvider>
   </AuthProvider>
 );

@@ -20,7 +20,6 @@ export class CustomersService {
     }
     const customer = this.customerRepo.create({
       customer_name: customerName.trim(),
-      customer_image: customerImage || null,
     });
     return this.customerRepo.save(customer);
   }
@@ -34,9 +33,6 @@ export class CustomersService {
       throw new BadRequestException('Customer not found');
     }
     customer.customer_name = customerName.trim();
-    if (customerImage !== undefined) {
-      customer.customer_image = customerImage;
-    }
     return this.customerRepo.save(customer);
   }
 }

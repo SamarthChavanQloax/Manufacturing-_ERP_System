@@ -109,9 +109,6 @@ export class Customer {
 
   @Column({ type: 'varchar', length: 255 })
   customer_name: string;
-
-  @Column({ type: 'text', nullable: true })
-  customer_image?: string;
 }
 
 @Entity('packing')
@@ -320,3 +317,245 @@ export class InvoiceBoxMatch {
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: string;
 }
+
+@Entity('gate_risk_analysis')
+export class GateRiskAnalysis {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int', nullable: true })
+  match_id: number;
+
+  @Column({ type: 'varchar', length: 50 })
+  invoice_barcode: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  invoice_number: string;
+
+  @Column({ type: 'int', nullable: true })
+  customer_id: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  customer_name: string;
+
+  @Column({ type: 'int', nullable: true })
+  part_id: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  part_number: string;
+
+  @Column({ type: 'float', default: 0 })
+  invoice_qty: number;
+
+  @Column({ type: 'int', default: 0 })
+  risk_score: number; // 0 to 100
+
+  @Column({ type: 'varchar', length: 20, default: 'LOW' }) // 'LOW' | 'MEDIUM' | 'HIGH'
+  risk_level: string;
+
+  @Column({ type: 'text', nullable: true }) // JSON object with risk factor breakdown
+  risk_factors: string;
+
+  @Column({ type: 'text', nullable: true }) // JSON array of explainable reasons
+  reasons: string;
+
+  @Column({ type: 'text', nullable: true })
+  recommendation: string;
+
+  @Column({ type: 'text', nullable: true }) // JSON context metrics
+  metrics: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'v1.0-explainable-heuristics' })
+  model_version: string;
+
+  @Column({ type: 'varchar', length: 30, default: 'not_required' }) // 'not_required' | 'pending_review' | 'reviewed'
+  review_status: string;
+
+  @Column({ type: 'int', nullable: true })
+  reviewed_by: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  reviewed_by_name: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  review_timestamp: Date;
+
+  @Column({ type: 'text', nullable: true })
+  review_note: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true }) // 'approved' | 'flagged' | 'rejected'
+  review_decision: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updated_at: Date;
+}
+
+@Entity('gate_scan_log')
+export class GateScanLog {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int', nullable: true })
+  match_id: number;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  invoice_barcode: string;
+
+  @Column({ type: 'varchar', length: 50 })
+  scanned_barcode: string;
+
+  @Column({ type: 'varchar', length: 20 }) // 'invoice' | 'box'
+  scan_type: string;
+
+  @Column({ type: 'boolean', default: true })
+  is_valid: boolean;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  failure_reason: string;
+
+  @Column({ type: 'int', nullable: true })
+  user_id: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  user_name: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+}
+
+@Entity('gate_risk_config')
+export class GateRiskConfig {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 100, unique: true })
+  config_key: string;
+
+  @Column({ type: 'text' })
+  config_value: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  description: string;
+
+  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updated_at: Date;
+}
+
+@Entity('daily_security_briefing')
+export class DailySecurityBriefing {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'varchar', length: 20, unique: true }) // YYYY-MM-DD
+  briefing_date: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  generated_at: Date;
+
+  @Column({ type: 'int', default: 0 })
+  total_events: number;
+
+  @Column({ type: 'int', default: 0 })
+  normal_count: number;
+
+  @Column({ type: 'int', default: 0 })
+  high_priority_count: number;
+
+  @Column({ type: 'int', default: 0 })
+  medium_priority_count: number;
+
+  @Column({ type: 'int', default: 0 })
+  low_priority_count: number;
+
+  @Column({ type: 'int', default: 0 })
+  pending_reviews_count: number;
+
+  @Column({ type: 'text', nullable: true })
+  executive_summary: string;
+
+  @Column({ type: 'longtext', nullable: true }) // JSON array of structured consolidated events
+  events: string;
+
+  @Column({ type: 'varchar', length: 30, default: 'generated' }) // 'generated' | 'reviewed'
+  status: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'system' })
+  generated_by: string;
+
+  @Column({ type: 'varchar', length: 50, default: 'v1.0-evidence-consolidator' })
+  engine_version: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+
+  @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: 'CURRENT_TIMESTAMP' })
+  updated_at: Date;
+}
+
+@Entity('erp_notification')
+export class Notification {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int', nullable: true })
+  recipient_user_id: number;
+
+  @Column({ type: 'varchar', length: 50, default: 'ALL' })
+  recipient_role: string; // 'admin' | 'gate' | 'packing' | 'box' | 'invoice' | 'ALL'
+
+  @Column({ type: 'varchar', length: 60 })
+  type: string;
+
+  @Column({ type: 'varchar', length: 20, default: 'INFO' })
+  priority: string; // 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL'
+
+  @Column({ type: 'varchar', length: 255 })
+  title: string;
+
+  @Column({ type: 'text' })
+  message: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  entity_type: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  entity_id: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  action_url: string;
+
+  @Column({ type: 'text', nullable: true })
+  metadata: string; // JSON
+
+  @Column({ type: 'varchar', length: 180, nullable: true })
+  dedup_key: string;
+
+  @Column({ type: 'boolean', default: false })
+  is_read: boolean;
+
+  @Column({ type: 'datetime', nullable: true })
+  read_at: Date;
+
+  @Column({ type: 'varchar', length: 30, default: 'OPEN' })
+  lifecycle_status: string; // 'OPEN' | 'REVIEWED' | 'RESOLVED'
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  resolved_by_name: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  resolved_at: Date;
+
+  @Column({ type: 'text', nullable: true })
+  resolution_note: string;
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+
+  @Column({ type: 'datetime', nullable: true })
+  expires_at: Date;
+}
+
+

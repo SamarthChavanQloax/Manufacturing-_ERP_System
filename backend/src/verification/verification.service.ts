@@ -1,7 +1,17 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Invoice, InvoiceBox, InvoiceMatch, InvoiceBoxMatch, Box, BoxPacking, Part } from '../entities';
+import {
+  Invoice,
+  InvoiceBox,
+  InvoiceMatch,
+  InvoiceBoxMatch,
+  Box,
+  BoxPacking,
+  Part,
+  GateRiskAnalysis,
+} from '../entities';
+import { GateRiskService } from '../ai/gate-risk.service';
 
 @Injectable()
 export class VerificationService {
@@ -20,6 +30,10 @@ export class VerificationService {
     private boxPackingRepo: Repository<BoxPacking>,
     @InjectRepository(Part)
     private partRepo: Repository<Part>,
+    @InjectRepository(GateRiskAnalysis)
+    private riskAnalysisRepo: Repository<GateRiskAnalysis>,
+    @Inject(forwardRef(() => GateRiskService))
+    private gateRiskService: GateRiskService,
   ) {}
 
   private getLegacyDateTime() {
@@ -30,10 +44,23 @@ export class VerificationService {
   }
 
   async startVerification(invoiceBarcode: string, userId: number) {
+    const barcodeStr = String(invoiceBarcode).trim();
     const invoice = await this.invoiceRepo.findOne({
-      where: { barcode: String(invoiceBarcode).trim() },
+      where: { barcode: barcodeStr },
     });
     if (!invoice) {
+      // Log failed scan attempt
+      try {
+        await this.gateRiskService.logScan({
+          invoice_barcode: barcodeStr,
+          scanned_barcode: barcodeStr,
+          scan_type: 'invoice',
+          is_valid: false,
+          failure_reason: 'Invoice Number Not Found',
+          user_id: userId,
+        });
+      } catch (e) {}
+
       throw new BadRequestException('Error : Invoice Number Not Found !!!');
     }
 
@@ -62,6 +89,27 @@ export class VerificationService {
     invoice.status = 'used';
     await this.invoiceRepo.save(invoice);
 
+    // Log valid invoice gate start scan
+    try {
+      await this.gateRiskService.logScan({
+        match_id: savedMatch.id,
+        invoice_barcode: invoice.barcode,
+        scanned_barcode: invoice.barcode,
+        scan_type: 'invoice',
+        is_valid: true,
+        user_id: userId,
+      });
+
+      // Run initial AI Gate Risk Analysis
+      await this.gateRiskService.analyzeGateTransaction({
+        match_id: savedMatch.id,
+        invoice_barcode: invoice.barcode,
+        user_id: userId,
+      });
+    } catch (e) {
+      console.error('[VerificationService] AI Gate Risk Analysis error:', e);
+    }
+
     return {
       ...savedMatch,
       invoice_match_id: savedMatch.id,
@@ -84,10 +132,27 @@ export class VerificationService {
             partDesc = (part.part_description || '').trim();
           }
         }
+
+        // Fetch risk summary if exists
+        let riskScore = 0;
+        let riskLevel = 'LOW';
+        let reviewStatus = 'not_required';
+        const riskAnalysis = await this.riskAnalysisRepo.findOne({
+          where: [{ match_id: m.id }, { invoice_barcode: m.invoice_number }],
+        });
+        if (riskAnalysis) {
+          riskScore = riskAnalysis.risk_score;
+          riskLevel = riskAnalysis.risk_level;
+          reviewStatus = riskAnalysis.review_status;
+        }
+
         return {
           ...m,
           part_number: partNumber,
           part_description: partDesc,
+          risk_score: riskScore,
+          risk_level: riskLevel,
+          review_status: reviewStatus,
         };
       }),
     );
@@ -118,6 +183,14 @@ export class VerificationService {
 
     const gateOutCode = invoice ? `${invoice.invoice_number}4000${match.id}` : '';
 
+    // Fetch live AI Risk Analysis
+    let aiRisk: any = null;
+    try {
+      aiRisk = await this.gateRiskService.getRiskForMatch(matchId);
+    } catch (e) {
+      console.warn('[VerificationService] Could not compute AI risk for match #' + matchId, e);
+    }
+
     return {
       match,
       invoice,
@@ -128,10 +201,12 @@ export class VerificationService {
       gate_out_code: gateOutCode,
       clearance_code: gateOutCode,
       scanned_boxes: scannedBoxes,
+      ai_risk: aiRisk,
     };
   }
 
   async scanBox(matchId: number, boxBarcode: string, userId: number) {
+    const barcodeStr = String(boxBarcode).trim();
     const match = await this.invoiceMatchRepo.findOne({ where: { id: matchId } });
     if (!match) throw new NotFoundException('Verification record not found');
 
@@ -142,24 +217,61 @@ export class VerificationService {
 
     // Verify box barcode is mapped to this invoice in invoice_box
     const validInvoiceBox = await this.invoiceBoxRepo.findOne({
-      where: { invoice_id: invoice.id, box_id: Number(boxBarcode) },
+      where: { invoice_id: invoice.id, box_id: Number(barcodeStr) },
     });
     if (!validInvoiceBox) {
+      // Log failed scan attempt
+      try {
+        await this.gateRiskService.logScan({
+          match_id: match.id,
+          invoice_barcode: invoice.barcode,
+          scanned_barcode: barcodeStr,
+          scan_type: 'box',
+          is_valid: false,
+          failure_reason: 'Box barcode not found in this invoice',
+          user_id: userId,
+        });
+        // Refresh risk analysis
+        await this.gateRiskService.analyzeGateTransaction({
+          match_id: match.id,
+          invoice_barcode: invoice.barcode,
+          user_id: userId,
+        });
+      } catch (e) {}
+
       throw new BadRequestException('Error : Box barcode not found in this invoice !!!!');
     }
 
     // Check if already scanned
     const alreadyScanned = await this.invoiceBoxMatchRepo.findOne({
-      where: { invoice_id: invoice.id, box_id: Number(boxBarcode) },
+      where: { invoice_id: invoice.id, box_id: Number(barcodeStr) },
     });
     if (alreadyScanned) {
+      // Log duplicate scan attempt
+      try {
+        await this.gateRiskService.logScan({
+          match_id: match.id,
+          invoice_barcode: invoice.barcode,
+          scanned_barcode: barcodeStr,
+          scan_type: 'box',
+          is_valid: false,
+          failure_reason: 'Box barcode already scanned',
+          user_id: userId,
+        });
+        await this.gateRiskService.analyzeGateTransaction({
+          match_id: match.id,
+          invoice_barcode: invoice.barcode,
+          user_id: userId,
+        });
+      } catch (e) {}
+
       throw new BadRequestException('Error : Box barcode already scanned for this invoice');
     }
 
     const { dateStr, timeStr } = this.getLegacyDateTime();
 
     const boxMatch = this.invoiceBoxMatchRepo.create({
-      box_id: Number(boxBarcode),
+      box_id: Number(barcodeStr),
       invoice_id: invoice.id,
       created_by: userId,
       created_date: dateStr,
@@ -168,6 +280,23 @@ export class VerificationService {
     });
 
     await this.invoiceBoxMatchRepo.save(boxMatch);
+
+    // Log successful box scan
+    try {
+      await this.gateRiskService.logScan({
+        match_id: match.id,
+        invoice_barcode: invoice.barcode,
+        scanned_barcode: barcodeStr,
+        scan_type: 'box',
+        is_valid: true,
+        user_id: userId,
+      });
+      await this.gateRiskService.analyzeGateTransaction({
+        match_id: match.id,
+        invoice_barcode: invoice.barcode,
+        user_id: userId,
+      });
+    } catch (e) {}
 
     // Check if all boxes are scanned
     const totalExpected = await this.invoiceBoxRepo.count({ where: { invoice_id: invoice.id } });
