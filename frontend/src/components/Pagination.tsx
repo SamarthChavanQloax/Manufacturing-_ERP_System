@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronsLeft, ChevronsRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import { usePreferences } from '../context/PreferencesContext';
 
 export interface PaginationProps {
   currentPage: number;
@@ -16,6 +17,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   pageSize,
   onPageChange,
 }) => {
+  const { t } = usePreferences();
   const [jumpInput, setJumpInput] = useState('');
 
   const startEntry = totalEntries === 0 ? 0 : (currentPage - 1) * pageSize + 1;
@@ -98,12 +100,13 @@ export const Pagination: React.FC<PaginationProps> = ({
         flexWrap: 'wrap',
         gap: '12px',
         fontSize: '13.5px',
+        color: 'var(--text-muted)',
       }}
     >
-      <div style={{ color: '#4b5563' }}>
-        Showing <strong style={{ color: '#111827' }}>{startEntry}</strong> to{' '}
-        <strong style={{ color: '#111827' }}>{endEntry}</strong> of{' '}
-        <strong style={{ color: '#111827' }}>{totalEntries}</strong> entries
+      <div>
+        {t('showing')} <strong style={{ color: 'var(--text-main)' }}>{startEntry}</strong> {t('to')}{' '}
+        <strong style={{ color: 'var(--text-main)' }}>{endEntry}</strong> {t('of')}{' '}
+        <strong style={{ color: 'var(--text-main)' }}>{totalEntries}</strong> {t('entries')}
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap' }}>
@@ -116,10 +119,11 @@ export const Pagination: React.FC<PaginationProps> = ({
           style={{
             ...buttonBaseStyle,
             padding: '0 8px',
-            background: currentPage <= 1 ? '#f3f4f6' : '#ffffff',
-            color: currentPage <= 1 ? '#9ca3af' : '#374151',
-            border: '1px solid #d1d5db',
+            background: currentPage <= 1 ? 'var(--card-sub-bg)' : 'var(--card-bg)',
+            color: currentPage <= 1 ? 'var(--text-muted)' : 'var(--text-main)',
+            border: '1px solid var(--border-color)',
             cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+            opacity: currentPage <= 1 ? 0.6 : 1,
           }}
         >
           <ChevronsLeft size={15} />
@@ -134,14 +138,15 @@ export const Pagination: React.FC<PaginationProps> = ({
             ...buttonBaseStyle,
             padding: '0 10px',
             gap: '3px',
-            background: currentPage <= 1 ? '#f3f4f6' : '#ffffff',
-            color: currentPage <= 1 ? '#9ca3af' : '#374151',
-            border: '1px solid #d1d5db',
+            background: currentPage <= 1 ? 'var(--card-sub-bg)' : 'var(--card-bg)',
+            color: currentPage <= 1 ? 'var(--text-muted)' : 'var(--text-main)',
+            border: '1px solid var(--border-color)',
             cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+            opacity: currentPage <= 1 ? 0.6 : 1,
           }}
         >
           <ChevronLeft size={14} />
-          <span>Previous</span>
+          <span>{t('previous')}</span>
         </button>
 
         {/* Dynamic Page Buttons with Shifts */}
@@ -164,9 +169,9 @@ export const Pagination: React.FC<PaginationProps> = ({
                   ...buttonBaseStyle,
                   minWidth: '32px',
                   padding: '0 6px',
-                  background: '#f9fafb',
-                  color: '#6b7280',
-                  border: '1px dashed #d1d5db',
+                  background: 'var(--card-sub-bg)',
+                  color: 'var(--text-muted)',
+                  border: '1px dashed var(--border-color)',
                   letterSpacing: '1px',
                   fontWeight: 600,
                 }}
@@ -189,9 +194,9 @@ export const Pagination: React.FC<PaginationProps> = ({
                 minWidth: '34px',
                 padding: '0 8px',
                 fontWeight: isActive ? 700 : 500,
-                background: isActive ? '#007bff' : '#ffffff',
-                color: isActive ? '#ffffff' : '#374151',
-                border: `1px solid ${isActive ? '#007bff' : '#d1d5db'}`,
+                background: isActive ? '#007bff' : 'var(--card-bg)',
+                color: isActive ? '#ffffff' : 'var(--text-main)',
+                border: `1px solid ${isActive ? '#007bff' : 'var(--border-color)'}`,
                 boxShadow: isActive ? '0 1px 3px rgba(0, 123, 255, 0.3)' : 'none',
               }}
             >
@@ -209,13 +214,14 @@ export const Pagination: React.FC<PaginationProps> = ({
             ...buttonBaseStyle,
             padding: '0 10px',
             gap: '3px',
-            background: currentPage >= totalPages ? '#f3f4f6' : '#ffffff',
-            color: currentPage >= totalPages ? '#9ca3af' : '#374151',
-            border: '1px solid #d1d5db',
+            background: currentPage >= totalPages ? 'var(--card-sub-bg)' : 'var(--card-bg)',
+            color: currentPage >= totalPages ? 'var(--text-muted)' : 'var(--text-main)',
+            border: '1px solid var(--border-color)',
             cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+            opacity: currentPage >= totalPages ? 0.6 : 1,
           }}
         >
-          <span>Next</span>
+          <span>{t('next')}</span>
           <ChevronRight size={14} />
         </button>
 
@@ -228,10 +234,11 @@ export const Pagination: React.FC<PaginationProps> = ({
           style={{
             ...buttonBaseStyle,
             padding: '0 8px',
-            background: currentPage >= totalPages ? '#f3f4f6' : '#ffffff',
-            color: currentPage >= totalPages ? '#9ca3af' : '#374151',
-            border: '1px solid #d1d5db',
+            background: currentPage >= totalPages ? 'var(--card-sub-bg)' : 'var(--card-bg)',
+            color: currentPage >= totalPages ? 'var(--text-muted)' : 'var(--text-main)',
+            border: '1px solid var(--border-color)',
             cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+            opacity: currentPage >= totalPages ? 0.6 : 1,
           }}
         >
           <ChevronsRight size={15} />
@@ -243,7 +250,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             onSubmit={handleJump}
             style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', marginLeft: '8px' }}
           >
-            <span style={{ color: '#6b7280', fontSize: '13px' }}>Go to:</span>
+            <span style={{ color: 'var(--text-muted)', fontSize: '13px' }}>{t('goTo')}</span>
             <input
               type="number"
               min={1}
@@ -256,8 +263,10 @@ export const Pagination: React.FC<PaginationProps> = ({
                 height: '32px',
                 padding: '2px 6px',
                 fontSize: '13px',
-                border: '1px solid #d1d5db',
+                border: '1px solid var(--border-color)',
                 borderRadius: '4px',
+                background: 'var(--input-bg)',
+                color: 'var(--input-color)',
                 textAlign: 'center',
                 outline: 'none',
               }}
@@ -274,7 +283,7 @@ export const Pagination: React.FC<PaginationProps> = ({
                 fontWeight: 600,
               }}
             >
-              Go
+              {t('go')}
             </button>
           </form>
         )}

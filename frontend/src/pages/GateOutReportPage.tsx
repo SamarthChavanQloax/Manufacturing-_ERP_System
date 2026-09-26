@@ -228,7 +228,7 @@ export const GateOutReportPage: React.FC = () => {
                     displayedRows.map((r, idx) => (
                       <tr key={r.id || idx}>
                         <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{r.invoice_number}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{r.invoice_number}</td>
                         <td style={{ fontWeight: 600, color: '#0284c7' }}>{r.part_number}</td>
                         <td>{r.part_description}</td>
                         <td style={{ fontWeight: 600 }}>{r.qty}</td>

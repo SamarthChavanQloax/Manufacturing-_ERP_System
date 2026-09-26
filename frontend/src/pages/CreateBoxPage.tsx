@@ -94,7 +94,7 @@ export const CreateBoxPage: React.FC = () => {
             <form onSubmit={handleCreateBox}>
               <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                 <div style={{ width: '320px', zIndex: 10 }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Part Name <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <Select
@@ -103,23 +103,12 @@ export const CreateBoxPage: React.FC = () => {
                     onChange={(option) => setSelectedPartNumber(option ? option.value : '')}
                     placeholder="Search Part Number or Part Name..."
                     isClearable
-                    styles={{
-                      control: (base) => ({
-                        ...base,
-                        minHeight: '38px',
-                        fontSize: '14px',
-                        borderColor: '#ced4da',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          borderColor: '#80bdff'
-                        }
-                      })
-                    }}
+                    classNamePrefix="react-select"
                   />
                 </div>
 
                 <div style={{ width: '220px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Customer Name
                   </label>
                   <select

@@ -220,7 +220,7 @@ export const ViewPackingPage: React.FC = () => {
                     displayedRows.map((p, idx) => (
                       <tr key={p.id}>
                         <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{p.part_number}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{p.part_number}</td>
                         <td>{p.part_description}</td>
                         <td style={{ fontWeight: 600 }}>{p.part_qty}</td>
                         <td>

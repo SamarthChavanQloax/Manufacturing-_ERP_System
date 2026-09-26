@@ -205,7 +205,7 @@ export const ViewInvoicePage: React.FC = () => {
                     displayedRows.map((inv, idx) => (
                       <tr key={inv.id}>
                         <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{inv.invoice_number}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{inv.invoice_number}</td>
                         <td>{inv.part_number}</td>
                         <td style={{ fontWeight: 600 }}>{inv.qty}</td>
                         <td>

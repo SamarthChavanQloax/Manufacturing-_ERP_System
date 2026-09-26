@@ -1,11 +1,14 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { PreferencesProvider } from './context/PreferencesContext';
 import { Layout } from './components/Layout';
 
 // Module Pages
 import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { SettingsPage } from './pages/SettingsPage';
 import { PartMasterPage } from './pages/PartMasterPage';
 import { PartStockPage } from './pages/PartStockPage';
 import { CustomerPage } from './pages/CustomerPage';
@@ -70,24 +73,29 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
 export const App: React.FC = () => {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
+      <PreferencesProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Protected Main Layout */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            {/* Dashboard (All authenticated roles) */}
-            <Route path="/" element={<Navigate to="/index" replace />} />
-            <Route path="/index" element={<DashboardPage />} />
-            <Route path="/dashboard" element={<DashboardPage />} />
+            {/* Protected Main Layout */}
+            <Route
+              element={
+                <ProtectedRoute>
+                  <Layout />
+                </ProtectedRoute>
+              }
+            >
+              {/* Dashboard (All authenticated roles) */}
+              <Route path="/" element={<Navigate to="/index" replace />} />
+              <Route path="/index" element={<DashboardPage />} />
+              <Route path="/dashboard" element={<DashboardPage />} />
 
-            {/* Master Module */}
+              {/* Profile & Settings (Role-adapted, separated) */}
+              <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+
+              {/* Master Module */}
             <Route
               path="/erp_users"
               element={
@@ -246,7 +254,8 @@ export const App: React.FC = () => {
           <Route path="*" element={<Navigate to="/index" replace />} />
         </Routes>
       </BrowserRouter>
-    </AuthProvider>
-  );
+    </PreferencesProvider>
+  </AuthProvider>
+);
 };
 export default App;

@@ -207,7 +207,7 @@ export const VerifyInvoicePage: React.FC = () => {
                     displayedRows.map((m, idx) => (
                       <tr key={m.id}>
                         <td>{idx + 1}</td>
-                        <td style={{ fontWeight: 600, color: '#111827' }}>{m.invoice_number}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{m.invoice_number}</td>
                         <td>
                           <span
                             className={`badge ${m.status === 'verified' ? 'badge-verified' : 'badge-pending'}`}
