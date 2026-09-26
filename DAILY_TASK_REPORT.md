@@ -69,3 +69,32 @@
 **Total Tasks Aligned:** 7
 **Total Tasks Completed:** 7
 **Blockers:** None. Ready to proceed to **Phase 3 (Ask ERP Assistant & Computer Vision Barcode)**.
+
+---
+
+## 👨‍💻 Project Lead / General Update
+
+**Hi Sir,**
+**Here’s my update on the Manufacturing ERP & Barcode Management System:**
+
+### 📌 Completed / Added
+- Updated the ERP dashboard with a more structured and role-based interface.
+- Added/updated the **Profile and Settings** sections according to user roles.
+- Worked on role-based dashboard content and permissions.
+- Improved the workflow visibility across the main ERP stages: **Parts → Packing → Box → Invoice → Gate**.
+- Added UI/UX improvements to make the dashboard more professional and easier to navigate.
+- Worked on planning the **AI-based enhancements**, including barcode/image scanning, validation, and automation possibilities.
+- Reviewed the integration points for barcode management and stage-wise tracking.
+
+### 🚧 Challenges Faced
+- Managing different dashboard features and permissions for multiple user roles.
+- Maintaining consistency between role-based settings and the overall ERP workflow.
+- Handling the dependency between different stages of the manufacturing process.
+- Designing the AI features in a way that can be practically integrated into the existing ERP without affecting the current workflow.
+- Ensuring that barcode-related data remains synchronized between different stages.
+
+### 🎯 Current Status
+- Dashboard and role-based structure are being refined.
+- Profile/Settings flow is being worked on according to each role.
+- AI enhancement requirements and implementation approach have been identified.
+- Continuing with integration, testing, and UI improvements.
