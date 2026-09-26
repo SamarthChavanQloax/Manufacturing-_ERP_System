@@ -17,6 +17,7 @@ export const AiSecurityPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
+  const [showInvestigatedOnly, setShowInvestigatedOnly] = useState(false);
   
   // Track logged investigations locally for the demo
   const [investigatedIds, setInvestigatedIds] = useState<string[]>(() => {
@@ -64,11 +65,16 @@ export const AiSecurityPage: React.FC = () => {
     return <AlertTriangle size={20} />;
   };
 
-  const filtered = anomalies.filter(a => 
-    a.description.toLowerCase().includes(search.toLowerCase()) || 
-    a.type.toLowerCase().includes(search.toLowerCase()) ||
-    a.actor_name.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = anomalies.filter(a => {
+    const matchesSearch = a.description.toLowerCase().includes(search.toLowerCase()) || 
+                          a.type.toLowerCase().includes(search.toLowerCase()) ||
+                          a.actor_name.toLowerCase().includes(search.toLowerCase());
+    
+    if (showInvestigatedOnly) {
+      return matchesSearch && investigatedIds.includes(a.id);
+    }
+    return matchesSearch;
+  });
 
   const getRecommendedAction = (type: string) => {
     if (type.includes('Workflow Bypass')) {
@@ -218,7 +224,29 @@ export const AiSecurityPage: React.FC = () => {
         
         {/* Toolbar */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9fafb' }}>
-          <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#374151' }}>Security Log</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#374151' }}>Security Log</h2>
+            <button
+              onClick={() => setShowInvestigatedOnly(!showInvestigatedOnly)}
+              style={{
+                background: showInvestigatedOnly ? '#fff7ed' : '#fff',
+                border: showInvestigatedOnly ? '1px solid #ea580c' : '1px solid #d1d5db',
+                color: showInvestigatedOnly ? '#ea580c' : '#4b5563',
+                padding: '6px 12px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                transition: 'all 0.2s'
+              }}
+            >
+              <Search size={14} />
+              {showInvestigatedOnly ? 'Viewing Active Tickets' : 'View Investigated Tickets'}
+            </button>
+          </div>
           <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '6px 12px', width: '300px' }}>
             <Search size={16} color="#9ca3af" />
             <input 
