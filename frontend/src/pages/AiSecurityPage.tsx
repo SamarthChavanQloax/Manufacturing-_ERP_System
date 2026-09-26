@@ -17,7 +17,7 @@ export const AiSecurityPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
-  const [showInvestigatedOnly, setShowInvestigatedOnly] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'ALL' | 'PENDING' | 'INVESTIGATING' | 'RESOLVED'>('ALL');
   
   // Track logged investigations locally for the demo
   const [investigatedIds, setInvestigatedIds] = useState<string[]>(() => {
@@ -76,10 +76,17 @@ export const AiSecurityPage: React.FC = () => {
                           a.type.toLowerCase().includes(search.toLowerCase()) ||
                           a.actor_name.toLowerCase().includes(search.toLowerCase());
     
-    if (showInvestigatedOnly) {
-      return matchesSearch && investigatedIds.includes(a.id);
-    }
-    return matchesSearch;
+    if (!matchesSearch) return false;
+
+    const isCompleted = completedIds.includes(a.id);
+    const isInvestigating = investigatedIds.includes(a.id) && !isCompleted;
+    const isPending = !investigatedIds.includes(a.id);
+
+    if (activeFilter === 'PENDING') return isPending;
+    if (activeFilter === 'INVESTIGATING') return isInvestigating;
+    if (activeFilter === 'RESOLVED') return isCompleted;
+    
+    return true; // 'ALL'
   });
 
   const getRecommendedAction = (type: string) => {
@@ -257,30 +264,33 @@ export const AiSecurityPage: React.FC = () => {
         
         {/* Toolbar */}
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9fafb' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
             <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#374151' }}>Security Log</h2>
-            <button
-              onClick={() => setShowInvestigatedOnly(!showInvestigatedOnly)}
-              style={{
-                background: showInvestigatedOnly ? '#fff7ed' : '#fff',
-                border: showInvestigatedOnly ? '1px solid #ea580c' : '1px solid #d1d5db',
-                color: showInvestigatedOnly ? '#ea580c' : '#4b5563',
-                padding: '6px 12px',
-                borderRadius: '6px',
-                fontSize: '13px',
-                fontWeight: 600,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                transition: 'all 0.2s'
-              }}
-            >
-              <Search size={14} />
-              {showInvestigatedOnly ? 'Viewing Active Tickets' : 'View Investigated Tickets'}
-            </button>
+            
+            <div style={{ display: 'flex', background: '#e5e7eb', padding: '4px', borderRadius: '8px', gap: '4px' }}>
+              {(['ALL', 'PENDING', 'INVESTIGATING', 'RESOLVED'] as const).map(filter => (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  style={{
+                    background: activeFilter === filter ? '#fff' : 'transparent',
+                    border: 'none',
+                    boxShadow: activeFilter === filter ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+                    color: activeFilter === filter ? '#111827' : '#6b7280',
+                    padding: '6px 16px',
+                    borderRadius: '6px',
+                    fontSize: '13px',
+                    fontWeight: activeFilter === filter ? 600 : 500,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  {filter === 'ALL' ? 'All' : filter === 'PENDING' ? 'Pending Action' : filter === 'INVESTIGATING' ? 'Under Investigation' : 'Resolved'}
+                </button>
+              ))}
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '6px 12px', width: '300px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '6px 12px', width: '250px' }}>
             <Search size={16} color="#9ca3af" />
             <input 
               type="text" 
