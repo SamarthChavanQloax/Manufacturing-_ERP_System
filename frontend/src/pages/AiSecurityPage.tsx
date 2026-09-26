@@ -16,6 +16,7 @@ export const AiSecurityPage: React.FC = () => {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
+  const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
 
   const fetchAnomalies = async () => {
     setLoading(true);
@@ -63,8 +64,99 @@ export const AiSecurityPage: React.FC = () => {
     a.actor_name.toLowerCase().includes(search.toLowerCase())
   );
 
+  const getRecommendedAction = (type: string) => {
+    if (type.includes('Workflow Bypass')) {
+      return "Immediate action required. Verify physical stock on the floor against system records. Audit CCTV footage for the user during the specified timeframe. Suspend the user's packing privileges until investigation is complete.";
+    }
+    if (type.includes('Off-Hours')) {
+      return "Review access logs to determine if this was authorized overtime. Check physical gate registers to confirm actual vehicle movement. Contact the shift supervisor for verification.";
+    }
+    if (type.includes('Quantity')) {
+      return "Hold the dispatch. Cross-check the generated invoice quantity against the official Customer Purchase Order (PO). Contact the sales department to verify this volume.";
+    }
+    return "Review the logs and interview the involved personnel.";
+  };
+
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', fontFamily: "'Inter', sans-serif" }}>
+    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', fontFamily: "'Inter', sans-serif", position: 'relative' }}>
+      {/* Detail Modal Overlay */}
+      {selectedAnomaly && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
+          background: 'rgba(0,0,0,0.5)', zIndex: 1000, 
+          display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)'
+        }} onClick={() => setSelectedAnomaly(null)}>
+          <div style={{ 
+            background: '#fff', borderRadius: '16px', padding: '32px', width: '550px', 
+            maxWidth: '90%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' 
+          }} onClick={e => e.stopPropagation()}>
+            
+            <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '24px' }}>
+              <div style={{ padding: '12px', borderRadius: '12px', background: getSeverityBg(selectedAnomaly.severity), color: getSeverityColor(selectedAnomaly.severity) }}>
+                {getIcon(selectedAnomaly.type)}
+              </div>
+              <div>
+                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: '#111827' }}>{selectedAnomaly.type}</h2>
+                <div style={{ color: getSeverityColor(selectedAnomaly.severity), fontWeight: 600, fontSize: '13px' }}>
+                  {selectedAnomaly.severity} RISK
+                </div>
+              </div>
+            </div>
+
+            <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '12px', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em' }}>Incident Description</h4>
+              <p style={{ margin: 0, color: '#374151', fontSize: '14.5px', lineHeight: '1.6' }}>{selectedAnomaly.description}</p>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Time of Occurrence</div>
+                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.timestamp}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Involved Actor (User ID)</div>
+                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.actor_name}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Target Entity</div>
+                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.entity_id}</div>
+              </div>
+              <div>
+                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Anomaly ID</div>
+                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.id}</div>
+              </div>
+            </div>
+
+            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ShieldCheck size={16} color="#10b981" />
+                AI Recommended Action
+              </h4>
+              <p style={{ margin: 0, color: '#4b5563', fontSize: '14px', lineHeight: '1.5', padding: '12px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px' }}>
+                {getRecommendedAction(selectedAnomaly.type)}
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setSelectedAnomaly(null)}
+                className="btn" 
+                style={{ background: '#fff', border: '1px solid #d1d5db', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+              >
+                Close
+              </button>
+              <button 
+                className="btn" 
+                style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+                onClick={() => { alert('Investigation ticket logged successfully.'); setSelectedAnomaly(null); }}
+              >
+                Log Investigation
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header Area */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
         <div>
@@ -144,8 +236,9 @@ export const AiSecurityPage: React.FC = () => {
                   gap: '20px',
                   alignItems: 'flex-start',
                   transition: 'background 0.2s',
-                  cursor: 'default'
+                  cursor: 'pointer'
                 }}
+                onClick={() => setSelectedAnomaly(anomaly)}
                 onMouseEnter={(e) => (e.currentTarget.style.background = '#f9fafb')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
