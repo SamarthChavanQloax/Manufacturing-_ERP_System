@@ -23,6 +23,7 @@ import { VerifyInvoicePage } from './pages/VerifyInvoicePage';
 import { InvoiceVerificationDetailPage } from './pages/InvoiceVerificationDetailPage';
 import { GateOutReportPage } from './pages/GateOutReportPage';
 import { ErpUsersPage } from './pages/ErpUsersPage';
+import { AiStockIntelligencePage } from './pages/AiStockIntelligencePage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -228,6 +229,15 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedRoles={['admin', 'gate']}>
                   <GateOutReportPage />
+                </ProtectedRoute>
+              }
+            />
+            {/* AI Operations Module */}
+            <Route
+              path="/ai_stock_intelligence"
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <AiStockIntelligencePage />
                 </ProtectedRoute>
               }
             />

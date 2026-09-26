@@ -23,6 +23,7 @@ import { InvoicesModule } from './invoices/invoices.module';
 import { VerificationModule } from './verification/verification.module';
 import { ReportsModule } from './reports/reports.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { AiModule } from './ai/ai.module';
 import { HealthController } from './health/health.controller';
 
 dotenv.config();
@@ -67,6 +68,7 @@ const isSslEnabled = process.env.DB_SSL === 'true';
     VerificationModule,
     ReportsModule,
     DashboardModule,
+    AiModule,
   ],
   controllers: [HealthController],
 })

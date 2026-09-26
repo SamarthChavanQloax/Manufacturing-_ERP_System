@@ -12,6 +12,7 @@ import {
   LogOut,
   ChevronDown,
   Menu,
+  BrainCircuit,
 } from 'lucide-react';
 
 export const Layout: React.FC = () => {
@@ -270,6 +271,17 @@ export const Layout: React.FC = () => {
             <LayoutDashboard size={18} />
             <span>Dashboard</span>
           </NavLink>
+
+          {/* AI Insights Menu (admin only) */}
+          {role === 'admin' && (
+            <NavLink
+              to="/ai_stock_intelligence"
+              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            >
+              <BrainCircuit size={18} />
+              <span>AI Insights</span>
+            </NavLink>
+          )}
 
           {/* Master Menu (admin, packing) */}
           {(role === 'admin' || role === 'packing') && (
