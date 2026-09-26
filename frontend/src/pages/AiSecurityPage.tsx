@@ -17,6 +17,12 @@ export const AiSecurityPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState('');
   const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
+  
+  // Track logged investigations locally for the demo
+  const [investigatedIds, setInvestigatedIds] = useState<string[]>(() => {
+    const saved = localStorage.getItem('ai_investigations');
+    return saved ? JSON.parse(saved) : [];
+  });
 
   const fetchAnomalies = async () => {
     setLoading(true);
@@ -75,6 +81,15 @@ export const AiSecurityPage: React.FC = () => {
       return "Hold the dispatch. Cross-check the generated invoice quantity against the official Customer Purchase Order (PO). Contact the sales department to verify this volume.";
     }
     return "Review the logs and interview the involved personnel.";
+  };
+
+  const handleLogInvestigation = () => {
+    if (selectedAnomaly && !investigatedIds.includes(selectedAnomaly.id)) {
+      const newIds = [...investigatedIds, selectedAnomaly.id];
+      setInvestigatedIds(newIds);
+      localStorage.setItem('ai_investigations', JSON.stringify(newIds));
+    }
+    setSelectedAnomaly(null);
   };
 
   return (
@@ -148,7 +163,7 @@ export const AiSecurityPage: React.FC = () => {
               <button 
                 className="btn" 
                 style={{ background: '#dc2626', color: '#fff', border: 'none', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
-                onClick={() => { alert('Investigation ticket logged successfully.'); setSelectedAnomaly(null); }}
+                onClick={handleLogInvestigation}
               >
                 Log Investigation
               </button>
@@ -268,17 +283,36 @@ export const AiSecurityPage: React.FC = () => {
                     </p>
                     
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      <span style={{ 
-                        fontSize: '12px', 
-                        fontWeight: 600, 
-                        color: getSeverityColor(anomaly.severity),
-                        background: getSeverityBg(anomaly.severity),
-                        padding: '4px 10px',
-                        borderRadius: '20px',
-                        border: `1px solid ${getSeverityColor(anomaly.severity)}40`
-                      }}>
-                        {anomaly.severity} RISK
-                      </span>
+                      {investigatedIds.includes(anomaly.id) ? (
+                        <span style={{ 
+                          fontSize: '12px', 
+                          fontWeight: 600, 
+                          color: '#ea580c',
+                          background: '#fff7ed',
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          border: `1px solid #ea580c40`,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '4px'
+                        }}>
+                          <Search size={12} />
+                          UNDER INVESTIGATION
+                        </span>
+                      ) : (
+                        <span style={{ 
+                          fontSize: '12px', 
+                          fontWeight: 600, 
+                          color: getSeverityColor(anomaly.severity),
+                          background: getSeverityBg(anomaly.severity),
+                          padding: '4px 10px',
+                          borderRadius: '20px',
+                          border: `1px solid ${getSeverityColor(anomaly.severity)}40`
+                        }}>
+                          {anomaly.severity} RISK
+                        </span>
+                      )}
+                      
                       <span style={{ fontSize: '13px', color: '#4b5563', background: '#f3f4f6', padding: '4px 10px', borderRadius: '6px', fontWeight: 500 }}>
                         Actor: {anomaly.actor_name}
                       </span>
