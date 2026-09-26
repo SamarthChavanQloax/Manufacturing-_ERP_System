@@ -17,22 +17,27 @@ export const CreateBoxPage: React.FC = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [partsRes, custRes, boxRes] = await Promise.all([
-        api.get('/parts/simple'),
-        api.get('/customers'),
-        api.get('/boxes', { params: { from_date: fromDate, to_date: toDate } }),
-      ]);
-      setParts(partsRes.data);
-      if (partsRes.data.length > 0 && !selectedPartNumber) {
-        setSelectedPartNumber(partsRes.data[0].part_number);
-      }
-      setCustomers(custRes.data);
-      if (custRes.data.length > 0 && selectedCustomerId === '') {
-        setSelectedCustomerId(custRes.data[0].id);
-      }
-      setBoxes(boxRes.data);
-    } catch (err) {
-      console.error('Error fetching data for create box', err);
+      try {
+        const partsRes = await api.get('/parts/simple');
+        setParts(partsRes.data);
+        if (partsRes.data.length > 0 && !selectedPartNumber) {
+          setSelectedPartNumber(partsRes.data[0].part_number);
+        }
+      } catch (e) { console.error('Parts fetch error', e); }
+
+      try {
+        const custRes = await api.get('/customers');
+        setCustomers(custRes.data);
+        if (custRes.data.length > 0 && selectedCustomerId === '') {
+          setSelectedCustomerId(custRes.data[0].id);
+        }
+      } catch (e) { console.error('Customers fetch error', e); }
+
+      try {
+        const boxRes = await api.get('/boxes', { params: { from_date: fromDate, to_date: toDate } });
+        setBoxes(boxRes.data);
+      } catch (e) { console.error('Boxes fetch error', e); }
+      
     } finally {
       setLoading(false);
     }
