@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, Download, Minus } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, Download, Minus, BarChart2 } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface StockInsight {
   part_id: number;
@@ -116,6 +117,39 @@ export const AiStockIntelligencePage: React.FC = () => {
             <p style={{ fontSize: '12px', margin: '8px 0 0 0', color: '#6b7280', textAlign: 'center' }}>
               Exports only parts with projected shortages
             </p>
+          </div>
+        </div>
+
+        {/* Trend Graph */}
+        <div className="card" style={{ marginBottom: '24px' }}>
+          <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <BarChart2 size={20} color="#3b82f6" />
+            <h3 className="card-title" style={{ margin: 0 }}>Top 5 High-Risk Parts: Stock vs Demand Trend</h3>
+          </div>
+          <div className="card-body" style={{ height: '350px', padding: '20px' }}>
+            {loading ? (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>Loading AI Insights...</div>
+            ) : insights.length === 0 ? (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>No data available</div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart
+                  data={insights.slice(0, 5)}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
+                  <XAxis dataKey="part_number" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                  <Tooltip 
+                    cursor={{ fill: '#f3f4f6' }}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}
+                  />
+                  <Legend wrapperStyle={{ paddingTop: '20px' }} />
+                  <Bar dataKey="current_stock" name="Current Stock" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                  <Bar dataKey="forecasted_demand_30d" name="30-Day Forecast" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={60} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
 
