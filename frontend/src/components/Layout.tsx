@@ -49,6 +49,7 @@ export const Layout: React.FC = () => {
   const [boxOpen, setBoxOpen] = useState(true);
   const [invoiceOpen, setInvoiceOpen] = useState(true);
   const [gateOpen, setGateOpen] = useState(true);
+  const [aiOpen, setAiOpen] = useState(true);
 
   const role = (user?.type || '').toLowerCase();
 
@@ -332,36 +333,42 @@ export const Layout: React.FC = () => {
             <span>{t('profile')}</span>
           </NavLink>
 
-          {/* Settings */}
-          <NavLink
-            to="/settings"
-            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-          >
-            <Settings size={18} />
-            <span>{t('settings')}</span>
-          </NavLink>
-
-          {/* AI Insights Menu (admin only) */}
+          {/* AI Insights Menu */}
           {(role === 'admin' || role === 'gate') && (
-            <>
-              {role === 'admin' && (
-                <NavLink
-                  to="/ai_stock_intelligence"
-                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-                >
-                  <BrainCircuit size={18} />
-                  <span>AI Stock Intelligence</span>
-                </NavLink>
-              )}
-              
-              <NavLink
-                to="/ai_security"
-                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+            <div>
+              <div
+                className="nav-link nav-dropdown-toggle"
+                onClick={() => setAiOpen(!aiOpen)}
               >
-                <ShieldAlert size={18} />
-                <span>AI Security Hub</span>
-              </NavLink>
-            </>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <BrainCircuit size={18} />
+                  <span>AI Insights</span>
+                </div>
+                <ChevronDown size={15} className={`chevron-icon ${aiOpen ? 'open' : ''}`} />
+              </div>
+
+              <div className={`nav-submenu ${aiOpen ? 'open' : ''}`}>
+                <div className="nav-submenu-content">
+                  {role === 'admin' && (
+                    <NavLink
+                      to="/ai_stock_intelligence"
+                      className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                    >
+                      <BrainCircuit size={15} />
+                      <span>Stock Intelligence</span>
+                    </NavLink>
+                  )}
+                  
+                  <NavLink
+                    to="/ai_security"
+                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                  >
+                    <ShieldAlert size={15} />
+                    <span>Security Hub</span>
+                  </NavLink>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Master Menu (admin, packing) */}
