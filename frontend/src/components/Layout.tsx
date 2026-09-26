@@ -17,6 +17,7 @@ import {
   User,
   Settings,
   Globe,
+  ShieldAlert,
 } from 'lucide-react';
 
 import { getUserAvatarColor, getUserProfilePhoto } from '../utils/userProfileStorage';
@@ -341,14 +342,26 @@ export const Layout: React.FC = () => {
           </NavLink>
 
           {/* AI Insights Menu (admin only) */}
-          {role === 'admin' && (
-            <NavLink
-              to="/ai_stock_intelligence"
-              className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
-            >
-              <BrainCircuit size={18} />
-              <span>AI Insights</span>
-            </NavLink>
+          {(role === 'admin' || role === 'gate') && (
+            <>
+              {role === 'admin' && (
+                <NavLink
+                  to="/ai_stock_intelligence"
+                  className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+                >
+                  <BrainCircuit size={18} />
+                  <span>AI Stock Intelligence</span>
+                </NavLink>
+              )}
+              
+              <NavLink
+                to="/ai_security"
+                className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+              >
+                <ShieldAlert size={18} />
+                <span>AI Security Hub</span>
+              </NavLink>
+            </>
           )}
 
           {/* Master Menu (admin, packing) */}

@@ -27,6 +27,7 @@ import { InvoiceVerificationDetailPage } from './pages/InvoiceVerificationDetail
 import { GateOutReportPage } from './pages/GateOutReportPage';
 import { ErpUsersPage } from './pages/ErpUsersPage';
 import { AiStockIntelligencePage } from './pages/AiStockIntelligencePage';
+import { AiSecurityPage } from './pages/AiSecurityPage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -246,6 +247,14 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedRoles={['admin']}>
                   <AiStockIntelligencePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/ai_security"
+              element={
+                <ProtectedRoute allowedRoles={['admin', 'gate']}>
+                  <AiSecurityPage />
                 </ProtectedRoute>
               }
             />

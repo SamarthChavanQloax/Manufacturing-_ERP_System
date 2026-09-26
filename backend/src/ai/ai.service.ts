@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
-import { Part, Invoice } from '../entities';
+import { Part, Invoice, Box, Packing, UserInfo, InvoiceMatch } from '../entities';
 
 @Injectable()
 export class AiService {
@@ -10,6 +10,14 @@ export class AiService {
     private partsRepo: Repository<Part>,
     @InjectRepository(Invoice)
     private invoicesRepo: Repository<Invoice>,
+    @InjectRepository(Box)
+    private boxesRepo: Repository<Box>,
+    @InjectRepository(Packing)
+    private packingRepo: Repository<Packing>,
+    @InjectRepository(UserInfo)
+    private usersRepo: Repository<UserInfo>,
+    @InjectRepository(InvoiceMatch)
+    private verificationRepo: Repository<InvoiceMatch>,
   ) {}
 
   async getStockIntelligence() {
@@ -108,5 +116,103 @@ export class AiService {
     });
 
     return insights;
+  }
+
+  async getSecurityAnomalies() {
+    const anomalies = [];
+    const today = new Date();
+    
+    // Look back 7 days for anomalies to avoid huge DB scans
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(today.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
+
+    // 1. Off-Hours Activity (Gate / Verification)
+    const recentVerifications = await this.verificationRepo.find({
+      where: { created_date: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
+    });
+    
+    for (const verif of recentVerifications) {
+      if (!verif.created_time) continue;
+      // Parse time (e.g. "23:45:12")
+      const hour = parseInt(verif.created_time.split(':')[0], 10);
+      if (hour >= 22 || hour < 6) { // Between 10 PM and 6 AM
+        anomalies.push({
+          id: `off_hours_${verif.id}`,
+          type: 'Off-Hours Dispatch',
+          severity: 'HIGH',
+          description: `Invoice ${verif.invoice_number} was verified at the gate at ${verif.created_time}, which is outside normal operating hours.`,
+          timestamp: `${verif.created_date} ${verif.created_time}`,
+          entity_id: verif.invoice_number,
+          actor_id: verif.created_by,
+        });
+      }
+    }
+
+    // 2. Workflow Bypass (Time-Delta Anomaly)
+    // Find recent boxes
+    const recentBoxes = await this.boxesRepo.find({
+      where: { created_date: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
+    });
+
+    const recentInvoices = await this.invoicesRepo.find({
+      where: { created_date: Between(sevenDaysAgoStr, today.toISOString().split('T')[0]) },
+    });
+
+    for (const inv of recentInvoices) {
+      // Find boxes associated with this invoice (in our simplified logic, we just find boxes created by same user on same day)
+      // Ideally we would join InvoiceBox, but since we are detecting anomalies on metadata:
+      const invDateTime = new Date(`${inv.created_date}T${inv.created_time}`);
+      
+      // Look for a box created exactly within 2 minutes before the invoice
+      const suspiciouslyFastBoxes = recentBoxes.filter(b => {
+        if (b.created_by !== inv.created_by) return false;
+        if (b.created_date !== inv.created_date) return false;
+        const boxDateTime = new Date(`${b.created_date}T${b.created_time}`);
+        const diffMs = invDateTime.getTime() - boxDateTime.getTime();
+        return diffMs >= 0 && diffMs < 120000; // less than 2 minutes
+      });
+
+      if (suspiciouslyFastBoxes.length > 5) { // e.g. 5 boxes packed and invoiced in 2 minutes
+        anomalies.push({
+          id: `workflow_bypass_${inv.id}`,
+          type: 'Workflow Bypass',
+          severity: 'CRITICAL',
+          description: `Invoice ${inv.invoice_number} generated within 2 minutes of packing ${suspiciouslyFastBoxes.length} boxes. Physically impossible to verify correctly.`,
+          timestamp: `${inv.created_date} ${inv.created_time}`,
+          entity_id: inv.invoice_number,
+          actor_id: inv.created_by,
+        });
+      }
+    }
+
+    // 3. Suspiciously Large Invoice Quantity
+    for (const inv of recentInvoices) {
+      if (inv.qty > 5000) {
+        anomalies.push({
+          id: `large_qty_${inv.id}`,
+          type: 'Anomalous Quantity',
+          severity: 'MEDIUM',
+          description: `Invoice ${inv.invoice_number} generated for unusually high quantity (${inv.qty} items).`,
+          timestamp: `${inv.created_date} ${inv.created_time}`,
+          entity_id: inv.invoice_number,
+          actor_id: inv.created_by,
+        });
+      }
+    }
+
+    // Fetch user names for actors
+    const users = await this.usersRepo.find();
+    const userMap = new Map();
+    users.forEach(u => userMap.set(u.id, u.user_name || 'Unknown'));
+
+    anomalies.forEach(a => {
+      a.actor_name = userMap.get(a.actor_id) || `User ID ${a.actor_id}`;
+    });
+
+    // Sort anomalies by timestamp descending (newest first)
+    anomalies.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+
+    return anomalies;
   }
 }

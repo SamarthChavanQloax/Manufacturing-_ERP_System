@@ -13,4 +13,10 @@ export class AiController {
   async getStockIntelligence() {
     return this.aiService.getStockIntelligence();
   }
+
+  @Get('security-anomalies')
+  @Roles('admin', 'gate') // Relevant for gate and admin
+  async getSecurityAnomalies() {
+    return this.aiService.getSecurityAnomalies();
+  }
 }
