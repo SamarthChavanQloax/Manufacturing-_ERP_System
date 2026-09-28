@@ -87,8 +87,32 @@ export class GateRiskService implements OnModuleInit {
     try {
       await this.ensureTablesExist();
       await this.seedDefaultConfigs();
+      await this.backfillUnrecordedScanAnomalies();
     } catch (err) {
       console.error('[GateRiskService] Init warning:', err);
+    }
+  }
+
+  private async backfillUnrecordedScanAnomalies() {
+    try {
+      // Find all distinct invoice_barcodes from scan logs that failed and have no risk analysis record
+      const failedScanRows: { invoice_barcode: string }[] = await this.dataSource.query(`
+        SELECT DISTINCT invoice_barcode 
+        FROM gate_scan_log 
+        WHERE is_valid = 0 AND invoice_barcode IS NOT NULL AND invoice_barcode != ''
+      `);
+
+      for (const row of failedScanRows) {
+        if (!row.invoice_barcode) continue;
+        const exists = await this.riskAnalysisRepo.findOne({
+          where: { invoice_barcode: row.invoice_barcode },
+        });
+        if (!exists) {
+          await this.analyzeGateTransaction({ invoice_barcode: row.invoice_barcode });
+        }
+      }
+    } catch (e) {
+      console.error('[GateRiskService] Backfill warning:', e);
     }
   }
 
@@ -266,6 +290,17 @@ export class GateRiskService implements OnModuleInit {
             operator_name: userName,
             last_reason: dto.failure_reason,
           });
+
+          // Automatically evaluate and record AI risk analysis for this incident
+          try {
+            await this.analyzeGateTransaction({
+              invoice_barcode: dto.invoice_barcode,
+              match_id: dto.match_id,
+              user_id: dto.user_id,
+            });
+          } catch (analyzeErr) {
+            console.error('Error analyzing transaction on scan anomaly:', analyzeErr);
+          }
         }
       } catch (e) {
         console.error('Error triggering scan anomaly notification:', e);
@@ -302,7 +337,92 @@ export class GateRiskService implements OnModuleInit {
       where: { barcode: invoiceBarcode },
     });
     if (!invoice) {
-      throw new NotFoundException(`Invoice with barcode ${invoiceBarcode} not found`);
+      // Find scan logs for this unrecognized barcode
+      const scanLogs = await this.scanLogRepo.find({
+        where: { invoice_barcode: invoiceBarcode },
+        order: { id: 'DESC' },
+        take: 50,
+      });
+
+      const failedCount = scanLogs.filter((s) => !s.is_valid).length;
+      const reasons = [
+        `Unregistered Invoice Barcode (${invoiceBarcode}) - Not found in ERP database`,
+      ];
+      if (failedCount > 0) {
+        reasons.push(`${failedCount} rejected barcode scan attempts recorded at gate verification`);
+      }
+
+      const riskScore = 85; // Critical Security Anomaly
+      const riskLevel = 'HIGH';
+      const reviewStatus = 'pending_review';
+
+      let existingRecord = await this.riskAnalysisRepo.findOne({
+        where: { invoice_barcode: invoiceBarcode },
+      });
+
+      if (!existingRecord) {
+        existingRecord = this.riskAnalysisRepo.create({
+          invoice_barcode: invoiceBarcode,
+          invoice_number: invoiceBarcode,
+          customer_name: 'Unrecognized Dispatch',
+          part_number: 'Unregistered Part',
+          invoice_qty: 0,
+          risk_score: riskScore,
+          risk_level: riskLevel,
+          reasons: JSON.stringify(reasons),
+          recommendation: `Critical alert: Vehicle at gate is presenting invoice barcode (${invoiceBarcode}) that does not exist in ERP. Hold vehicle for physical paper verification.`,
+          risk_factors: JSON.stringify({
+            failed_scan_pattern: {
+              name: 'Failed Scan Pattern & Retries',
+              score: 25,
+              maxScore: 25,
+              detected: true,
+              detail: `${failedCount || 1} rejected attempts for non-existent invoice barcode`,
+            },
+            unregistered_invoice: {
+              name: 'Unregistered Invoice Anomaly',
+              score: 60,
+              maxScore: 60,
+              detected: true,
+              detail: `Invoice barcode ${invoiceBarcode} not found in system database`,
+            },
+          }),
+          metrics: JSON.stringify({ failed_count: failedCount, is_valid_invoice: false }),
+          review_status: reviewStatus,
+        });
+      } else {
+        existingRecord.risk_score = riskScore;
+        existingRecord.risk_level = riskLevel;
+        existingRecord.reasons = JSON.stringify(reasons);
+        existingRecord.updated_at = new Date();
+      }
+
+      const savedRecord = await this.riskAnalysisRepo.save(existingRecord);
+
+      return {
+        id: savedRecord.id,
+        invoice_barcode: savedRecord.invoice_barcode,
+        invoice_number: savedRecord.invoice_number || invoiceBarcode,
+        customer_name: savedRecord.customer_name || 'Unrecognized Dispatch',
+        part_number: savedRecord.part_number || 'Unregistered Part',
+        invoice_qty: 0,
+        risk_score: riskScore,
+        risk_level: riskLevel,
+        reasons,
+        recommendation: savedRecord.recommendation,
+        risk_factors: {
+          unregistered_invoice: {
+            name: 'Unregistered Invoice Anomaly',
+            score: 60,
+            maxScore: 60,
+            detected: true,
+            detail: `Invoice barcode ${invoiceBarcode} not found in system database`,
+          },
+        },
+        metrics: { failed_count: failedCount },
+        model_version: 'v1.0-explainable-heuristics',
+        review_status: reviewStatus,
+      };
     }
 
     // 2. Fetch Part & Customer
@@ -882,7 +1002,7 @@ export class GateRiskService implements OnModuleInit {
     if (query.search && query.search.trim()) {
       const s = `%${query.search.trim()}%`;
       qb = qb.andWhere(
-        '(ra.invoice_barcode LIKE :s OR ra.invoice_number LIKE :s OR ra.customer_name LIKE :s OR ra.part_number LIKE :s)',
+        '(ra.invoice_barcode LIKE :s OR ra.invoice_number LIKE :s OR ra.customer_name LIKE :s OR ra.part_number LIKE :s OR ra.reasons LIKE :s)',
         { s },
       );
     }

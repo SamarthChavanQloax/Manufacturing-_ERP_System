@@ -287,6 +287,12 @@ export const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
+
+            {/* Aliases for direct incident / notification redirects */}
+            <Route path="/verification" element={<Navigate to="/verify_invoice" replace />} />
+            <Route path="/gate_risk" element={<Navigate to="/ai_gate_risk" replace />} />
+            <Route path="/security" element={<Navigate to="/ai_security" replace />} />
+            <Route path="/security_briefing" element={<Navigate to="/ai_security_briefing" replace />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/index" replace />} />

@@ -21,6 +21,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { useNotifications, ERPNotification } from '../context/NotificationContext';
+import { getNotificationUrl } from '../utils/notificationNavigation';
 
 export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -674,20 +675,23 @@ export const NotificationsPage: React.FC = () => {
                     </button>
                   )}
 
-                  {n.action_url && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!n.is_read) markAsRead(n.id);
-                        navigate(n.action_url!);
-                      }}
-                      className="btn btn-sm btn-primary"
-                      style={{ fontSize: '11.5px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    >
-                      Review Incident
-                      <ArrowRight size={12} />
-                    </button>
-                  )}
+                  {(() => {
+                    const targetUrl = getNotificationUrl(n);
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!n.is_read) markAsRead(n.id);
+                          navigate(targetUrl);
+                        }}
+                        className="btn btn-sm btn-primary"
+                        style={{ fontSize: '11.5px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      >
+                        Review Incident
+                        <ArrowRight size={12} />
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             );

@@ -58,6 +58,19 @@ export class NotificationService implements OnModuleInit {
           INDEX idx_created (created_at)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
       `);
+
+      // Fix legacy non-existent action URLs (e.g., /verification or empty) so admin directly opens incident details
+      await this.dataSource.query(`
+        UPDATE erp_notification
+        SET action_url = CONCAT('/ai_gate_risk?search=', entity_id)
+        WHERE (action_url = '/verification' OR action_url LIKE '%/verification%')
+          AND entity_id IS NOT NULL AND entity_id != '';
+      `);
+      await this.dataSource.query(`
+        UPDATE erp_notification
+        SET action_url = '/ai_gate_risk'
+        WHERE action_url = '/verification' OR action_url LIKE '%/verification%';
+      `);
     } catch (e) {
       console.error('Error ensuring erp_notification table exists:', e);
     }
@@ -346,6 +359,7 @@ export class NotificationService implements OnModuleInit {
       const dateStr = new Date().toISOString().split('T')[0];
       const dedupKey = `AI_HIGH_RISK_${analysis.invoice_barcode}_${dateStr}`;
 
+      const invoiceBarcode = analysis.invoice_barcode || analysis.invoice_number || '';
       return this.createNotification({
         recipient_role: 'admin', // Admin and Gate supervisors
         type: 'AI_HIGH_RISK',
@@ -354,7 +368,7 @@ export class NotificationService implements OnModuleInit {
         message,
         entity_type: 'gate_risk',
         entity_id: analysis.invoice_barcode,
-        action_url: '/ai_gate_risk',
+        action_url: invoiceBarcode ? `/ai_gate_risk?search=${encodeURIComponent(invoiceBarcode)}` : '/ai_gate_risk',
         metadata: {
           risk_score: analysis.risk_score,
           risk_level: analysis.risk_level,
@@ -371,6 +385,7 @@ export class NotificationService implements OnModuleInit {
 
       const dateStr = new Date().toISOString().split('T')[0];
       const dedupKey = `AI_MED_RISK_${analysis.invoice_barcode}_${dateStr}`;
+      const invoiceBarcode = analysis.invoice_barcode || analysis.invoice_number || '';
 
       return this.createNotification({
         recipient_role: 'gate',
@@ -380,7 +395,7 @@ export class NotificationService implements OnModuleInit {
         message,
         entity_type: 'gate_risk',
         entity_id: analysis.invoice_barcode,
-        action_url: '/ai_gate_risk',
+        action_url: invoiceBarcode ? `/ai_gate_risk?search=${encodeURIComponent(invoiceBarcode)}` : '/ai_gate_risk',
         metadata: {
           risk_score: analysis.risk_score,
           risk_level: analysis.risk_level,
@@ -401,6 +416,7 @@ export class NotificationService implements OnModuleInit {
     last_reason?: string;
   }) {
     const dateStr = new Date().toISOString().split('T')[0];
+    const searchUrl = data.invoice_barcode ? `/ai_gate_risk?search=${encodeURIComponent(data.invoice_barcode)}` : '/ai_gate_risk';
 
     if (data.duplicate_count >= 1) {
       const dedupKey = `DUP_BARCODE_${data.invoice_barcode}_${dateStr}`;
@@ -412,7 +428,7 @@ export class NotificationService implements OnModuleInit {
         message: `Duplicate box barcode scan attempt detected during verification of Invoice ${data.invoice_barcode}. Operator: ${data.operator_name || 'Gate Operator'}.`,
         entity_type: 'gate_risk',
         entity_id: data.invoice_barcode,
-        action_url: '/verification',
+        action_url: searchUrl,
         metadata: data,
         dedup_key: dedupKey,
       });
@@ -428,7 +444,7 @@ export class NotificationService implements OnModuleInit {
         message: `Invoice ${data.invoice_barcode} has encountered ${data.failed_count} rejected barcode scan attempts. Last error: ${data.last_reason || 'CRC checksum error'}.`,
         entity_type: 'gate_risk',
         entity_id: data.invoice_barcode,
-        action_url: '/verification',
+        action_url: searchUrl,
         metadata: data,
         dedup_key: dedupKey,
       });
@@ -442,7 +458,7 @@ export class NotificationService implements OnModuleInit {
         message: `Invoice ${data.invoice_barcode} had ${data.failed_count} failed scan attempts.`,
         entity_type: 'gate_risk',
         entity_id: data.invoice_barcode,
-        action_url: '/verification',
+        action_url: searchUrl,
         metadata: data,
         dedup_key: dedupKey,
       });

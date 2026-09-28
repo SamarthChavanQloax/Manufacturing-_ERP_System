@@ -14,6 +14,7 @@ import {
   Info,
 } from 'lucide-react';
 import { useNotifications, ERPNotification } from '../context/NotificationContext';
+import { getNotificationUrl } from '../utils/notificationNavigation';
 
 export const NotificationBellPopover: React.FC = () => {
   const navigate = useNavigate();
@@ -57,11 +58,8 @@ export const NotificationBellPopover: React.FC = () => {
       markAsRead(n.id);
     }
     setIsOpen(false);
-    if (n.action_url) {
-      navigate(n.action_url);
-    } else {
-      navigate('/notifications');
-    }
+    const destination = getNotificationUrl(n);
+    navigate(destination);
   };
 
   const getIcon = (type: string, priority: string) => {

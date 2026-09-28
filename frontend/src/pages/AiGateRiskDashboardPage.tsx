@@ -30,19 +30,31 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
+import { useSearchParams } from 'react-router-dom';
 import { exportToExcel } from '../utils/excelExport';
 import { AiGateRiskReviewModal } from '../components/AiGateRiskReviewModal';
 
 export const AiGateRiskDashboardPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [summary, setSummary] = useState<any>(null);
   const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [riskFilter, setRiskFilter] = useState<'ALL' | 'LOW' | 'MEDIUM' | 'HIGH'>('ALL');
   const [reviewFilter, setReviewFilter] = useState<'ALL' | 'pending_review' | 'reviewed'>('ALL');
   const [limit, setLimit] = useState<number>(25);
   const [page, setPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number>(0);
+
+  useEffect(() => {
+    const query = searchParams.get('search');
+    if (query !== null) {
+      setSearch(query);
+      if (query.trim()) {
+        setRiskFilter('ALL');
+      }
+    }
+  }, [searchParams]);
 
   // Selected transaction for review / detail modal
   const [selectedTx, setSelectedTx] = useState<any | null>(null);

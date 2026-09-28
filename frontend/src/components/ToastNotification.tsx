@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, AlertTriangle, X, ArrowRight } from 'lucide-react';
 import { useNotifications } from '../context/NotificationContext';
 
+import { getNotificationUrl } from '../utils/notificationNavigation';
+
 export const ToastNotification: React.FC = () => {
   const navigate = useNavigate();
   const { activeToast, dismissToast, markAsRead } = useNotifications();
@@ -23,11 +25,8 @@ export const ToastNotification: React.FC = () => {
   const handleAction = () => {
     markAsRead(activeToast.id);
     dismissToast();
-    if (activeToast.action_url) {
-      navigate(activeToast.action_url);
-    } else {
-      navigate('/notifications');
-    }
+    const destination = getNotificationUrl(activeToast);
+    navigate(destination);
   };
 
   return (

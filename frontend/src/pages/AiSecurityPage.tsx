@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import api from '../api/client';
 import { AlertTriangle, ShieldAlert, Clock, Activity, Search, ShieldCheck, CheckCircle } from 'lucide-react';
 
@@ -13,11 +14,19 @@ interface Anomaly {
 }
 
 export const AiSecurityPage: React.FC = () => {
+  const [searchParams] = useSearchParams();
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState(searchParams.get('search') || '');
   const [selectedAnomaly, setSelectedAnomaly] = useState<Anomaly | null>(null);
   const [activeFilter, setActiveFilter] = useState<'ALL' | 'PENDING' | 'INVESTIGATING' | 'RESOLVED'>('ALL');
+
+  useEffect(() => {
+    const query = searchParams.get('search');
+    if (query !== null) {
+      setSearch(query);
+    }
+  }, [searchParams]);
   
   // Track logged investigations locally for the demo
   const [investigatedIds, setInvestigatedIds] = useState<string[]>(() => {
