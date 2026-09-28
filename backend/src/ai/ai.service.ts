@@ -180,7 +180,7 @@ export class AiService {
           type: 'Workflow Bypass',
           severity: 'CRITICAL',
           description: `Invoice ${inv.invoice_number} generated within 2 minutes of packing ${suspiciouslyFastBoxes.length} boxes. Physically impossible to verify correctly.`,
-          timestamp: `${inv.created_date} ${inv.created_time}`,
+          timestamp: `${inv.created_time} ${inv.created_date}`,
           entity_id: inv.invoice_number,
           actor_id: inv.created_by,
         });
@@ -195,7 +195,7 @@ export class AiService {
           type: 'Anomalous Quantity',
           severity: 'MEDIUM',
           description: `Invoice ${inv.invoice_number} generated for unusually high quantity (${inv.qty} items).`,
-          timestamp: `${inv.created_date} ${inv.created_time}`,
+          timestamp: `${inv.created_time} ${inv.created_date}`,
           entity_id: inv.invoice_number,
           actor_id: inv.created_by,
         });

@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer, ShieldAlert } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer, ShieldAlert, Camera } from 'lucide-react';
 import { GatePassModal } from '../components/GatePassModal';
 import { AiGateRiskCard } from '../components/AiGateRiskCard';
+import { CameraBarcodeScannerModal } from '../components/CameraBarcodeScannerModal';
 
 export const InvoiceVerificationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,6 +12,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
   const [boxBarcode, setBoxBarcode] = useState('');
   const [loading, setLoading] = useState(false);
   const [showGatePassModal, setShowGatePassModal] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
 
   const fetchMatchDetails = async () => {
     setLoading(true);
@@ -28,24 +30,27 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
     fetchMatchDetails();
   }, [id]);
 
+  const scanBoxDirect = async (barcodeVal: string) => {
+    const code = barcodeVal.trim();
+    if (!code) return;
+    try {
+      await api.post('/verification/scan-box', {
+        match_id: Number(id),
+        box_barcode: code,
+      });
+      fetchMatchDetails();
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error scanning box');
+      fetchMatchDetails();
+    }
+  };
+
   const handleScanBox = async (e: React.FormEvent) => {
     e.preventDefault();
     const barcodeVal = boxBarcode.trim() || (e.currentTarget.querySelector('input') as HTMLInputElement)?.value.trim();
     if (!barcodeVal) return;
-
-    try {
-      await api.post('/verification/scan-box', {
-        match_id: Number(id),
-        box_barcode: barcodeVal,
-      });
-      alert('Added Successfully');
-      setBoxBarcode('');
-      fetchMatchDetails();
-    } catch (err: any) {
-      alert(err.response?.data?.message || 'Error scanning box');
-      // Refresh to update failed scan counters on risk card
-      fetchMatchDetails();
-    }
+    await scanBoxDirect(barcodeVal);
+    setBoxBarcode('');
   };
 
   if (!data && loading) {
@@ -88,19 +93,41 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
             {/* Box Barcode Scan input (if not yet matched) */}
             {!isMatched ? (
               <form onSubmit={handleScanBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end', marginBottom: '16px' }}>
-                <div style={{ width: '300px' }}>
+                <div style={{ width: '320px' }}>
                   <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
                     Scan Code <span style={{ color: '#dc2626' }}>*</span>
                   </label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="Scan / Enter Box Barcode (e.g. 200000)..."
-                    className="form-control"
-                    value={boxBarcode}
-                    onChange={(e) => setBoxBarcode(e.target.value)}
-                    autoFocus
-                  />
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Scan / Enter Box Barcode (e.g. 200000)..."
+                      className="form-control"
+                      value={boxBarcode}
+                      onChange={(e) => setBoxBarcode(e.target.value)}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setScannerOpen(true)}
+                      className="btn btn-outline-primary"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        padding: '6px 12px',
+                        whiteSpace: 'nowrap',
+                        border: '1px solid #2563eb',
+                        color: '#2563eb',
+                        background: 'rgba(37,99,235,0.05)',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                      }}
+                      title="Scan Box Barcode with Camera"
+                    >
+                      <Camera size={16} />
+                    </button>
+                  </div>
                 </div>
 
                 <button type="submit" id="btn-scan-box-gate" className="btn btn-danger" style={{ height: '38px' }}>
@@ -244,6 +271,23 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
         isOpen={showGatePassModal}
         onClose={() => setShowGatePassModal(false)}
         data={data}
+      />
+
+      {/* Computer Vision Box Barcode Scanner Modal */}
+      <CameraBarcodeScannerModal
+        isOpen={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        preferredType="box"
+        title="Gate Box Barcode Scanner"
+        initialMode="single"
+        onBarcodeDetected={(code) => {
+          scanBoxDirect(code);
+        }}
+        onBulkBarcodesConfirmed={async (codes) => {
+          for (const c of codes) {
+            await scanBoxDirect(c);
+          }
+        }}
       />
     </div>
   );

@@ -4,6 +4,7 @@ import { AiController } from './ai.controller';
 import { AiService } from './ai.service';
 import { GateRiskService } from './gate-risk.service';
 import { DailySecurityBriefingService } from './daily-security-briefing.service';
+import { AskErpService } from './ask-erp.service';
 import { NotificationsModule } from '../notifications/notifications.module';
 import {
   Part,
@@ -20,6 +21,7 @@ import {
   GateScanLog,
   GateRiskConfig,
   DailySecurityBriefing,
+  Notification,
 } from '../entities';
 
 @Module({
@@ -39,11 +41,12 @@ import {
       GateScanLog,
       GateRiskConfig,
       DailySecurityBriefing,
+      Notification,
     ]),
     NotificationsModule,
   ],
   controllers: [AiController],
-  providers: [AiService, GateRiskService, DailySecurityBriefingService],
-  exports: [AiService, GateRiskService, DailySecurityBriefingService],
+  providers: [AiService, GateRiskService, DailySecurityBriefingService, AskErpService],
+  exports: [AiService, GateRiskService, DailySecurityBriefingService, AskErpService],
 })
 export class AiModule {}

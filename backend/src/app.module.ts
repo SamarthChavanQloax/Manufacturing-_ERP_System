@@ -31,6 +31,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
 import { AiModule } from './ai/ai.module';
 import { SettingsModule } from './settings/settings.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { BarcodeModule } from './barcode/barcode.module';
 import { HealthController } from './health/health.controller';
 
 dotenv.config();
@@ -83,6 +84,7 @@ const isSslEnabled = process.env.DB_SSL === 'true';
     AiModule,
     SettingsModule,
     NotificationsModule,
+    BarcodeModule,
   ],
   controllers: [HealthController],
 })

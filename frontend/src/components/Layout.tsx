@@ -19,12 +19,16 @@ import {
   Globe,
   ShieldAlert,
   Bell,
+  Sparkles,
+  Camera,
 } from 'lucide-react';
 
 import { getUserAvatarColor, getUserProfilePhoto } from '../utils/userProfileStorage';
 import { NotificationBellPopover } from './NotificationBellPopover';
 import { ToastNotification } from './ToastNotification';
 import { useNotifications } from '../context/NotificationContext';
+import { AskErpDrawer } from './AskErpDrawer';
+import { CameraBarcodeScannerModal } from './CameraBarcodeScannerModal';
 
 export const Layout: React.FC = () => {
   const { user, logout, switchRole } = useAuth();
@@ -36,6 +40,20 @@ export const Layout: React.FC = () => {
   const isDesktop = () => window.innerWidth > 992;
 
   const [sidebarOpen, setSidebarOpen] = useState(() => isDesktop());
+  const [askErpOpen, setAskErpOpen] = useState(false);
+  const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false);
+
+  // Global keyboard shortcut Ctrl+K / Cmd+K to open Ask ERP Assistant
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setAskErpOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Keep a ref in sync with state so event listeners can always read the latest value
   const sidebarOpenRef = useRef(sidebarOpen);
@@ -708,6 +726,31 @@ export const Layout: React.FC = () => {
               </select>
             </div>
 
+            {/* Computer Vision Barcode Quick Scanner */}
+            <button
+              type="button"
+              id="btn-top-barcode-scanner"
+              onClick={() => setBarcodeScannerOpen(true)}
+              className="btn btn-sm"
+              style={{
+                background: 'var(--card-sub-bg)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-color)',
+                borderRadius: '8px',
+                padding: '5px 10px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '12px',
+                fontWeight: 600,
+                cursor: 'pointer',
+              }}
+              title="Camera Barcode Scanner"
+            >
+              <Camera size={14} style={{ color: '#2563eb' }} />
+              <span>Scan Barcode</span>
+            </button>
+
             {/* Notification Bell Popover */}
             <NotificationBellPopover />
 
@@ -764,6 +807,53 @@ export const Layout: React.FC = () => {
 
       {/* Floating In-App Toast Alerts for Critical ERP Events */}
       <ToastNotification />
+
+      {/* Floating Circular Ask ERP Widget Button (Bottom Right) */}
+      <button
+        type="button"
+        id="btn-floating-ask-erp"
+        onClick={() => setAskErpOpen(true)}
+        aria-label="Ask ERP AI Assistant"
+        title="Ask ERP AI Assistant (Ctrl + K)"
+        style={{
+          position: 'fixed',
+          bottom: '24px',
+          right: '24px',
+          width: '54px',
+          height: '54px',
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+          color: '#ffffff',
+          border: 'none',
+          boxShadow: '0 8px 24px rgba(79, 70, 229, 0.45), 0 2px 6px rgba(0,0,0,0.15)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          cursor: 'pointer',
+          zIndex: 1100,
+          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.transform = 'scale(1.08)';
+          e.currentTarget.style.boxShadow = '0 12px 28px rgba(79, 70, 229, 0.6)';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.transform = 'scale(1)';
+          e.currentTarget.style.boxShadow = '0 8px 24px rgba(79, 70, 229, 0.45), 0 2px 6px rgba(0,0,0,0.15)';
+        }}
+      >
+        <Sparkles size={24} />
+      </button>
+
+      {/* Ask ERP AI Assistant Slide-Out Drawer */}
+      <AskErpDrawer isOpen={askErpOpen} onClose={() => setAskErpOpen(false)} />
+
+      {/* Computer Vision Barcode Scanner Modal */}
+      <CameraBarcodeScannerModal
+        isOpen={barcodeScannerOpen}
+        onClose={() => setBarcodeScannerOpen(false)}
+        preferredType="auto"
+      />
     </div>
 
   );

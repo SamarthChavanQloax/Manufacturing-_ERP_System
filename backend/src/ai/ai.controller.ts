@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@
 import { AiService } from './ai.service';
 import { GateRiskService } from './gate-risk.service';
 import { DailySecurityBriefingService } from './daily-security-briefing.service';
+import { AskErpService } from './ask-erp.service';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/roles.decorator';
 
@@ -12,6 +13,7 @@ export class AiController {
     private readonly aiService: AiService,
     private readonly gateRiskService: GateRiskService,
     private readonly briefingService: DailySecurityBriefingService,
+    private readonly askErpService: AskErpService,
   ) {}
 
   @Get('stock-intelligence')
@@ -176,4 +178,28 @@ export class AiController {
   ) {
     return this.briefingService.getEventDetail(date, eventId);
   }
+
+  // ----------------------------------------------------
+  // ASK ERP AI ASSISTANT ENDPOINTS (Role-Aware)
+  // ----------------------------------------------------
+
+  @Post('ask')
+  @Roles('admin', 'gate', 'packing', 'box', 'invoice')
+  async askErp(
+    @Body() body: { query?: string; context?: any },
+    @Request() req: any,
+  ) {
+    return this.askErpService.processQuery(body.query || '', req.user, body.context);
+  }
+
+  @Get('ask/suggestions')
+  @Roles('admin', 'gate', 'packing', 'box', 'invoice')
+  async getAskSuggestions(@Request() req: any) {
+    const role = req.user?.type || 'gate';
+    return {
+      role,
+      suggestions: this.askErpService.getSuggestedPrompts(role),
+    };
+  }
 }
+

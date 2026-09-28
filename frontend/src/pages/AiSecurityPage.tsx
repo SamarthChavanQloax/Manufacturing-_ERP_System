@@ -89,7 +89,7 @@ export const AiSecurityPage: React.FC = () => {
 
     const isCompleted = completedIds.includes(a.id);
     const isInvestigating = investigatedIds.includes(a.id) && !isCompleted;
-    const isPending = !investigatedIds.includes(a.id);
+    const isPending = !investigatedIds.includes(a.id) && !isCompleted;
 
     if (activeFilter === 'PENDING') return isPending;
     if (activeFilter === 'INVESTIGATING') return isInvestigating;
@@ -121,10 +121,32 @@ export const AiSecurityPage: React.FC = () => {
   };
 
   const handleCompleteInvestigation = () => {
-    if (selectedAnomaly && !completedIds.includes(selectedAnomaly.id)) {
-      const newIds = [...completedIds, selectedAnomaly.id];
-      setCompletedIds(newIds);
-      localStorage.setItem('ai_completed_investigations', JSON.stringify(newIds));
+    if (selectedAnomaly) {
+      if (!completedIds.includes(selectedAnomaly.id)) {
+        const newCompleted = [...completedIds, selectedAnomaly.id];
+        setCompletedIds(newCompleted);
+        localStorage.setItem('ai_completed_investigations', JSON.stringify(newCompleted));
+      }
+      if (!investigatedIds.includes(selectedAnomaly.id)) {
+        const newInvestigated = [...investigatedIds, selectedAnomaly.id];
+        setInvestigatedIds(newInvestigated);
+        localStorage.setItem('ai_investigations', JSON.stringify(newInvestigated));
+      }
+    }
+    setSelectedAnomaly(null);
+  };
+
+  const handleReopenInvestigation = () => {
+    if (selectedAnomaly) {
+      const newCompleted = completedIds.filter(id => id !== selectedAnomaly.id);
+      setCompletedIds(newCompleted);
+      localStorage.setItem('ai_completed_investigations', JSON.stringify(newCompleted));
+
+      if (!investigatedIds.includes(selectedAnomaly.id)) {
+        const newInvestigated = [...investigatedIds, selectedAnomaly.id];
+        setInvestigatedIds(newInvestigated);
+        localStorage.setItem('ai_investigations', JSON.stringify(newInvestigated));
+      }
     }
     setSelectedAnomaly(null);
   };
@@ -199,12 +221,21 @@ export const AiSecurityPage: React.FC = () => {
               </button>
               
               {completedIds.includes(selectedAnomaly.id) ? (
-                <button 
-                  disabled
-                  style={{ background: '#f3f4f6', color: '#9ca3af', border: '1px solid #e5e7eb', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <CheckCircle size={16} /> Investigation Complete
-                </button>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button 
+                    disabled
+                    style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    <CheckCircle size={16} /> Investigation Complete
+                  </button>
+                  <button 
+                    className="btn" 
+                    style={{ background: '#fff', color: '#4b5563', border: '1px solid #d1d5db', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500, fontSize: '13px' }}
+                    onClick={handleReopenInvestigation}
+                  >
+                    Reopen Incident
+                  </button>
+                </div>
               ) : investigatedIds.includes(selectedAnomaly.id) ? (
                 <button 
                   className="btn" 
@@ -264,6 +295,12 @@ export const AiSecurityPage: React.FC = () => {
           <div style={{ color: '#9a3412', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>High Risk Flags</div>
           <div style={{ fontSize: '32px', fontWeight: 700, color: '#ea580c' }}>
             {anomalies.filter(a => a.severity === 'HIGH').length}
+          </div>
+        </div>
+        <div style={{ background: '#ecfdf5', borderRadius: '12px', padding: '20px', border: '1px solid #a7f3d0', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)' }}>
+          <div style={{ color: '#065f46', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Resolved Incidents</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#059669' }}>
+            {anomalies.filter(a => completedIds.includes(a.id)).length}
           </div>
         </div>
       </div>
