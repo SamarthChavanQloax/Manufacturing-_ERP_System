@@ -184,14 +184,46 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setActiveToast(null);
   };
 
-  // Live polling for notifications every 8 seconds
+  // Optimized live smart polling for notifications: pause in background tabs, instant refresh on focus
   useEffect(() => {
     if (!user) return;
     fetchUnreadCount();
-    const interval = setInterval(() => {
-      fetchUnreadCount();
-    }, 8000);
-    return () => clearInterval(interval);
+
+    let interval: NodeJS.Timeout | null = null;
+
+    const startPolling = () => {
+      if (!interval) {
+        interval = setInterval(() => {
+          if (document.visibilityState === 'visible') {
+            fetchUnreadCount();
+          }
+        }, 8000);
+      }
+    };
+
+    const stopPolling = () => {
+      if (interval) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchUnreadCount(); // Instant refresh when user returns to tab
+        startPolling();
+      } else {
+        stopPolling(); // Pause network & CPU drain when tab is hidden
+      }
+    };
+
+    startPolling();
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      stopPolling();
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [user, fetchUnreadCount]);
 
   return (

@@ -64,6 +64,13 @@ export class VerificationService {
       throw new BadRequestException('Error : Invoice Number Not Found !!!');
     }
 
+    // Step Restriction: Invoice must be finalized & locked by billing before gate verification
+    if (invoice.lock_status !== 'yes') {
+      throw new BadRequestException(
+        `Error: Invoice #${invoice.invoice_number || invoice.barcode} is still Unlocked / Draft! The billing team must finalize box mapping and lock the invoice before it can be verified at the gate.`,
+      );
+    }
+
     const existingMatch = await this.invoiceMatchRepo.findOne({
       where: { invoice_number: invoice.barcode },
     });

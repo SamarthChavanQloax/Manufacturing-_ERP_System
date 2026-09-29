@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, RotateCcw, X, ShieldCheck, FileSpreadsheet, Camera } from 'lucide-react';
+import { Eye, RotateCcw, X, ShieldCheck, FileSpreadsheet } from 'lucide-react';
 import { exportToExcel } from '../utils/excelExport';
-import { CameraBarcodeScannerModal } from '../components/CameraBarcodeScannerModal';
 
 export const VerifyInvoicePage: React.FC = () => {
   const navigate = useNavigate();
@@ -12,7 +11,6 @@ export const VerifyInvoicePage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
 
   // Return Invoice modal
   const [returnMatch, setReturnMatch] = useState<any | null>(null);
@@ -117,26 +115,6 @@ export const VerifyInvoicePage: React.FC = () => {
                     onChange={(e) => setInvoiceBarcode(e.target.value)}
                     autoFocus
                   />
-                  <button
-                    type="button"
-                    onClick={() => setScannerOpen(true)}
-                    className="btn btn-outline-primary"
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '6px 12px',
-                      whiteSpace: 'nowrap',
-                      border: '1px solid #2563eb',
-                      color: '#2563eb',
-                      background: 'rgba(37,99,235,0.05)',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                    }}
-                    title="Scan using Camera"
-                  >
-                    <Camera size={16} />
-                  </button>
                 </div>
               </div>
 
@@ -344,17 +322,6 @@ export const VerifyInvoicePage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Camera Barcode Scanner Modal */}
-      <CameraBarcodeScannerModal
-        isOpen={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        preferredType="invoice"
-        title="Gate Invoice Barcode Scanner"
-        onBarcodeDetected={(code) => {
-          setInvoiceBarcode(code);
-        }}
-      />
     </div>
   );
 };

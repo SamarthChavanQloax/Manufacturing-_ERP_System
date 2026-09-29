@@ -69,6 +69,10 @@ const isSslEnabled = process.env.DB_SSL === 'true';
         DailySecurityBriefing,
         Notification,
       ],
+      extra: {
+        connectionLimit: 25,
+        connectTimeout: 10000,
+      },
       synchronize: false, // Do not alter the legacy database schema!
     }),
     AuthModule,

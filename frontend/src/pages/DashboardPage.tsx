@@ -154,7 +154,7 @@ export const DashboardPage: React.FC = () => {
           <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <AlertTriangle size={16} color="#f59e0b" /> What Needs Attention Now?
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '14px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '14px' }}>
             {alerts.map((alert: any) => {
               const isDanger = alert.type === 'danger';
               const isWarning = alert.type === 'warning';
@@ -359,7 +359,7 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
+          <div className="dashboard-two-col-grid">
             {/* Chart 1: Daily Trend */}
             <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -537,7 +537,7 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
+          <div className="dashboard-two-col-grid">
             <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#d97706" /> Boxes Created (Last 7 Days)
@@ -690,7 +690,7 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
+          <div className="dashboard-two-col-grid">
             <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#dc2626" /> Daily Invoices Created (Last 7 Days)
@@ -752,7 +752,7 @@ export const DashboardPage: React.FC = () => {
               <Sparkles size={16} color="#7c3aed" /> Primary Exit Gate Operation
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
+            <div className="responsive-grid-gate">
               
               {/* Giant Scan Button */}
               <Link
@@ -851,7 +851,7 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Charts Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '24px', marginBottom: '28px' }}>
+          <div className="dashboard-two-col-grid">
             <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#7c3aed" /> Daily Cleared Vehicles (Last 7 Days)
@@ -1002,7 +1002,7 @@ export const DashboardPage: React.FC = () => {
 
 
           {/* Admin Charts Row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 420px', gap: '24px', marginBottom: '28px' }}>
+          <div className="responsive-grid-split-wide">
             <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>
               <h3 style={{ fontSize: '16px', fontWeight: 800, color: 'var(--text-main)', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <BarChart3 size={18} color="#16a34a" /> 7-Day Factory Packing Output
@@ -1070,7 +1070,7 @@ export const DashboardPage: React.FC = () => {
       {/* ========================================================================= */}
       {/* ── SECTION 5: RECENT ACTIVITY STREAM (ROLE-FILTERED) & FAST REPORTS ── */}
       {/* ========================================================================= */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
+      <div className="responsive-grid-split-compact">
         
         {/* Recent Activity Feed */}
         <div style={{ background: 'var(--card-bg)', borderRadius: '16px', padding: '24px', border: '1px solid var(--card-border)' }}>

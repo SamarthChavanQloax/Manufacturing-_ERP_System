@@ -684,7 +684,7 @@ export const ErpUsersPage: React.FC = () => {
                 }}
               >
                 {/* Full Name & Email row */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))', gap: '14px' }}>
                   {/* User Full Name */}
                   <div>
                     <label

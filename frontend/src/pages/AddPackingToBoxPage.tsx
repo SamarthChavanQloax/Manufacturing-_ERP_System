@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import { ArrowLeft, Lock, CheckCircle, AlertCircle, X, Camera } from 'lucide-react';
+import { ArrowLeft, Lock, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { BarcodeCard } from '../components/BarcodeCard';
-import { CameraBarcodeScannerModal } from '../components/CameraBarcodeScannerModal';
 
 export const AddPackingToBoxPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -11,7 +10,6 @@ export const AddPackingToBoxPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [scanCode, setScanCode] = useState('');
   const [lockModalOpen, setLockModalOpen] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
 
   const fetchBoxDetails = async () => {
     setLoading(true);
@@ -108,26 +106,6 @@ export const AddPackingToBoxPage: React.FC = () => {
                           onChange={(e) => setScanCode(e.target.value)}
                           autoFocus
                         />
-                        <button
-                          type="button"
-                          onClick={() => setScannerOpen(true)}
-                          className="btn btn-outline-primary"
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px',
-                            padding: '6px 12px',
-                            whiteSpace: 'nowrap',
-                            border: '1px solid #2563eb',
-                            color: '#2563eb',
-                            background: 'rgba(37,99,235,0.05)',
-                            borderRadius: '6px',
-                            cursor: 'pointer',
-                          }}
-                          title="Scan Packing Barcode with Camera"
-                        >
-                          <Camera size={16} />
-                        </button>
                       </div>
                     </div>
 
@@ -315,23 +293,6 @@ export const AddPackingToBoxPage: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* Computer Vision Packing Barcode Scanner Modal */}
-      <CameraBarcodeScannerModal
-        isOpen={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        preferredType="packing"
-        title="Packing Barcode Scanner"
-        initialMode="single"
-        onBarcodeDetected={(code) => {
-          scanPackingDirect(code);
-        }}
-        onBulkBarcodesConfirmed={async (codes) => {
-          for (const c of codes) {
-            await scanPackingDirect(c);
-          }
-        }}
-      />
     </div>
   );
 };

@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import api from '../api/client';
-import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer, ShieldAlert, Camera } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, AlertTriangle, ShieldCheck, Printer, ShieldAlert } from 'lucide-react';
 import { GatePassModal } from '../components/GatePassModal';
 import { AiGateRiskCard } from '../components/AiGateRiskCard';
-import { CameraBarcodeScannerModal } from '../components/CameraBarcodeScannerModal';
 
 export const InvoiceVerificationDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -12,7 +11,6 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
   const [boxBarcode, setBoxBarcode] = useState('');
   const [loading, setLoading] = useState(false);
   const [showGatePassModal, setShowGatePassModal] = useState(false);
-  const [scannerOpen, setScannerOpen] = useState(false);
 
   const fetchMatchDetails = async () => {
     setLoading(true);
@@ -107,26 +105,6 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
                       onChange={(e) => setBoxBarcode(e.target.value)}
                       autoFocus
                     />
-                    <button
-                      type="button"
-                      onClick={() => setScannerOpen(true)}
-                      className="btn btn-outline-primary"
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '4px',
-                        padding: '6px 12px',
-                        whiteSpace: 'nowrap',
-                        border: '1px solid #2563eb',
-                        color: '#2563eb',
-                        background: 'rgba(37,99,235,0.05)',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                      }}
-                      title="Scan Box Barcode with Camera"
-                    >
-                      <Camera size={16} />
-                    </button>
                   </div>
                 </div>
 
@@ -271,23 +249,6 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
         isOpen={showGatePassModal}
         onClose={() => setShowGatePassModal(false)}
         data={data}
-      />
-
-      {/* Computer Vision Box Barcode Scanner Modal */}
-      <CameraBarcodeScannerModal
-        isOpen={scannerOpen}
-        onClose={() => setScannerOpen(false)}
-        preferredType="box"
-        title="Gate Box Barcode Scanner"
-        initialMode="single"
-        onBarcodeDetected={(code) => {
-          scanBoxDirect(code);
-        }}
-        onBulkBarcodesConfirmed={async (codes) => {
-          for (const c of codes) {
-            await scanBoxDirect(c);
-          }
-        }}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell,
@@ -30,6 +30,51 @@ export const NotificationBellPopover: React.FC = () => {
   } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [popoverStyle, setPopoverStyle] = useState<React.CSSProperties>({});
+
+  const updatePopoverPosition = useCallback(() => {
+    if (!dropdownRef.current) return;
+    const rect = dropdownRef.current.getBoundingClientRect();
+    const isMobile = window.innerWidth <= 600;
+    if (isMobile) {
+      setPopoverStyle({
+        position: 'fixed',
+        top: `${Math.max(56, rect.bottom + 6)}px`,
+        left: '12px',
+        right: '12px',
+        width: 'auto',
+        maxWidth: 'calc(100vw - 24px)',
+      });
+    } else {
+      const width = 360;
+      const bellCenterX = rect.left + rect.width / 2;
+      let left = bellCenterX - width / 2;
+      // Clamp between 12px from left screen edge and 12px from right screen edge
+      if (left < 12) left = 12;
+      if (left + width > window.innerWidth - 12) {
+        left = window.innerWidth - width - 12;
+      }
+      setPopoverStyle({
+        position: 'fixed',
+        top: `${rect.bottom + 8}px`,
+        left: `${left}px`,
+        width: `${width}px`,
+        maxWidth: 'calc(100vw - 24px)',
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) {
+      updatePopoverPosition();
+      window.addEventListener('resize', updatePopoverPosition);
+      window.addEventListener('scroll', updatePopoverPosition, true);
+      return () => {
+        window.removeEventListener('resize', updatePopoverPosition);
+        window.removeEventListener('scroll', updatePopoverPosition, true);
+      };
+    }
+  }, [isOpen, updatePopoverPosition]);
 
   // Close when clicking outside
   useEffect(() => {
@@ -218,12 +263,9 @@ export const NotificationBellPopover: React.FC = () => {
       {/* Dropdown Popover */}
       {isOpen && (
         <div
+          className="notification-popover-dropdown"
           style={{
-            position: 'absolute',
-            top: 'calc(100% + 8px)',
-            right: 0,
-            width: '360px',
-            maxWidth: '90vw',
+            position: 'fixed',
             background: 'var(--card-bg)',
             border: '1px solid var(--border-color)',
             borderRadius: '12px',
@@ -233,6 +275,7 @@ export const NotificationBellPopover: React.FC = () => {
             flexDirection: 'column',
             overflow: 'hidden',
             animation: 'fadeIn 0.15s ease-out',
+            ...popoverStyle,
           }}
         >
           {/* Header */}
