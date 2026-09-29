@@ -299,24 +299,22 @@ export const PartMasterPage: React.FC = () => {
                             >
                               <Edit2 size={13} /> Edit
                             </button>
-                            {['admin', 'packing'].includes((user?.type || '').toLowerCase()) && (
-                              <button
-                                type="button"
-                                onClick={() => setDeletePart(p)}
-                                className="btn btn-sm btn-danger"
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  backgroundColor: '#dc2626',
-                                  color: '#fff',
-                                  border: 'none',
-                                }}
-                                title="Remove Part"
-                              >
-                                <Trash2 size={13} /> Remove
-                              </button>
-                            )}
+                            <button
+                              type="button"
+                              onClick={() => setDeletePart(p)}
+                              className="btn btn-sm btn-danger"
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                backgroundColor: '#dc2626',
+                                color: '#fff',
+                                border: 'none',
+                              }}
+                              title="Remove Part"
+                            >
+                              <Trash2 size={13} /> Remove
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -485,29 +483,60 @@ export const PartMasterPage: React.FC = () => {
         </div>
       )}
 
-      {/* Delete Part Modal */}
+      {/* Delete Part Confirmation Modal */}
       {deletePart && (
         <div className="modal-backdrop">
-          <div className="modal-dialog">
-            <div className="modal-header">
-              <h5 className="modal-title">Remove Part</h5>
+          <div className="modal-dialog" style={{ maxWidth: '460px' }}>
+            <div className="modal-header" style={{ borderBottom: '1px solid #fee2e2', backgroundColor: '#fef2f2' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <div
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#fee2e2',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#dc2626',
+                  }}
+                >
+                  <Trash2 size={18} />
+                </div>
+                <h5 className="modal-title" style={{ color: '#991b1b', margin: 0, fontWeight: 700 }}>
+                  Confirm Part Removal
+                </h5>
+              </div>
               <button
                 type="button"
                 onClick={() => setDeletePart(null)}
-                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#6b7280' }}
               >
                 <X size={18} />
               </button>
             </div>
-            <div className="modal-body">
-              <p style={{ fontSize: '14px', color: '#374151', marginBottom: '8px' }}>
-                Are you sure you want to remove part <strong>{deletePart.part_number}</strong> ({deletePart.part_description}) from Part Master?
+            <div className="modal-body" style={{ padding: '20px' }}>
+              <p style={{ fontSize: '14px', color: '#1f2937', marginBottom: '12px', lineHeight: '1.5' }}>
+                Are you sure you want to remove part <strong style={{ color: '#dc2626' }}>"{deletePart.part_number}"</strong> ({deletePart.part_description}) from Part Master?
               </p>
-              <p style={{ fontSize: '12.5px', color: '#dc2626', margin: 0 }}>
-                This action cannot be undone.
-              </p>
+              <div
+                style={{
+                  backgroundColor: '#fff1f2',
+                  border: '1px solid #fecdd3',
+                  borderRadius: '6px',
+                  padding: '10px 12px',
+                  fontSize: '13px',
+                  color: '#be123c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <span>⚠️</span>
+                <span><strong>Warning:</strong> This action cannot be undone.</span>
+              </div>
             </div>
-            <div className="modal-footer">
+            <div className="modal-footer" style={{ borderTop: '1px solid #f3f4f6', padding: '12px 20px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
               <button
                 type="button"
                 onClick={() => setDeletePart(null)}
@@ -521,9 +550,19 @@ export const PartMasterPage: React.FC = () => {
                 onClick={handleDeletePart}
                 className="btn btn-danger"
                 disabled={deleting}
-                style={{ backgroundColor: '#dc2626', color: '#fff', border: 'none' }}
+                style={{
+                  backgroundColor: '#dc2626',
+                  color: '#fff',
+                  border: 'none',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontWeight: 600,
+                  padding: '6px 16px',
+                }}
               >
-                {deleting ? 'Removing...' : 'Remove Part'}
+                <Trash2 size={14} />
+                {deleting ? 'Removing...' : 'Yes, Remove Part'}
               </button>
             </div>
           </div>
