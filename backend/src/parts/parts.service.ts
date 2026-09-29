@@ -167,4 +167,23 @@ export class PartsService {
 
     return this.partRepo.save(part);
   }
+
+  async delete(id: number, force = false): Promise<{ success: boolean; message: string }> {
+    const part = await this.partRepo.findOne({ where: { id } });
+    if (!part) throw new BadRequestException('Part not found');
+
+    const packingCount = await this.packingRepo.count({ where: { part_id: id } });
+    const boxCount = await this.boxPackingRepo.count({ where: { part_id: id } });
+    const invoiceCount = await this.invoiceRepo.count({ where: { part_id: id } });
+
+    if ((packingCount > 0 || boxCount > 0 || invoiceCount > 0) && !force) {
+      throw new BadRequestException(
+        `Cannot remove Part "${part.part_number}": It is linked to existing records (${packingCount} packing, ${boxCount} box packing, ${invoiceCount} invoice).`,
+      );
+    }
+
+    await this.partRepo.delete(id);
+    return { success: true, message: `Part "${part.part_number}" removed successfully` };
+  }
 }
+

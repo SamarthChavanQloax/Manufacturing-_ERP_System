@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { Plus, Search, X, FileSpreadsheet, Edit2 } from 'lucide-react';
+import { Plus, Search, X, FileSpreadsheet, Edit2, Trash2 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { Pagination } from '../components/Pagination';
 import { exportToExcel } from '../utils/excelExport';
@@ -23,6 +23,8 @@ export const PartMasterPage: React.FC = () => {
   const [barcodeModalData, setBarcodeModalData] = useState<any>(null);
   const [editModalData, setEditModalData] = useState<any | null>(null);
   const [editQty, setEditQty] = useState<number | string>(0);
+  const [deletePart, setDeletePart] = useState<any | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchParts = async () => {
     setLoading(true);
@@ -95,6 +97,46 @@ export const PartMasterPage: React.FC = () => {
       fetchParts();
     } catch (err: any) {
       alert(err.response?.data?.message || 'Error updating stock');
+    }
+  };
+
+  const handleDeletePart = async () => {
+    if (!deletePart) return;
+    setDeleting(true);
+    try {
+      await api.delete(`/parts/${deletePart.id}`);
+      alert(`Part "${deletePart.part_number}" removed successfully`);
+      setDeletePart(null);
+      if (parts.length === 1 && page > 1) {
+        setPage(page - 1);
+      } else {
+        fetchParts();
+      }
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error removing part';
+      if (msg.includes('linked to existing records')) {
+        const confirmForce = window.confirm(
+          `${msg}\n\nDo you want to FORCE remove this part anyway?`
+        );
+        if (confirmForce) {
+          try {
+            await api.delete(`/parts/${deletePart.id}?force=true`);
+            alert(`Part "${deletePart.part_number}" force removed successfully`);
+            setDeletePart(null);
+            if (parts.length === 1 && page > 1) {
+              setPage(page - 1);
+            } else {
+              fetchParts();
+            }
+          } catch (forceErr: any) {
+            alert(forceErr.response?.data?.message || 'Error force removing part');
+          }
+        }
+      } else {
+        alert(msg);
+      }
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -198,7 +240,7 @@ export const PartMasterPage: React.FC = () => {
                     <th>Part Description</th>
                     <th style={{ width: '130px' }}>Remaining Stock</th>
                     <th style={{ width: '130px' }}>Barcode</th>
-                    <th style={{ width: '100px' }}>Action</th>
+                    <th style={{ width: '160px' }}>Action</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -244,17 +286,38 @@ export const PartMasterPage: React.FC = () => {
                           </button>
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditModalData(p);
-                              setEditQty(p.qty ?? 0);
-                            }}
-                            className="btn btn-sm btn-secondary"
-                            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-                          >
-                            <Edit2 size={13} /> Edit
-                          </button>
+                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditModalData(p);
+                                setEditQty(p.qty ?? 0);
+                              }}
+                              className="btn btn-sm btn-secondary"
+                              style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                              title="Edit Stock"
+                            >
+                              <Edit2 size={13} /> Edit
+                            </button>
+                            {['admin', 'packing'].includes((user?.type || '').toLowerCase()) && (
+                              <button
+                                type="button"
+                                onClick={() => setDeletePart(p)}
+                                className="btn btn-sm btn-danger"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px',
+                                  backgroundColor: '#dc2626',
+                                  color: '#fff',
+                                  border: 'none',
+                                }}
+                                title="Remove Part"
+                              >
+                                <Trash2 size={13} /> Remove
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -421,6 +484,52 @@ export const PartMasterPage: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Delete Part Modal */}
+      {deletePart && (
+        <div className="modal-backdrop">
+          <div className="modal-dialog">
+            <div className="modal-header">
+              <h5 className="modal-title">Remove Part</h5>
+              <button
+                type="button"
+                onClick={() => setDeletePart(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer' }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <div className="modal-body">
+              <p style={{ fontSize: '14px', color: '#374151', marginBottom: '8px' }}>
+                Are you sure you want to remove part <strong>{deletePart.part_number}</strong> ({deletePart.part_description}) from Part Master?
+              </p>
+              <p style={{ fontSize: '12.5px', color: '#dc2626', margin: 0 }}>
+                This action cannot be undone.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => setDeletePart(null)}
+                className="btn btn-secondary"
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDeletePart}
+                className="btn btn-danger"
+                disabled={deleting}
+                style={{ backgroundColor: '#dc2626', color: '#fff', border: 'none' }}
+              >
+                {deleting ? 'Removing...' : 'Remove Part'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
+

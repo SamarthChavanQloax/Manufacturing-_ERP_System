@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, Req } from '@nestjs/common';
 import { PartsService } from './parts.service';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/roles.decorator';
@@ -52,4 +52,14 @@ export class PartsController {
   ) {
     return this.partsService.update(Number(id), body);
   }
+
+  @Delete(':id')
+  @Roles('admin', 'packing')
+  async delete(
+    @Param('id') id: string,
+    @Query('force') force?: string,
+  ) {
+    return this.partsService.delete(Number(id), force === 'true');
+  }
 }
+
