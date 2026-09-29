@@ -28,7 +28,6 @@ import { NotificationBellPopover } from './NotificationBellPopover';
 import { ToastNotification } from './ToastNotification';
 import { useNotifications } from '../context/NotificationContext';
 import { AskErpDrawer } from './AskErpDrawer';
-import { CameraBarcodeScannerModal } from './CameraBarcodeScannerModal';
 
 export const Layout: React.FC = () => {
   const { user, logout, switchRole } = useAuth();
@@ -41,7 +40,6 @@ export const Layout: React.FC = () => {
 
   const [sidebarOpen, setSidebarOpen] = useState(() => isDesktop());
   const [askErpOpen, setAskErpOpen] = useState(false);
-  const [barcodeScannerOpen, setBarcodeScannerOpen] = useState(false);
 
   // Global keyboard shortcut Ctrl+K / Cmd+K to open Ask ERP Assistant
   useEffect(() => {
@@ -102,6 +100,20 @@ export const Layout: React.FC = () => {
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const toggleSidebar = useCallback(() => setSidebarOpen(prev => !prev), []);
+
+  // Auto sync sidebar state when browser window is resized across breakpoint
+  useEffect(() => {
+    const handleResize = () => {
+      const desktop = window.innerWidth > 992;
+      if (!desktop && sidebarOpenRef.current) {
+        setSidebarOpen(false);
+      } else if (desktop && !sidebarOpenRef.current) {
+        setSidebarOpen(true);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Close sidebar on mobile/tablet when route changes
   useEffect(() => {
@@ -418,8 +430,8 @@ export const Layout: React.FC = () => {
             );
           })()}
 
-          {/* AI Insights Menu */}
-          {(role === 'admin' || role === 'gate') && (
+          {/* AI Insights Menu (Strictly Admin Only) */}
+          {role === 'admin' && (
             <div>
               <div
                 className="nav-link nav-dropdown-toggle"
@@ -434,15 +446,13 @@ export const Layout: React.FC = () => {
 
               <div className={`nav-submenu ${aiOpen ? 'open' : ''}`}>
                 <div className="nav-submenu-content">
-                  {role === 'admin' && (
-                    <NavLink
-                      to="/ai_stock_intelligence"
-                      className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
-                    >
-                      <BrainCircuit size={15} />
-                      <span>Stock Intelligence</span>
-                    </NavLink>
-                  )}
+                  <NavLink
+                    to="/ai_stock_intelligence"
+                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
+                  >
+                    <BrainCircuit size={15} />
+                    <span>Stock Intelligence</span>
+                  </NavLink>
                   
                   <NavLink
                     to="/ai_security"
@@ -653,12 +663,6 @@ export const Layout: React.FC = () => {
                     <span>{t('verifyInvoice')}</span>
                   </NavLink>
                   <NavLink
-                    to="/ai_gate_risk"
-                    className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
-                  >
-                    <span>AI Gate Risk Hub</span>
-                  </NavLink>
-                  <NavLink
                     to="/gate_out_report"
                     className={({ isActive }) => `nav-link nav-tree-item ${isActive ? 'active' : ''}`}
                   >
@@ -681,75 +685,41 @@ export const Layout: React.FC = () => {
       <div className="main-wrapper">
         {/* Top Navbar */}
         <header className="top-navbar">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div className="top-navbar-left">
             {/* Hamburger button — always visible, toggles sidebar */}
             <button
               type="button"
               id="sidebar-toggle-btn"
-              className="btn btn-sm btn-secondary"
+              className="btn btn-sm btn-secondary sidebar-toggle-btn"
               onClick={toggleSidebar}
-              style={{ padding: '6px 10px' }}
               title="Toggle Sidebar Menu"
               aria-label="Toggle Sidebar Menu"
             >
               <Menu size={16} />
             </button>
-            <span style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '15px' }}>
+            <span className="navbar-erp-title">
               {t('erpTitle')}
             </span>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div className="top-navbar-right">
             {/* Quick Language Selector */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'var(--card-sub-bg)', border: '1px solid var(--border-color)', padding: '3px 6px', borderRadius: '6px' }}>
-              <Globe size={14} style={{ color: 'var(--text-muted)' }} />
+            <div className="navbar-lang-badge">
+              <Globe size={14} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />
               <select
                 value={language}
                 onChange={(e) => {
                   setLanguage(e.target.value as any);
                   playSound('success');
                 }}
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  color: 'var(--text-main)',
-                  cursor: 'pointer',
-                  outline: 'none',
-                }}
+                className="navbar-lang-select"
                 title="Change Interface Language"
               >
-                <option value="en">EN (English)</option>
+                <option value="en">EN</option>
                 <option value="hi">HI (हिंदी)</option>
                 <option value="mr">MR (मराठी)</option>
               </select>
             </div>
-
-            {/* Computer Vision Barcode Quick Scanner */}
-            <button
-              type="button"
-              id="btn-top-barcode-scanner"
-              onClick={() => setBarcodeScannerOpen(true)}
-              className="btn btn-sm"
-              style={{
-                background: 'var(--card-sub-bg)',
-                color: 'var(--text-main)',
-                border: '1px solid var(--border-color)',
-                borderRadius: '8px',
-                padding: '5px 10px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                fontSize: '12px',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-              title="Camera Barcode Scanner"
-            >
-              <Camera size={14} style={{ color: '#2563eb' }} />
-              <span>Scan Barcode</span>
-            </button>
 
             {/* Notification Bell Popover */}
             <NotificationBellPopover />
@@ -757,44 +727,37 @@ export const Layout: React.FC = () => {
             {/* Quick Settings Button */}
             <button
               onClick={() => navigate('/settings')}
-              className="btn btn-sm btn-secondary"
-              style={{ padding: '5px 8px', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px' }}
+              className="btn btn-sm btn-secondary navbar-settings-btn"
               title="System & Station Settings"
+              aria-label="Settings"
             >
-              <Settings size={13} />
+              <Settings size={14} />
             </button>
 
             {/* Role Switcher */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 600 }}>{t('activeRole')}:</span>
+            <div className="navbar-role-wrapper">
+              <span className="navbar-role-label">{t('activeRole')}:</span>
               <select
                 value={role}
                 onChange={handleRoleChange}
-                style={{
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  border: '1px solid var(--border-color)',
-                  fontSize: '12.5px',
-                  fontWeight: 600,
-                  background: 'var(--input-bg)',
-                  color: 'var(--text-main)',
-                  cursor: 'pointer',
-                }}
+                className="navbar-role-select"
+                title="Switch Active Station / Role"
               >
-                <option value="admin">1. Super Admin (admin)</option>
-                <option value="packing">2. Packing/DPR (packing)</option>
-                <option value="box">3. Box/FGS (box)</option>
-                <option value="invoice">4. Invoice/Billing (invoice)</option>
-                <option value="gate">5. Gate Security (gate)</option>
+                <option value="admin">1. Super Admin</option>
+                <option value="packing">2. Packing/DPR</option>
+                <option value="box">3. Box/FGS</option>
+                <option value="invoice">4. Invoice/Billing</option>
+                <option value="gate">5. Gate Security</option>
               </select>
             </div>
 
             <button
               onClick={logout}
-              className="btn btn-sm btn-danger"
-              style={{ fontSize: '12px' }}
+              className="btn btn-sm btn-danger navbar-logout-btn"
+              title={t('logout')}
             >
-              <LogOut size={13} /> {t('logout')}
+              <LogOut size={13} />
+              <span className="navbar-logout-text">{t('logout')}</span>
             </button>
           </div>
         </header>
@@ -847,13 +810,6 @@ export const Layout: React.FC = () => {
 
       {/* Ask ERP AI Assistant Slide-Out Drawer */}
       <AskErpDrawer isOpen={askErpOpen} onClose={() => setAskErpOpen(false)} />
-
-      {/* Computer Vision Barcode Scanner Modal */}
-      <CameraBarcodeScannerModal
-        isOpen={barcodeScannerOpen}
-        onClose={() => setBarcodeScannerOpen(false)}
-        preferredType="auto"
-      />
     </div>
 
   );

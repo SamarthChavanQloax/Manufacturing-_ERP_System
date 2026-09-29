@@ -246,7 +246,7 @@ export const App: React.FC = () => {
                 </ProtectedRoute>
               }
             />
-            {/* AI Operations Module */}
+            {/* AI Operations Module (Admin Only) */}
             <Route
               path="/ai_stock_intelligence"
               element={
@@ -258,7 +258,7 @@ export const App: React.FC = () => {
             <Route
               path="/ai_security"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'gate']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <AiSecurityPage />
                 </ProtectedRoute>
               }
@@ -266,7 +266,7 @@ export const App: React.FC = () => {
             <Route
               path="/ai_gate_risk"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'gate']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <AiGateRiskDashboardPage />
                 </ProtectedRoute>
               }
@@ -274,7 +274,7 @@ export const App: React.FC = () => {
             <Route
               path="/ai_security_briefing"
               element={
-                <ProtectedRoute allowedRoles={['admin', 'gate']}>
+                <ProtectedRoute allowedRoles={['admin']}>
                   <AiDailySecurityBriefingPage />
                 </ProtectedRoute>
               }

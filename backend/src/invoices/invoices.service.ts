@@ -145,6 +145,13 @@ export class InvoicesService {
       throw new BadRequestException('Error : Box barcode not found or already used in another invoice !!!!');
     }
 
+    // Step Restriction: Box must be finalized & locked by the box operator first
+    if (box.lock_status !== 'yes') {
+      throw new BadRequestException(
+        `Error: Box #${box.barcode} is still Unlocked / Open! The box station operator must verify and lock (seal) this box before it can be added to an invoice.`,
+      );
+    }
+
     // 2. Get box packing using safe dual ID / barcode lookup
     const boxPackings = await this.boxPackingRepo.find({
       where: [{ box_id: box.id }, { box_id: Number(box.barcode) }],
@@ -219,6 +226,11 @@ export class InvoicesService {
   async lockInvoice(invoiceId: number) {
     const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
+
+    const invoiceBoxes = await this.invoiceBoxRepo.find({ where: { invoice_id: invoice.id } });
+    if (!invoiceBoxes || invoiceBoxes.length === 0) {
+      throw new BadRequestException('Error: Cannot lock an empty invoice! Please scan and map locked boxes first.');
+    }
 
     invoice.lock_status = 'yes';
     await this.invoiceRepo.save(invoice);

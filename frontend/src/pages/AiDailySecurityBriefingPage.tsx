@@ -341,6 +341,63 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
       </div>
 
       <div className="content-body">
+        {/* Plain English AI Daily Security Briefing Status Banner */}
+        {!loading && briefing && (
+          <div
+            style={{
+              padding: '16px 20px',
+              borderRadius: '10px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              backgroundColor:
+                (briefing?.high_priority_count || 0) > 0
+                  ? '#fee2e2'
+                  : (briefing?.medium_priority_count || 0) > 0
+                  ? '#fef3c7'
+                  : '#dcfce7',
+              border: `1px solid ${
+                (briefing?.high_priority_count || 0) > 0
+                  ? '#fca5a5'
+                  : (briefing?.medium_priority_count || 0) > 0
+                  ? '#fde047'
+                  : '#86efac'
+              }`,
+              color:
+                (briefing?.high_priority_count || 0) > 0
+                  ? '#991b1b'
+                  : (briefing?.medium_priority_count || 0) > 0
+                  ? '#854d0e'
+                  : '#166534',
+            }}
+          >
+            {(briefing?.high_priority_count || 0) > 0 ? (
+              <ShieldAlert size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+            ) : (briefing?.medium_priority_count || 0) > 0 ? (
+              <AlertTriangle size={28} color="#d97706" style={{ flexShrink: 0 }} />
+            ) : (
+              <ShieldCheck size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+            )}
+            <div>
+              <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+                {(briefing?.high_priority_count || 0) > 0
+                  ? `🚨 Daily Briefing Alert: ${briefing.high_priority_count} Critical Incident(s) Logged for ${currentDate}`
+                  : (briefing?.medium_priority_count || 0) > 0
+                  ? `⚠️ Daily Briefing Notice: ${briefing.medium_priority_count} Advisory Incident(s) Logged for ${currentDate}`
+                  : `✅ Daily Briefing Safe: 100% Normal Operations for ${currentDate}`}
+              </h4>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+                {(briefing?.high_priority_count || 0) > 0
+                  ? 'Urgent attention required. Executive review and action steps are listed below before finalizing shift clearance.'
+                  : (briefing?.medium_priority_count || 0) > 0
+                  ? 'Minor operational deviations detected during shift. Review the incident breakdown below.'
+                  : 'Zero unauthorized breaches, zero unverified box movements, and all dispatches match customer invoices.'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* KPI Metrics Row */}
         <div
           style={{

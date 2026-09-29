@@ -617,7 +617,7 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                     <div
                       style={{
                         display: 'grid',
-                        gridTemplateColumns: `repeat(${data.data_summary.metrics.length}, 1fr)`,
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 110px), 1fr))',
                         gap: '8px',
                         marginBottom: '12px',
                         background: '#f8fafc',

@@ -87,6 +87,47 @@ export const AiStockIntelligencePage: React.FC = () => {
       </div>
 
       <div className="content-body">
+        {/* Plain English AI Health Banner */}
+        {!loading && (
+          <div
+            style={{
+              padding: '16px 20px',
+              borderRadius: '8px',
+              marginBottom: '20px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '14px',
+              backgroundColor: highRiskCount > 0 ? '#fee2e2' : mediumRiskCount > 0 ? '#fef3c7' : '#dcfce7',
+              border: `1px solid ${highRiskCount > 0 ? '#fca5a5' : mediumRiskCount > 0 ? '#fde047' : '#86efac'}`,
+              color: highRiskCount > 0 ? '#991b1b' : mediumRiskCount > 0 ? '#854d0e' : '#166534',
+            }}
+          >
+            {highRiskCount > 0 ? (
+              <AlertCircle size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+            ) : mediumRiskCount > 0 ? (
+              <AlertCircle size={28} color="#d97706" style={{ flexShrink: 0 }} />
+            ) : (
+              <CheckCircle size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+            )}
+            <div>
+              <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+                {highRiskCount > 0
+                  ? '🚨 Urgent Action Needed: Stock Shortage Detected!'
+                  : mediumRiskCount > 0
+                  ? '⚠️ Attention: Some parts are depleting soon'
+                  : '✅ All Stock is Safe & Available (No Shortage)'}
+              </h4>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+                {highRiskCount > 0
+                  ? `${highRiskCount} part(s) have higher demand than current stock. Immediate production is recommended.`
+                  : mediumRiskCount > 0
+                  ? `${mediumRiskCount} part(s) will run out of stock in less than 45 days.`
+                  : 'Your factory has sufficient stock for all parts with zero projected shortage. You do not need to produce anything right now.'}
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* KPI Summary Cards */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', flexWrap: 'wrap' }}>
           <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#fee2e2', padding: '20px', borderRadius: '8px', border: '1px solid #fecaca' }}>
@@ -103,6 +144,16 @@ export const AiStockIntelligencePage: React.FC = () => {
             </h3>
             <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#92400e' }}>{loading ? '-' : mediumRiskCount}</p>
             <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: '#b45309' }}>Depleting within 45 days</p>
+          </div>
+
+          <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#dcfce7', padding: '20px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#166534', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <CheckCircle size={18} /> Safe & In-Stock Parts
+            </h3>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#14532d' }}>
+              {loading ? '-' : insights.filter(i => i.risk_level === 'LOW').length}
+            </p>
+            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: '#166534' }}>Plenty of stock in factory</p>
           </div>
 
           <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
@@ -122,9 +173,14 @@ export const AiStockIntelligencePage: React.FC = () => {
 
         {/* Trend Graph */}
         <div className="card" style={{ marginBottom: '24px' }}>
-          <div className="card-header" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <BarChart2 size={20} color="#3b82f6" />
-            <h3 className="card-title" style={{ margin: 0 }}>Top 5 High-Risk Parts: Stock vs Demand Trend</h3>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <BarChart2 size={20} color="#3b82f6" />
+              <h3 className="card-title" style={{ margin: 0 }}>Top 5 High-Risk Parts: Stock vs Demand Trend</h3>
+            </div>
+            <span style={{ fontSize: '12px', color: '#166534', backgroundColor: '#dcfce7', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>
+              🟢 Green = What is currently in stock | 🟠 Orange = What customers will need
+            </span>
           </div>
           <div className="card-body" style={{ height: '350px', padding: '20px' }}>
             {loading ? (
@@ -154,8 +210,11 @@ export const AiStockIntelligencePage: React.FC = () => {
         </div>
 
         <div className="card">
-          <div className="card-header">
-            <h3 className="card-title">Demand Forecast & Stock Out Risk</h3>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+            <h3 className="card-title" style={{ margin: 0 }}>Stock Availability & Demand Forecast</h3>
+            <span style={{ fontSize: '13px', color: '#6b7280' }}>
+              Shows real-time stock levels and AI production suggestions
+            </span>
           </div>
           <div className="card-body">
             <div className="table-responsive">
@@ -164,6 +223,7 @@ export const AiStockIntelligencePage: React.FC = () => {
                   <tr>
                     <th>Part Number</th>
                     <th>Current Stock</th>
+                    <th>Stock Status</th>
                     <th>30-Day Forecast</th>
                     <th>Suggested Production</th>
                     <th>Depletes In</th>
@@ -174,11 +234,11 @@ export const AiStockIntelligencePage: React.FC = () => {
                 <tbody>
                   {loading ? (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '30px' }}>Loading AI Insights...</td>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '30px' }}>Loading AI Insights...</td>
                     </tr>
                   ) : insights.length === 0 ? (
                     <tr>
-                      <td colSpan={7} style={{ textAlign: 'center', padding: '30px' }}>No data available</td>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '30px' }}>No data available</td>
                     </tr>
                   ) : (
                     insights.map((item) => (
@@ -187,13 +247,50 @@ export const AiStockIntelligencePage: React.FC = () => {
                           <div style={{ fontWeight: 600, color: '#111827' }}>{item.part_number}</div>
                           <div style={{ fontSize: '12px', color: '#6b7280' }}>{item.part_description}</div>
                         </td>
-                        <td style={{ fontWeight: 600 }}>{item.current_stock}</td>
-                        <td style={{ fontWeight: 600, color: '#3b82f6' }}>{item.forecasted_demand_30d}</td>
+                        <td style={{ fontWeight: 700, fontSize: '15px' }}>{item.current_stock} pcs</td>
+                        <td>
+                          {item.current_stock > 0 ? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: '4px 10px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                backgroundColor: '#dcfce7',
+                                color: '#166534',
+                                border: '1px solid #86efac',
+                              }}
+                            >
+                              <CheckCircle size={13} color="#16a34a" /> In Stock ({item.current_stock} Available)
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '5px',
+                                padding: '4px 10px',
+                                borderRadius: '12px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                backgroundColor: '#fee2e2',
+                                color: '#991b1b',
+                                border: '1px solid #fca5a5',
+                              }}
+                            >
+                              <AlertCircle size={13} color="#dc2626" /> No Stock (0 Available)
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontWeight: 600, color: '#3b82f6' }}>{item.forecasted_demand_30d} pcs</td>
                         <td>
                           {item.projected_shortage > 0 ? (
-                            <span style={{ color: '#dc2626', fontWeight: 'bold' }}>+{item.projected_shortage} units</span>
+                            <span style={{ color: '#dc2626', fontWeight: 'bold' }}>+{item.projected_shortage} units needed</span>
                           ) : (
-                            <span style={{ color: '#16a34a' }}><CheckCircle size={14} style={{ verticalAlign: 'text-bottom' }}/> Sufficient</span>
+                            <span style={{ color: '#16a34a', fontWeight: 600 }}><CheckCircle size={14} style={{ verticalAlign: 'text-bottom' }}/> Stock Sufficient</span>
                           )}
                         </td>
                         <td>

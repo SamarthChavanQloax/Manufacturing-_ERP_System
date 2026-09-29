@@ -182,7 +182,7 @@ export const AiSecurityPage: React.FC = () => {
               <p style={{ margin: 0, color: '#374151', fontSize: '14.5px', lineHeight: '1.6' }}>{selectedAnomaly.description}</p>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '16px', marginBottom: '24px' }}>
               <div>
                 <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Time of Occurrence</div>
                 <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.timestamp}</div>
@@ -259,7 +259,7 @@ export const AiSecurityPage: React.FC = () => {
       )}
 
       {/* Header Area */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <ShieldAlert size={32} color="#dc2626" />
@@ -278,6 +278,58 @@ export const AiSecurityPage: React.FC = () => {
           Run Security Scan
         </button>
       </div>
+
+      {/* Plain English AI Security Status Banner */}
+      {!loading && (
+        <div
+          style={{
+            padding: '16px 20px',
+            borderRadius: '10px',
+            marginBottom: '24px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            backgroundColor: anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
+              ? '#fee2e2'
+              : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
+              ? '#fef3c7'
+              : '#dcfce7',
+            border: `1px solid ${
+              anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
+                ? '#fca5a5'
+                : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
+                ? '#fde047'
+                : '#86efac'
+            }`,
+            color:
+              anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
+                ? '#991b1b'
+                : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
+                ? '#854d0e'
+                : '#166534',
+          }}
+        >
+          {anomalies.filter(a => (a.severity === 'CRITICAL' || a.severity === 'HIGH') && !completedIds.includes(a.id)).length > 0 ? (
+            <AlertTriangle size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+          ) : (
+            <CheckCircle size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+          )}
+          <div>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+              {anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
+                ? '🚨 High Security Alert: Critical ERP Anomalies Detected'
+                : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
+                ? '⚠️ Security Attention Needed: Unresolved Anomalies Found'
+                : '✅ Security Status Safe: No Unauthorized Actions or Bypasses'}
+            </h4>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+              {anomalies.filter(a => !completedIds.includes(a.id)).length > 0
+                ? `${anomalies.filter(a => !completedIds.includes(a.id)).length} event(s) require supervisor review (workflow bypass, off-hours activity, or unusual quantity).`
+                : 'All ERP actions, box packaging sequences, and operator dispatches are authorized and within standard factory compliance.'}
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>

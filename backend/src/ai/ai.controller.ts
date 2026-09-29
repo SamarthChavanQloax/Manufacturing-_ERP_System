@@ -23,7 +23,7 @@ export class AiController {
   }
 
   @Get('security-anomalies')
-  @Roles('admin', 'gate') // Relevant for gate and admin
+  @Roles('admin') // Restricted strictly to admin
   async getSecurityAnomalies() {
     return this.aiService.getSecurityAnomalies();
   }
@@ -53,13 +53,13 @@ export class AiController {
   }
 
   @Get('gate-risk/dashboard')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getGateRiskDashboard() {
     return this.gateRiskService.getDashboardSummary();
   }
 
   @Get('gate-risk/transactions')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getGateRiskTransactions(
     @Query('risk_level') riskLevel?: string,
     @Query('review_status') reviewStatus?: string,
@@ -77,13 +77,13 @@ export class AiController {
   }
 
   @Get('gate-risk/transaction/:id')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getGateRiskTransactionDetail(@Param('id') id: string) {
     return this.gateRiskService.getTransactionById(Number(id));
   }
 
   @Post('gate-risk/review')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async reviewGateRisk(
     @Body()
     body: {
@@ -143,25 +143,25 @@ export class AiController {
   // ----------------------------------------------------
 
   @Get('security-briefing/today')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getTodaySecurityBriefing() {
     return this.briefingService.getBriefingForDate();
   }
 
   @Get('security-briefing/history')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getSecurityBriefingHistory() {
     return this.briefingService.getBriefingHistory();
   }
 
   @Get('security-briefing/:date')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getSecurityBriefingByDate(@Param('date') date: string) {
     return this.briefingService.getBriefingForDate(date);
   }
 
   @Post('security-briefing/generate')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async generateSecurityBriefing(
     @Body('date') date: string,
     @Request() req: any,
@@ -171,7 +171,7 @@ export class AiController {
   }
 
   @Get('security-briefing/:date/events/:eventId')
-  @Roles('admin', 'gate')
+  @Roles('admin')
   async getSecurityBriefingEventDetail(
     @Param('date') date: string,
     @Param('eventId') eventId: string,

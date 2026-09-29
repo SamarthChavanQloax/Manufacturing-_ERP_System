@@ -6,6 +6,52 @@ Our AI approach will not blindly override the existing ERP's Gate rules or autho
 
 ---
 
+## 🔐 AI Security & Control Principles
+
+The AI layer must remain separated from the ERP's core transaction authority.
+
+### Recommended Control Model
+
+```text
+User
+ ↓
+React ERP UI
+ ↓
+NestJS Authentication / RBAC
+ ↓
+Allowed ERP APIs / AI Tools
+ ↓
+AI Analysis
+ ↓
+Evidence + Explanation
+ ↓
+Human Review where required
+ ↓
+Existing ERP API
+ ↓
+MySQL
+```
+
+### AI Read-Only Boundary
+
+Do not provide the AI with unrestricted database write access.
+
+- ❌ **Avoid:** `LLM → direct MySQL write`
+- ✅ **Prefer:** `LLM / AI → Approved read-only tool → NestJS service → MySQL`
+
+For actions requiring a state change:
+```text
+AI Recommendation
+      ↓
+Human Confirmation / Existing Authorization
+      ↓
+Normal ERP API
+      ↓
+Database Transaction
+```
+
+---
+
 ## 🏗️ Final Architecture
 
 Instead of adding disconnected features to the UI, we are building three major AI systems:
@@ -115,3 +161,34 @@ Instead of adding disconnected features to the UI, we are building three major A
 
 ### 🟡 Advanced / Later (Phase 3)
 7.  **Face ID / Biometric Security:** Solves identity spoofing but requires high compliance overhead.
+
+---
+
+## 7. 🤖 AI Explainability Requirement
+
+Every important AI alert, anomaly flag, or predictive result must be fully explainable and structured with:
+
+1. **What happened?** (Clear summary of the event or projection)
+2. **Why was it detected?** (Root causes, heuristic rules, or model factors)
+3. **What evidence was used?** (Actual data points, quantities, logs, timestamps, or trends)
+4. **What is the risk / confidence indication?** (Risk score, severity, or forecast confidence percentage)
+5. **What should the user review?** (Actionable recommendation and human verification target)
+
+### Standard Output Example
+
+> **HIGH STOCK-OUT RISK**
+>
+> - **Predicted Demand:** 1,230 units
+> - **Available Stock:** 910 units
+> - **Projected Deficit:** 320 units
+>
+> **Why?**
+> - Recent invoice consumption increased significantly over the last 7 days.
+> - Current available stock is below projected demand.
+>
+> **Forecast Confidence:** 84%  
+> **Recommended Action:** Review production planning and replenish part stock before estimated depletion date.
+
+> [!CAUTION]
+> The AI must **never** return standalone risk labels like *"HIGH RISK"* without supporting evidence, metrics, and contextual explanation.
+

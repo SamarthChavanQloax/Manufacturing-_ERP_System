@@ -234,6 +234,61 @@ export const AiGateRiskDashboardPage: React.FC = () => {
       </div>
 
       <div className="content-body">
+        {/* Plain English AI Gate Risk Health Banner */}
+        <div
+          style={{
+            padding: '16px 20px',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '14px',
+            backgroundColor:
+              (summary?.high_risk_count || 0) > 0
+                ? '#fee2e2'
+                : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
+                ? '#fef3c7'
+                : '#dcfce7',
+            border: `1px solid ${
+              (summary?.high_risk_count || 0) > 0
+                ? '#fca5a5'
+                : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
+                ? '#fde047'
+                : '#86efac'
+            }`,
+            color:
+              (summary?.high_risk_count || 0) > 0
+                ? '#991b1b'
+                : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
+                ? '#854d0e'
+                : '#166534',
+          }}
+        >
+          {(summary?.high_risk_count || 0) > 0 ? (
+            <ShieldAlert size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+          ) : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0 ? (
+            <AlertTriangle size={28} color="#d97706" style={{ flexShrink: 0 }} />
+          ) : (
+            <ShieldCheck size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+          )}
+          <div>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+              {(summary?.high_risk_count || 0) > 0
+                ? '🚨 Gate Clearance Alert: High-Risk Dispatches Flagged!'
+                : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
+                ? '⚠️ Gate Passes Under Observation / Pending Supervisor Review'
+                : '✅ Gate Security Safe: All Dispatches Verified & Approved'}
+            </h4>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+              {(summary?.high_risk_count || 0) > 0
+                ? `${summary?.high_risk_count} gate pass(es) have high risk scores (unmatched boxes, off-hour dispatches, or barcode mismatch). Hold gate exit until reviewed.`
+                : (summary?.pending_review_count || 0) > 0
+                ? `${summary?.pending_review_count} dispatch transaction(s) are awaiting supervisor sign-off.`
+                : 'All outgoing vehicles, invoices, and box barcodes match 100% with ERP factory records. Trucks can exit safely.'}
+            </p>
+          </div>
+        </div>
+
         {/* Top KPI Cards */}
         <div
           style={{
@@ -330,7 +385,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: '1fr 2fr',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 340px), 1fr))',
             gap: '20px',
             marginBottom: '24px',
           }}
