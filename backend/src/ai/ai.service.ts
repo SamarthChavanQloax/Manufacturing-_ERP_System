@@ -22,82 +22,93 @@ export class AiService {
 
   async getStockIntelligence() {
     const parts = await this.partsRepo.find();
-    
-    // Look back 90 days for historical consumption
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
-    
-    const ninetyDaysAgo = new Date();
-    ninetyDaysAgo.setDate(today.getDate() - 90);
-    const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split('T')[0];
+    const invoices = await this.invoicesRepo.find();
 
-    const invoices = await this.invoicesRepo.find({
-      where: {
-        created_date: Between(ninetyDaysAgoStr, todayStr)
-      },
-    });
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
+
+    const getInvDate = (inv: Invoice): string => {
+      const d1 = inv.created_time || '';
+      const d2 = inv.created_date || '';
+      if (d1.includes('-')) return d1.trim().split(' ')[0];
+      if (d2.includes('-')) return d2.trim().split(' ')[0];
+      return '';
+    };
 
     const insights = parts.map((part) => {
-      const partInvoices = invoices.filter(inv => inv.part_id === part.id);
-      
-      const historicalDemand = partInvoices.reduce((sum, inv) => sum + Number(inv.qty), 0);
-      const dailyConsumption = historicalDemand / 90;
-      
-      // Calculate trend (last 30 days vs previous 60 days)
-      const thirtyDaysAgo = new Date();
-      thirtyDaysAgo.setDate(today.getDate() - 30);
-      const thirtyDaysAgoStr = thirtyDaysAgo.toISOString().split('T')[0];
-      
-      const recentInvoices = partInvoices.filter(inv => inv.created_date >= thirtyDaysAgoStr);
-      const recentDemand = recentInvoices.reduce((sum, inv) => sum + Number(inv.qty), 0);
+      const partInvoices = invoices.filter((inv) => Number(inv.part_id) === Number(part.id));
+      const historicalDemand = partInvoices.reduce((sum, inv) => sum + Number(inv.qty || 0), 0);
+      const currentStock = Number(part.qty || 0);
+
+      // Daily consumption based on historical invoices
+      const dailyConsumption = historicalDemand > 0 ? historicalDemand / 90 : 0;
+
+      // Calculate trend from recent invoices
+      const recentInvoices = partInvoices.filter((inv) => {
+        const d = getInvDate(inv);
+        return d && d >= thirtyDaysAgoStr;
+      });
+      const recentDemand = recentInvoices.reduce((sum, inv) => sum + Number(inv.qty || 0), 0);
       const recentDaily = recentDemand / 30;
-      
+
       let trendMultiplier = 1;
-      let trendReason = 'Stable';
-      
+      let trendReason = 'Stable demand';
+
       if (dailyConsumption > 0) {
         if (recentDaily > dailyConsumption * 1.2) {
-          trendMultiplier = 1.3; // Upward trend
-          trendReason = 'Recent consumption increased significantly';
-        } else if (recentDaily < dailyConsumption * 0.8) {
-          trendMultiplier = 0.8; // Downward trend
+          trendMultiplier = 1.3;
+          trendReason = 'Recent customer demand increased significantly';
+        } else if (recentDaily < dailyConsumption * 0.8 && recentDaily > 0) {
+          trendMultiplier = 0.8;
           trendReason = 'Recent consumption decreased';
         }
       }
 
-      // Forecast next 30 days with a 15% safety buffer and trend applied
-      let forecastedDemand = Math.ceil((dailyConsumption * 30) * trendMultiplier * 1.15);
-      
-      if (historicalDemand === 0) {
-        forecastedDemand = 0; // No data to forecast
-        trendReason = 'No historical consumption data';
+      // Forecast next 30 days
+      let forecastedDemand = 0;
+      if (historicalDemand > 0) {
+        forecastedDemand = Math.max(10, Math.ceil(dailyConsumption * 30 * trendMultiplier * 1.15));
       }
 
-      const currentStock = Number(part.qty || 0);
-      const projectedShortage = Math.max(0, forecastedDemand - currentStock);
-      
+      let projectedShortage = 0;
       let depletionDays = -1;
+      let riskLevel: 'HIGH' | 'MEDIUM' | 'LOW' = 'LOW';
+      let confidence = 85;
+
       if (dailyConsumption > 0) {
         depletionDays = Math.floor(currentStock / (dailyConsumption * trendMultiplier));
       }
 
-      let riskLevel = 'LOW';
-      let confidence = 85;
-
-      if (historicalDemand === 0) {
-        confidence = 0;
-      } else if (projectedShortage > 0) {
+      // Risk & Shortage calculation
+      if (currentStock <= 0) {
         riskLevel = 'HIGH';
-        confidence = 90; // High confidence if we're actively depleting stock rapidly
+        confidence = 90;
+        forecastedDemand = Math.max(forecastedDemand, 50);
+        projectedShortage = forecastedDemand;
+        trendReason = historicalDemand > 0 ? 'Critical 0 stock with active customer demand' : 'Out of stock - safety restock needed';
+      } else if (forecastedDemand > currentStock) {
+        riskLevel = 'HIGH';
+        confidence = 90;
+        projectedShortage = forecastedDemand - currentStock;
+      } else if (currentStock <= 20) {
+        riskLevel = 'MEDIUM';
+        confidence = 80;
+        projectedShortage = Math.max(0, 50 - currentStock);
+        trendReason = 'Low safety buffer (<= 20 pcs)';
       } else if (depletionDays > 0 && depletionDays <= 45) {
         riskLevel = 'MEDIUM';
         confidence = 80;
+      } else if (historicalDemand === 0) {
+        confidence = 60;
+        trendReason = 'No past invoice dispatch history';
       }
 
       return {
         part_id: part.id,
-        part_number: part.part_number,
-        part_description: part.part_description,
+        part_number: (part.part_number || '').trim(),
+        part_description: (part.part_description || '').trim(),
         current_stock: currentStock,
         historical_demand_90d: historicalDemand,
         forecasted_demand_30d: forecastedDemand,
@@ -105,7 +116,7 @@ export class AiService {
         depletion_days: depletionDays,
         trend_reason: trendReason,
         risk_level: riskLevel,
-        confidence_score: confidence
+        confidence_score: confidence,
       };
     });
 

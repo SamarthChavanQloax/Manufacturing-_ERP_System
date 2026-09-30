@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, Download, Minus, BarChart2 } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, Download, Minus, BarChart2, FileSpreadsheet } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { exportToExcel } from '../utils/excelExport';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface StockInsight {
@@ -38,38 +39,90 @@ export const AiStockIntelligencePage: React.FC = () => {
     }
   };
 
+  const getTargetProductionParts = () => {
+    // 1. High priority: parts with projected shortage, HIGH risk, or out of stock (0 qty)
+    const critical = insights.filter(
+      (i) => i.projected_shortage > 0 || i.risk_level === 'HIGH' || i.current_stock <= 0
+    );
+    if (critical.length > 0) return critical;
+
+    // 2. Medium priority: parts with medium risk or low stock (<= 50 pcs)
+    const medium = insights.filter((i) => i.risk_level === 'MEDIUM' || i.current_stock <= 50);
+    if (medium.length > 0) return medium;
+
+    // 3. Fallback: all parts with non-zero forecast or active inventory (up to 100 parts)
+    const active = insights.filter((i) => i.forecasted_demand_30d > 0);
+    if (active.length > 0) return active;
+
+    return insights.slice(0, 100);
+  };
+
   const handleExportPdf = () => {
     const doc = new jsPDF();
-    doc.text('AI Production Plan & Stock Forecast', 14, 15);
-    doc.setFontSize(10);
-    doc.text(`Generated on: ${new Date().toLocaleDateString()}`, 14, 22);
+    const targetParts = getTargetProductionParts();
 
-    const tableData = insights
-      .filter(i => i.projected_shortage > 0)
-      .map((i, idx) => [
-        idx + 1,
-        i.part_number,
-        i.part_description,
-        i.current_stock,
-        i.forecasted_demand_30d,
-        i.projected_shortage,
-        `${i.depletion_days} days`
-      ]);
+    doc.setFontSize(16);
+    doc.setTextColor(30, 41, 59);
+    doc.text('AI Production Plan & Stock Forecast', 14, 16);
+
+    doc.setFontSize(9);
+    doc.setTextColor(100, 116, 139);
+    doc.text(
+      `Generated: ${new Date().toLocaleDateString()} | Total Parts Listed: ${targetParts.length} | Source: Factory ERP AI Copilot`,
+      14,
+      23
+    );
+
+    const tableData = targetParts.map((i, idx) => [
+      idx + 1,
+      i.part_number,
+      (i.part_description || '-').slice(0, 26),
+      `${i.current_stock} pcs`,
+      `${i.forecasted_demand_30d} pcs`,
+      i.projected_shortage > 0 ? `+${i.projected_shortage} pcs needed` : 'Sufficient',
+      i.depletion_days === -1 ? 'No depletion' : `${i.depletion_days} days`,
+      i.risk_level,
+    ]);
 
     autoTable(doc, {
       startY: 28,
-      head: [['#', 'Part No', 'Description', 'Current Stock', '30d Forecast', 'Suggested Production', 'Depletes In']],
+      head: [['#', 'Part No', 'Description', 'Current Stock', '30d Forecast', 'Suggested Production', 'Depletes In', 'Risk']],
       body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [37, 99, 235],
+        textColor: [255, 255, 255],
+        fontSize: 8.5,
+        fontStyle: 'bold',
+      },
+      styles: {
+        fontSize: 8,
+        cellPadding: 2.5,
+      },
+      alternateRowStyles: {
+        fillColor: [248, 250, 252],
+      },
     });
 
-    const pdfBlob = doc.output('blob');
-    const url = URL.createObjectURL(pdfBlob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'Production_Plan_Forecast.pdf';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    doc.save(`Production_Plan_Forecast_${new Date().toISOString().split('T')[0]}.pdf`);
+  };
+
+  const handleExportExcel = () => {
+    const targetParts = getTargetProductionParts();
+    const exportData = targetParts.map((i, idx) => ({
+      'Sr. No.': idx + 1,
+      'Part Number': i.part_number,
+      'Part Description': i.part_description,
+      'Current Stock': `${i.current_stock} pcs`,
+      '30-Day Demand Forecast': `${i.forecasted_demand_30d} pcs`,
+      'Suggested Production': i.projected_shortage > 0 ? `+${i.projected_shortage} pcs needed` : 'Stock Sufficient',
+      'Stock Depletion': i.depletion_days === -1 ? 'No depletion' : `${i.depletion_days} days`,
+      'Risk Level': i.risk_level,
+      'Trend Reason': i.trend_reason,
+      'Confidence Score': `${i.confidence_score}%`,
+    }));
+
+    exportToExcel(exportData, `Production_Plan_Forecast_${new Date().toISOString().split('T')[0]}`, 'Production Plan');
   };
 
   const highRiskCount = insights.filter(i => i.risk_level === 'HIGH').length;
@@ -156,17 +209,27 @@ export const AiStockIntelligencePage: React.FC = () => {
             <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: 'var(--text-muted)' }}>Plenty of stock in factory</p>
           </div>
 
-          <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'var(--card-sub-bg)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: '220px', backgroundColor: 'var(--card-sub-bg)', padding: '16px 20px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', gap: '8px' }}>
             <button 
               onClick={handleExportPdf}
               className="btn btn-primary"
-              style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '12px' }}
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '10px 14px', fontSize: '13.5px', fontWeight: 600 }}
+              title="Download Production Plan PDF"
             >
-              <Download size={18} />
+              <Download size={17} />
               Download Production Plan
             </button>
-            <p style={{ fontSize: '12px', margin: '8px 0 0 0', color: 'var(--text-muted)', textAlign: 'center' }}>
-              Exports only parts with projected shortages
+            <button 
+              onClick={handleExportExcel}
+              className="btn btn-sm btn-success"
+              style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '8px', padding: '8px 12px', fontSize: '12px', backgroundColor: '#16a34a', color: '#fff', border: 'none' }}
+              title="Export Production Plan Excel"
+            >
+              <FileSpreadsheet size={15} />
+              Export to Excel (.xlsx)
+            </button>
+            <p style={{ fontSize: '11px', margin: 0, color: 'var(--text-muted)', textAlign: 'center' }}>
+              Exports {getTargetProductionParts().length} part(s) with projected shortage & demand
             </p>
           </div>
         </div>
