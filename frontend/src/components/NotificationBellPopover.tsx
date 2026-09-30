@@ -103,8 +103,7 @@ export const NotificationBellPopover: React.FC = () => {
       markAsRead(n.id);
     }
     setIsOpen(false);
-    const destination = getNotificationUrl(n);
-    navigate(destination);
+    navigate(`/notifications?id=${n.id}`);
   };
 
   const getIcon = (type: string, priority: string) => {

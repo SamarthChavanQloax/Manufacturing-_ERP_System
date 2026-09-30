@@ -1,10 +1,14 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Invoice, InvoiceBox, Box, BoxPacking, Packing, Part } from '../entities';
+import { Invoice, InvoiceBox, Box, BoxPacking, Packing, Part, UserInfo } from '../entities';
+import { NotificationService } from '../notifications/notifications.service';
 
 @Injectable()
 export class InvoicesService {
+  private readonly logger = new Logger(InvoicesService.name);
+  private mismatchAttempts = new Map<string, { count: number; firstAttempt: number; lastAttempt: number; boxBarcodes: string[] }>();
+
   constructor(
     @InjectRepository(Invoice)
     private invoiceRepo: Repository<Invoice>,
@@ -18,6 +22,9 @@ export class InvoicesService {
     private packingRepo: Repository<Packing>,
     @InjectRepository(Part)
     private partRepo: Repository<Part>,
+    @InjectRepository(UserInfo)
+    private userRepo: Repository<UserInfo>,
+    private notificationService: NotificationService,
   ) {}
 
   private getLegacyDateTime() {
@@ -191,8 +198,60 @@ export class InvoicesService {
       thisBoxQty += bp.part_qty || 0;
     }
 
+    const remainingQty = Math.max(0, invoice.qty - currentInvoiceTotal);
+    const excessQty = (currentInvoiceTotal + thisBoxQty) - invoice.qty;
+
     if (currentInvoiceTotal + thisBoxQty > invoice.qty) {
-      throw new BadRequestException('Error 406 : Part Qty Mismatch, adding this box exceeds invoice quantity');
+      const attemptKey = `inv_${invoice.id}_user_${userId}`;
+      const now = Date.now();
+      const existingAttempt = this.mismatchAttempts.get(attemptKey);
+
+      let attemptCount = 1;
+      if (existingAttempt && now - existingAttempt.lastAttempt < 15 * 60 * 1000) {
+        attemptCount = existingAttempt.count + 1;
+        existingAttempt.count = attemptCount;
+        existingAttempt.lastAttempt = now;
+        if (!existingAttempt.boxBarcodes.includes(box.barcode)) {
+          existingAttempt.boxBarcodes.push(box.barcode);
+        }
+      } else {
+        this.mismatchAttempts.set(attemptKey, {
+          count: 1,
+          firstAttempt: now,
+          lastAttempt: now,
+          boxBarcodes: [box.barcode],
+        });
+      }
+
+      const user = await this.userRepo.findOne({ where: { id: userId } });
+
+      if (attemptCount >= 2) {
+        await this.sendQuantityMismatchRiskNotification({
+          invoice,
+          invoicePart,
+          box,
+          thisBoxQty,
+          currentInvoiceTotal,
+          remainingQty,
+          excessQty,
+          boxPackings,
+          user,
+          userId,
+          attemptCount,
+        });
+
+        this.logger.warn(
+          `Security Alert: Repeated Qty Mismatch (Attempt #${attemptCount}) by user ${userId} on Invoice ${invoice.invoice_number}`,
+        );
+
+        throw new BadRequestException(
+          `Error 406 : Repeated Part Qty Mismatch (Attempt #${attemptCount})! Box #${box.barcode} contains ${thisBoxQty} pcs, which exceeds the remaining invoice capacity of ${remainingQty} pcs (Part: ${invoicePart?.part_number || 'N/A'}). A high-risk security alert has been dispatched to administrators.`,
+        );
+      }
+
+      throw new BadRequestException(
+        `Error 406 : Part Qty Mismatch! Adding box #${box.barcode} (${thisBoxQty} pcs) exceeds invoice quantity (${currentInvoiceTotal}/${invoice.qty} pcs filled, only ${remainingQty} pcs remaining).`,
+      );
     }
 
     const { dateStr, timeStr } = this.getLegacyDateTime();
@@ -219,6 +278,9 @@ export class InvoicesService {
         await transactionManager.save(BoxPacking, bp);
       }
     });
+
+    // Reset attempt tracker upon successful addition
+    this.mismatchAttempts.delete(`inv_${invoice.id}_user_${userId}`);
 
     return { success: true, message: 'Box Added to Invoice Successfully' };
   }
@@ -253,5 +315,170 @@ export class InvoicesService {
     }
 
     return this.invoiceRepo.delete(id);
+  }
+
+  /**
+   * Dispatches an explainable, evidence-backed security risk notification to administrators
+   * when repeated quantity mismatch attempts occur during invoice box mapping.
+   * Conforms strictly to AGENTS.md Explainability Standard.
+   */
+  private async sendQuantityMismatchRiskNotification(params: {
+    invoice: Invoice;
+    invoicePart: Part | null;
+    box: Box;
+    thisBoxQty: number;
+    currentInvoiceTotal: number;
+    remainingQty: number;
+    excessQty: number;
+    boxPackings: BoxPacking[];
+    user: UserInfo | null;
+    userId: number;
+    attemptCount: number;
+  }) {
+    const {
+      invoice,
+      invoicePart,
+      box,
+      thisBoxQty,
+      currentInvoiceTotal,
+      remainingQty,
+      excessQty,
+      boxPackings,
+      user,
+      userId,
+      attemptCount,
+    } = params;
+
+    const operatorName = user?.user_name || `Operator #${userId}`;
+    const operatorEmail = user?.user_email || 'N/A';
+    const operatorRole = user?.type || 'invoice';
+
+    const partNum = (invoicePart?.part_number || box.box_name || 'N/A').trim();
+    const partDesc = invoicePart?.part_description || 'N/A';
+    const partModel = invoicePart?.model || 'N/A';
+    const partHsn = invoicePart?.hsn_code || 'N/A';
+
+    // Retrieve full pack details for all packings inside this box
+    const packList: Array<{
+      pack_id: number;
+      part_qty: number;
+      created_date: string;
+      created_time: string;
+      created_by: number;
+      packer_name?: string;
+    }> = [];
+
+    for (const bp of boxPackings) {
+      const packerUser = await this.userRepo.findOne({ where: { id: bp.created_by } });
+      packList.push({
+        pack_id: bp.pack_id,
+        part_qty: bp.part_qty,
+        created_date: bp.created_date,
+        created_time: bp.created_time,
+        created_by: bp.created_by,
+        packer_name: packerUser?.user_name || `User #${bp.created_by}`,
+      });
+    }
+
+    const priority = attemptCount >= 3 ? 'CRITICAL' : 'HIGH';
+    const riskScore = attemptCount >= 3 ? 92 : 82;
+
+    const packSummaryLines = packList
+      .map(
+        (p) =>
+          `  - Pack Barcode #${p.pack_id}: ${p.part_qty} pcs (Packed by ${p.packer_name} on ${p.created_date} ${p.created_time})`,
+      )
+      .join('\n');
+
+    const notificationMessage = `Repeated quantity mismatch attempts detected in Invoice Box Mapping section.
+
+1. OPERATOR & ATTEMPT DETAILS:
+   - User Name: ${operatorName}
+   - User ID: ${userId} | Role: ${operatorRole.toUpperCase()} | Email: ${operatorEmail}
+   - Attempts: ${attemptCount} consecutive failed attempts within 15 minutes.
+
+2. INVOICE & PART DETAILS:
+   - Invoice Number: ${invoice.invoice_number} (Barcode: ${invoice.barcode})
+   - Part Number: ${partNum}
+   - Part Description: ${partDesc}
+   - Model / HSN: ${partModel} / ${partHsn}
+   - Invoice Required Qty: ${invoice.qty} pcs
+   - Currently Filled Qty: ${currentInvoiceTotal} pcs
+   - Remaining Allowed Qty: ${remainingQty} pcs
+
+3. SCANNED BOX DETAILS:
+   - Box Barcode: #${box.barcode}
+   - Box Part Identifier: ${box.box_name}
+   - Box Total Qty: ${thisBoxQty} pcs
+   - Excess Above Invoice: +${excessQty} pcs overflow (Exceeds remaining capacity)
+   - Box Status: ${box.status} | Sealed/Locked: ${box.lock_status}
+
+4. PACK DETAILS INSIDE THIS BOX (${packList.length} packs):
+${packSummaryLines || '  - No individual pack details found'}
+
+5. MANDATORY AI EXPLAINABILITY & AUDIT TRAIL (AGENTS.md):
+   - What Happened: User ${operatorName} repeatedly attempted to assign Box #${box.barcode} containing ${thisBoxQty} pcs to Invoice ${invoice.invoice_number}, exceeding the allowed balance.
+   - Root Cause: Physical box quantity (${thisBoxQty} pcs) exceeds remaining permitted invoice balance (${remainingQty} pcs) by +${excessQty} items.
+   - Risk Assessment: Score ${riskScore}/100 (${priority}). Potential mislabeling, over-shipment risk, or inventory dispatch anomaly.
+   - Recommended Human Action: Supervisor must inspect Box #${box.barcode} and verify physical counts against the packing slip before re-authorizing invoice assignment.`;
+
+    const metadata = {
+      alert_category: 'INVOICE_QUANTITY_MISMATCH',
+      attempt_count: attemptCount,
+      risk_score: riskScore,
+      risk_level: priority,
+      operator: {
+        id: userId,
+        name: operatorName,
+        email: operatorEmail,
+        role: operatorRole,
+      },
+      invoice: {
+        id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        barcode: invoice.barcode,
+        required_qty: invoice.qty,
+        current_filled_qty: currentInvoiceTotal,
+        remaining_allowed_qty: remainingQty,
+        excess_qty: excessQty,
+      },
+      part: {
+        id: invoice.part_id,
+        part_number: partNum,
+        description: partDesc,
+        model: partModel,
+        hsn: partHsn,
+      },
+      box: {
+        id: box.id,
+        barcode: box.barcode,
+        box_name: box.box_name,
+        total_qty: thisBoxQty,
+        lock_status: box.lock_status,
+      },
+      packings: packList,
+      timestamp: new Date().toISOString(),
+    };
+
+    try {
+      await this.notificationService.createNotification({
+        recipient_role: 'admin',
+        type: 'INVOICE_QTY_MISMATCH_RISK',
+        priority,
+        title: `🚨 Risk Alert: Repeated Box Qty Mismatch on Invoice ${invoice.invoice_number} (Attempt #${attemptCount})`,
+        message: notificationMessage,
+        entity_type: 'invoice',
+        entity_id: invoice.invoice_number,
+        action_url: `/add_box_to_invoice/${invoice.id}`,
+        dedup_key: `mismatch_inv_${invoice.id}_user_${userId}`,
+        metadata,
+      });
+
+      this.logger.log(
+        `Successfully logged Risk Notification for Invoice #${invoice.invoice_number} (Operator: ${operatorName}, Attempt #${attemptCount})`,
+      );
+    } catch (err: any) {
+      this.logger.error('Failed to create quantity mismatch notification:', err?.message || err);
+    }
   }
 }

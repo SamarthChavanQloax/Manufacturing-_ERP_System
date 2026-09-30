@@ -18,6 +18,8 @@ import {
   Calendar,
   Info,
   ClipboardCheck,
+  Loader2,
+  ArrowUp,
 } from 'lucide-react';
 import api from '../api/client';
 import { useAuth } from '../context/AuthContext';
@@ -29,8 +31,14 @@ import { useAuth } from '../context/AuthContext';
 const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
   if (!text) return null;
 
-  // 1. Strip all asterisks (*) completely to eliminate raw symbols
-  const clean = text.replace(/\*/g, '').trim();
+  // 1. Strip raw symbols, convert $le / $\le to ≤, and format any currency to Indian Rupees (₹)
+  const clean = text
+    .replace(/\*/g, '')
+    .replace(/\$\\le\s*/gi, '≤ ')
+    .replace(/\$le\s*/gi, '≤ ')
+    .replace(/\$(\d[\d,]*(\.\d+)?)/g, '₹$1')
+    .replace(/\$/g, '')
+    .trim();
 
   // Helper to render bullet lists or key-value items with highlighted labels
   const renderItemLines = (content: string) => {
@@ -47,11 +55,11 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
             const colonIdx = itemText.indexOf(':');
             return (
               <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', paddingLeft: '2px' }}>
-                <span style={{ color: '#4f46e5', fontSize: '15px', lineHeight: '20px', userSelect: 'none' }}>•</span>
-                <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.5 }}>
+                <span style={{ color: '#818cf8', fontSize: '15px', lineHeight: '20px', userSelect: 'none' }}>•</span>
+                <div style={{ fontSize: '13px', color: 'var(--text-main, #e2e8f0)', lineHeight: 1.5 }}>
                   {colonIdx !== -1 ? (
                     <>
-                      <strong style={{ fontWeight: 600, color: '#0f172a' }}>{itemText.slice(0, colonIdx + 1)}</strong>
+                      <strong style={{ fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>{itemText.slice(0, colonIdx + 1)}</strong>
                       <span>{itemText.slice(colonIdx + 1)}</span>
                     </>
                   ) : (
@@ -72,17 +80,17 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
                   display: 'flex',
                   alignItems: 'flex-start',
                   gap: '6px',
-                  background: '#f8fafc',
-                  border: '1px solid #e2e8f0',
+                  background: 'var(--card-sub-bg, #1f2937)',
+                  border: '1px solid var(--border-color, #374151)',
                   borderRadius: '6px',
                   padding: '7px 10px',
                   fontSize: '12px',
-                  color: '#475569',
+                  color: 'var(--text-muted, #94a3b8)',
                   marginTop: '4px',
                   lineHeight: 1.45,
                 }}
               >
-                <Info size={14} style={{ color: '#6366f1', flexShrink: 0, marginTop: '2px' }} />
+                <Info size={14} style={{ color: '#818cf8', flexShrink: 0, marginTop: '2px' }} />
                 <span>{noteContent}</span>
               </div>
             );
@@ -96,7 +104,7 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
               style={{
                 fontSize: isTitle ? '13.5px' : '13px',
                 fontWeight: isTitle ? 600 : 400,
-                color: isTitle ? '#0f172a' : '#1e293b',
+                color: isTitle ? 'var(--text-main, #f8fafc)' : 'var(--text-main, #e2e8f0)',
                 marginTop: idx > 0 && isTitle ? '6px' : '0',
                 marginBottom: isTitle ? '4px' : '0',
                 lineHeight: 1.5,
@@ -153,7 +161,7 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
     <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '8px' }}>
       {/* 1. Main Answer Block */}
       {sections.answer && (
-        <div style={{ background: '#ffffff', borderRadius: '8px' }}>
+        <div style={{ background: 'transparent', borderRadius: '8px' }}>
           {renderItemLines(sections.answer)}
         </div>
       )}
@@ -166,16 +174,16 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
             alignItems: 'center',
             gap: '6px',
             alignSelf: 'flex-start',
-            background: '#f0fdf4',
-            border: '1px solid #bbf7d0',
+            background: 'rgba(16, 185, 129, 0.12)',
+            border: '1px solid rgba(16, 185, 129, 0.3)',
             padding: '3px 9px',
             borderRadius: '6px',
             fontSize: '11.5px',
             fontWeight: 600,
-            color: '#166534',
+            color: '#34d399',
           }}
         >
-          <Calendar size={13} style={{ color: '#16a34a' }} />
+          <Calendar size={13} style={{ color: '#10b981' }} />
           <span>Period: {sections.timePeriod}</span>
         </div>
       )}
@@ -184,18 +192,18 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
       {sections.analysis && (
         <div
           style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            background: 'var(--card-sub-bg, #1f2937)',
+            border: '1px solid var(--border-color, #374151)',
             borderRadius: '8px',
             padding: '9px 11px',
             fontSize: '12px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600, color: '#334155', marginBottom: '3px' }}>
-            <Search size={12} style={{ color: '#6366f1' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600, color: 'var(--text-main, #f8fafc)', marginBottom: '3px' }}>
+            <Search size={12} style={{ color: '#818cf8' }} />
             <span>Analysis Scope</span>
           </div>
-          <div style={{ lineHeight: 1.45, color: '#475569' }}>{sections.analysis}</div>
+          <div style={{ lineHeight: 1.45, color: 'var(--text-main, #e2e8f0)' }}>{sections.analysis}</div>
         </div>
       )}
 
@@ -203,15 +211,15 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
       {sections.evidence && (
         <div
           style={{
-            background: '#f8fafc',
-            border: '1px solid #e2e8f0',
+            background: 'var(--card-sub-bg, #1f2937)',
+            border: '1px solid var(--border-color, #374151)',
             borderRadius: '8px',
             padding: '9px 11px',
             fontSize: '12px',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600, color: '#334155', marginBottom: '5px' }}>
-            <ClipboardCheck size={12} style={{ color: '#0ea5e9' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontWeight: 600, color: 'var(--text-main, #f8fafc)', marginBottom: '5px' }}>
+            <ClipboardCheck size={12} style={{ color: '#38bdf8' }} />
             <span>Audit Evidence</span>
           </div>
           {renderItemLines(sections.evidence)}
@@ -220,7 +228,7 @@ const StructuredErpAnswer: React.FC<{ text: string }> = ({ text }) => {
 
       {/* 5. Any other sections */}
       {sections.others.map((other, oIdx) => (
-        <div key={oIdx} style={{ fontSize: '12px', color: '#475569', background: '#f8fafc', padding: '7px 9px', borderRadius: '6px' }}>
+        <div key={oIdx} style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', background: 'var(--card-sub-bg, #1f2937)', padding: '7px 9px', borderRadius: '6px' }}>
           {other}
         </div>
       ))}
@@ -243,11 +251,13 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [conversation, setConversation] = useState<any[]>([]);
   const [conversationContext, setConversationContext] = useState<any>(null);
+  const [aiStatus, setAiStatus] = useState<{ gemini_connected: boolean; model: string } | null>(null);
+  const [isFocused, setIsFocused] = useState(false);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch role-specific suggestions on mount or role change
+  // Fetch role-specific suggestions and AI status on mount or role change
   useEffect(() => {
     const fetchSuggestions = async () => {
       try {
@@ -266,8 +276,20 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
       }
     };
 
+    const fetchStatus = async () => {
+      try {
+        const res = await api.get('/ai/status');
+        if (res.data) {
+          setAiStatus(res.data);
+        }
+      } catch {
+        setAiStatus(null);
+      }
+    };
+
     if (isOpen) {
       fetchSuggestions();
+      fetchStatus();
       setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
@@ -303,6 +325,9 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
     const userMsg = { sender: 'user', text: q, timestamp: new Date().toLocaleTimeString() };
     setConversation((prev) => [...prev, userMsg]);
     setQuery('');
+    if (inputRef.current) {
+      inputRef.current.style.height = 'auto';
+    }
     setLoading(true);
 
     try {
@@ -329,11 +354,20 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
       setConversation((prev) => [...prev, errMsg]);
     } finally {
       setLoading(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
     }
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setQuery(e.target.value);
+    e.target.style.height = 'auto';
+    e.target.style.height = `${Math.min(e.target.scrollHeight, 130)}px`;
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleAsk(query);
     }
@@ -363,11 +397,12 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
           width: '560px',
           maxWidth: '92vw',
           height: '100%',
-          backgroundColor: '#ffffff',
-          boxShadow: '-10px 0 35px rgba(0, 0, 0, 0.2)',
+          backgroundColor: 'var(--card-bg, #111827)',
+          boxShadow: '-10px 0 35px rgba(0, 0, 0, 0.4)',
           display: 'flex',
           flexDirection: 'column',
           position: 'relative',
+          borderLeft: '1px solid var(--border-color, #374151)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -375,7 +410,7 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
         <div
           style={{
             padding: '18px 22px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -416,7 +451,32 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                 >
                   Role: {role}
                 </span>
-                <span style={{ fontSize: '11.5px', color: '#c7d2fe' }}>Role-Aware Security Active</span>
+                {aiStatus && (
+                  <span
+                    style={{
+                      fontSize: '10.5px',
+                      fontWeight: 600,
+                      background: aiStatus.gemini_connected ? 'rgba(34, 197, 94, 0.25)' : 'rgba(255, 255, 255, 0.15)',
+                      color: aiStatus.gemini_connected ? '#bbf7d0' : '#e0e7ff',
+                      padding: '1px 7px',
+                      borderRadius: '4px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                    title={aiStatus.gemini_connected ? `Google Gemini (${aiStatus.model}) connected` : 'Operating in offline rule-based mode'}
+                  >
+                    <span
+                      style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        background: aiStatus.gemini_connected ? '#4ade80' : '#cbd5e1',
+                      }}
+                    />
+                    {aiStatus.gemini_connected ? 'Gemini Flash' : 'Rule Engine'}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -464,7 +524,7 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
             flex: 1,
             overflowY: 'auto',
             padding: '20px',
-            backgroundColor: '#f8fafc',
+            backgroundColor: 'var(--bg-main, #0b0f19)',
             display: 'flex',
             flexDirection: 'column',
             gap: '16px',
@@ -477,8 +537,8 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                   width: '56px',
                   height: '56px',
                   borderRadius: '16px',
-                  background: '#ede9fe',
-                  color: '#6366f1',
+                  background: 'rgba(99, 102, 241, 0.15)',
+                  color: '#818cf8',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -487,17 +547,17 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
               >
                 <Sparkles size={28} />
               </div>
-              <h3 style={{ margin: '0 0 6px', fontSize: '17px', fontWeight: 700, color: '#1e293b' }}>
+              <h3 style={{ margin: '0 0 6px', fontSize: '17px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                 How can I assist your ERP workflow?
               </h3>
-              <p style={{ margin: '0 0 20px', fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 20px', fontSize: '13px', color: 'var(--text-muted, #94a3b8)', lineHeight: 1.5 }}>
                 Ask questions in natural English. The assistant queries real-time ERP tables respecting your{' '}
-                <strong>{role.toUpperCase()}</strong> permissions.
+                <strong style={{ color: 'var(--text-main, #f8fafc)' }}>{role.toUpperCase()}</strong> permissions.
               </p>
 
               {/* Suggestions Chips */}
               <div style={{ textAlign: 'left', marginTop: '16px' }}>
-                <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>
+                <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-muted, #94a3b8)', marginBottom: '8px' }}>
                   SUGGESTED QUERIES FOR YOUR ROLE:
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -508,25 +568,25 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                       style={{
                         textAlign: 'left',
                         padding: '10px 14px',
-                        background: '#ffffff',
-                        border: '1px solid #e2e8f0',
+                        background: 'var(--card-bg, #111827)',
+                        border: '1px solid var(--border-color, #374151)',
                         borderRadius: '10px',
                         fontSize: '13px',
-                        color: '#334155',
+                        color: 'var(--text-main, #e2e8f0)',
                         cursor: 'pointer',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         transition: 'all 0.15s ease',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                        boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = '#6366f1';
-                        e.currentTarget.style.backgroundColor = '#f5f3ff';
+                        e.currentTarget.style.borderColor = '#818cf8';
+                        e.currentTarget.style.backgroundColor = 'var(--card-sub-bg, #1f2937)';
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor = '#e2e8f0';
-                        e.currentTarget.style.backgroundColor = '#ffffff';
+                        e.currentTarget.style.borderColor = 'var(--border-color, #374151)';
+                        e.currentTarget.style.backgroundColor = 'var(--card-bg, #111827)';
                       }}
                     >
                       <span>{prompt}</span>
@@ -573,11 +633,11 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                   style={{
                     alignSelf: 'flex-start',
                     width: '100%',
-                    backgroundColor: '#ffffff',
-                    border: `1px solid ${isAccessDenied ? '#fca5a5' : '#e2e8f0'}`,
+                    backgroundColor: 'var(--card-bg, #111827)',
+                    border: `1px solid ${isAccessDenied ? '#ef4444' : 'var(--border-color, #374151)'}`,
                     borderRadius: '14px',
                     padding: '16px',
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                   }}
                 >
                   {/* Status header */}
@@ -591,22 +651,22 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       {isAccessDenied ? (
-                        <ShieldAlert size={16} style={{ color: '#dc2626' }} />
+                        <ShieldAlert size={16} style={{ color: '#ef4444' }} />
                       ) : (
-                        <ShieldCheck size={16} style={{ color: '#16a34a' }} />
+                        <ShieldCheck size={16} style={{ color: '#10b981' }} />
                       )}
                       <span
                         style={{
                           fontSize: '11px',
                           fontWeight: 700,
                           textTransform: 'uppercase',
-                          color: isAccessDenied ? '#dc2626' : '#16a34a',
+                          color: isAccessDenied ? '#ef4444' : '#10b981',
                         }}
                       >
                         {isAccessDenied ? 'Permission Restricted' : 'ERP Intelligence Result'}
                       </span>
                     </div>
-                    <span style={{ fontSize: '10.5px', color: '#94a3b8' }}>{msg.timestamp}</span>
+                    <span style={{ fontSize: '10.5px', color: 'var(--text-muted, #94a3b8)' }}>{msg.timestamp}</span>
                   </div>
 
                   {/* Direct Answer Structured Render */}
@@ -620,20 +680,20 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                         gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 110px), 1fr))',
                         gap: '8px',
                         marginBottom: '12px',
-                        background: '#f8fafc',
+                        background: 'var(--card-sub-bg, #1f2937)',
                         padding: '10px',
                         borderRadius: '8px',
-                        border: '1px solid #edf2f7',
+                        border: '1px solid var(--border-color, #374151)',
                       }}
                     >
                       {data.data_summary.metrics.map((m: any, mIdx: number) => (
                         <div key={mIdx}>
-                          <div style={{ fontSize: '11px', color: '#64748b' }}>{m.label}</div>
+                          <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)' }}>{m.label}</div>
                           <div
                             style={{
                               fontSize: '15px',
                               fontWeight: 800,
-                              color: m.color || '#0f172a',
+                              color: m.color || 'var(--text-main, #f8fafc)',
                               marginTop: '2px',
                             }}
                           >
@@ -649,14 +709,14 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                     <div
                       style={{
                         overflowX: 'auto',
-                        border: '1px solid #e2e8f0',
+                        border: '1px solid var(--border-color, #374151)',
                         borderRadius: '8px',
                         marginBottom: '12px',
                       }}
                     >
                       <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
                         <thead>
-                          <tr style={{ background: '#f1f5f9', color: '#475569', textAlign: 'left' }}>
+                          <tr style={{ background: 'var(--card-sub-bg, #1f2937)', color: 'var(--text-muted, #94a3b8)', textAlign: 'left' }}>
                             {(data.data_summary.columns || []).map((col: any) => (
                               <th key={col.key} style={{ padding: '7px 10px', fontWeight: 600 }}>
                                 {col.label}
@@ -669,12 +729,12 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                             <tr
                               key={rIdx}
                               style={{
-                                borderTop: '1px solid #f1f5f9',
-                                background: rIdx % 2 === 0 ? '#ffffff' : '#fcfcfc',
+                                borderTop: '1px solid var(--border-color, #374151)',
+                                background: rIdx % 2 === 0 ? 'var(--card-bg, #111827)' : 'var(--card-sub-bg, #1a2234)',
                               }}
                             >
                               {(data.data_summary.columns || []).map((col: any) => (
-                                <td key={col.key} style={{ padding: '7px 10px', color: '#334155' }}>
+                                <td key={col.key} style={{ padding: '7px 10px', color: 'var(--text-main, #e2e8f0)' }}>
                                   {row[col.key] !== undefined ? String(row[col.key]) : '—'}
                                 </td>
                               ))}
@@ -707,6 +767,9 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                             fontSize: '11.5px',
                             padding: '4px 8px',
                             borderRadius: '6px',
+                            background: 'var(--card-sub-bg, #1f2937)',
+                            color: 'var(--text-main, #f8fafc)',
+                            border: '1px solid var(--border-color, #374151)',
                           }}
                         >
                           {act.action_type === 'navigate' ? <ExternalLink size={12} /> : <Search size={12} />}
@@ -721,9 +784,9 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
                     style={{
                       marginTop: '10px',
                       paddingTop: '8px',
-                      borderTop: '1px solid #f1f5f9',
+                      borderTop: '1px solid var(--border-color, #374151)',
                       fontSize: '10.5px',
-                      color: '#94a3b8',
+                      color: 'var(--text-muted, #94a3b8)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
@@ -741,15 +804,15 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
             <div
               style={{
                 alignSelf: 'flex-start',
-                backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
+                backgroundColor: 'var(--card-bg, #111827)',
+                border: '1px solid var(--border-color, #374151)',
                 borderRadius: '14px',
                 padding: '12px 18px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
                 fontSize: '13px',
-                color: '#6366f1',
+                color: '#818cf8',
               }}
             >
               <Sparkles size={16} className="animate-spin" />
@@ -760,75 +823,190 @@ export const AskErpDrawer: React.FC<AskErpDrawerProps> = ({ isOpen, onClose }) =
           <div ref={messagesEndRef} />
         </div>
 
-        {/* Input Bar */}
+        {/* Quick Suggestion Pills */}
         <div
           style={{
-            padding: '14px 20px',
-            borderTop: '1px solid #e2e8f0',
-            backgroundColor: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            overflowX: 'auto',
+            padding: '8px 20px 4px 20px',
+            borderTop: '1px solid var(--border-color)',
+            backgroundColor: 'var(--card-bg)',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
           }}
         >
+          {[
+            { label: '⚠️ High Risk Parts', q: 'tell me the details of high risk parts' },
+            { label: '📦 Parts With No Demand', q: 'how many parts have no demand' },
+            { label: '🔥 Top Demand Parts', q: 'which parts have high demand' },
+            { label: '⏳ Pending Invoices', q: 'which invoices are waiting for box mapping' },
+            { label: '⚡ SJOINT Demand', q: 'demand for SJOINT' },
+          ].map((pill, idx) => (
+            <button
+              key={idx}
+              onClick={() => handleAsk(pill.q)}
+              disabled={loading}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '5px 12px',
+                borderRadius: '20px',
+                fontSize: '11.5px',
+                fontWeight: 500,
+                background: 'var(--card-sub-bg)',
+                color: 'var(--text-main)',
+                border: '1px solid var(--border-color)',
+                whiteSpace: 'nowrap',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#2563eb';
+                e.currentTarget.style.transform = 'translateY(-1px)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'var(--border-color)';
+                e.currentTarget.style.transform = 'translateY(0)';
+              }}
+            >
+              {pill.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Gemini-Style Pill Capsule Input Area */}
+        <div
+          style={{
+            padding: '10px 20px 18px 20px',
+            backgroundColor: 'var(--card-bg)',
+            borderTop: '1px solid var(--border-color)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+          }}
+        >
+          {/* Pill Capsule Container */}
           <div
+            className={`ask-erp-pill ${isFocused ? 'focused' : ''}`}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
-              border: '1.5px solid #cbd5e1',
-              borderRadius: '12px',
-              padding: '6px 12px',
-              backgroundColor: '#f8fafc',
+              position: 'relative',
+              borderRadius: isFocused || query.length > 40 ? '24px' : '9999px',
+              padding: '6px 8px 6px 20px',
+              minHeight: '52px',
+              boxSizing: 'border-box',
             }}
           >
-            <Sparkles size={16} style={{ color: '#818cf8', flexShrink: 0 }} />
-            <input
+            {/* Input area */}
+            <textarea
               ref={inputRef}
-              type="text"
-              placeholder={`Ask anything about ERP (e.g. Invoices waiting for box mapping)...`}
+              rows={1}
+              placeholder="Ask anything..."
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={handleTextareaChange}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               disabled={loading}
+              className="ask-erp-textarea"
               style={{
                 flex: 1,
-                border: 'none',
-                outline: 'none',
-                background: 'transparent',
-                fontSize: '13.5px',
-                color: '#0f172a',
+                minHeight: '26px',
+                maxHeight: '120px',
+                fontSize: '15px',
+                lineHeight: '24px',
+                resize: 'none',
+                fontFamily: 'inherit',
+                padding: '2px 8px 2px 0',
+                boxSizing: 'border-box',
               }}
             />
+
+            {/* Clear Button (if text entered) */}
+            {query.trim().length > 0 && !loading && (
+              <button
+                onClick={() => {
+                  setQuery('');
+                  if (inputRef.current) inputRef.current.style.height = 'auto';
+                }}
+                title="Clear query"
+                className="ask-erp-clear-btn"
+                style={{
+                  marginRight: '6px',
+                }}
+              >
+                <X size={16} />
+              </button>
+            )}
+
+            {/* Circular Blue Action Button (Reference Gemini Style) */}
             <button
               onClick={() => handleAsk(query)}
               disabled={loading || !query.trim()}
+              title="Send question (Enter)"
               style={{
-                background: query.trim() ? '#4f46e5' : '#e2e8f0',
-                color: query.trim() ? '#ffffff' : '#94a3b8',
+                width: '40px',
+                height: '40px',
+                minWidth: '40px',
+                borderRadius: '50%',
                 border: 'none',
-                borderRadius: '8px',
-                width: '32px',
-                height: '32px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                cursor: query.trim() ? 'pointer' : 'default',
-                transition: 'all 0.15s ease',
+                cursor: query.trim() && !loading ? 'pointer' : 'default',
+                background: query.trim()
+                  ? 'linear-gradient(135deg, #1a73e8 0%, #2563eb 100%)'
+                  : 'var(--border-color)',
+                color: query.trim() ? '#ffffff' : 'var(--text-muted)',
+                boxShadow: query.trim()
+                  ? '0 4px 12px rgba(37, 99, 235, 0.4)'
+                  : 'none',
+                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                transform: query.trim() && !loading ? 'scale(1)' : 'scale(0.94)',
+              }}
+              onMouseEnter={(e) => {
+                if (query.trim() && !loading) {
+                  e.currentTarget.style.transform = 'scale(1.06)';
+                  e.currentTarget.style.background = '#1d4ed8';
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (query.trim() && !loading) {
+                  e.currentTarget.style.transform = 'scale(1)';
+                  e.currentTarget.style.background = 'linear-gradient(135deg, #1a73e8 0%, #2563eb 100%)';
+                }
               }}
             >
-              <Send size={14} />
+              {loading ? (
+                <Loader2 size={18} className="animate-spin" />
+              ) : (
+                <ArrowUp size={20} strokeWidth={2.5} />
+              )}
             </button>
           </div>
+
+          {/* Micro Helper Bar */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginTop: '6px',
+              padding: '0 8px',
               fontSize: '11px',
-              color: '#94a3b8',
+              color: 'var(--text-muted)',
+              opacity: 0.85,
             }}
           >
-            <span>Press Enter to send</span>
-            <span>Shortcut: Ctrl + K</span>
+            <span>
+              Press <kbd style={{ padding: '1px 5px', borderRadius: '4px', background: 'var(--card-sub-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontSize: '10px' }}>Enter</kbd> to send · <kbd style={{ padding: '1px 5px', borderRadius: '4px', background: 'var(--card-sub-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontSize: '10px' }}>Shift+Enter</kbd> for newline
+            </span>
+            <span>
+              Shortcut: <kbd style={{ padding: '1px 5px', borderRadius: '4px', background: 'var(--card-sub-bg)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontSize: '10px' }}>Ctrl + K</kbd>
+            </span>
           </div>
         </div>
       </div>

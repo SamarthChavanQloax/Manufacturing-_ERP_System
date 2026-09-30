@@ -33,16 +33,26 @@ export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string 
   // Deduce target page from notification type and entity_type
   const type = (n.type || '').toUpperCase();
   const entityType = (n.entity_type || '').toLowerCase();
-  const entityId = n.entity_id ? encodeURIComponent(n.entity_id) : '';
+  const entityId = (n.entity_id || '').trim();
+  // Invoice notifications should always route to invoice mapping or invoice view
+  if (type.includes('INVOICE') || entityType === 'invoice') {
+    if (n.action_url && n.action_url.startsWith('/add_box_to_invoice/')) {
+      return n.action_url;
+    }
+    if (n.metadata?.invoice?.id) {
+      return `/add_box_to_invoice/${n.metadata.invoice.id}`;
+    }
+    return '/view_invoice';
+  }
 
   if (
-    type.includes('RISK') ||
     type.includes('GATE') ||
     type.includes('BARCODE') ||
     type.includes('SCAN') ||
     type.includes('DUPLICATE') ||
     entityType === 'gate_risk' ||
-    entityType === 'gate'
+    entityType === 'gate' ||
+    (type.includes('RISK') && !type.includes('INVOICE'))
   ) {
     return entityId ? `/ai_gate_risk?search=${entityId}` : '/ai_gate_risk';
   }
@@ -53,10 +63,6 @@ export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string 
 
   if (type.includes('SECURITY') || type.includes('ANOMALY') || entityType === 'security' || entityType === 'anomaly') {
     return entityId ? `/ai_security?search=${entityId}` : '/ai_security';
-  }
-
-  if (type.includes('INVOICE') || entityType === 'invoice') {
-    return '/view_invoice';
   }
 
   if (type.includes('BOX') || entityType === 'box') {

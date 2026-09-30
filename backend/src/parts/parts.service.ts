@@ -39,7 +39,7 @@ export class PartsService {
   async getAllSimple(): Promise<Part[]> {
     const parts = await this.partRepo.find({
       select: ['id', 'part_number', 'part_description', 'qty'],
-      order: { part_number: 'ASC' },
+      order: { id: 'DESC' },
     });
     return parts.map((p) => ({
       ...p,

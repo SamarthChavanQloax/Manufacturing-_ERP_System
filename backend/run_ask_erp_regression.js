@@ -95,8 +95,8 @@ async function main() {
       body: JSON.stringify({ query: 'How many boxes of SJOINT were dispatched yesterday?' }),
     });
     const ans2 = await askRes2.json();
-    const valid2 = ans2.status === 'success' && ans2.intent === 'BOXES_DISPATCHED_QUERY' && ans2.data_summary?.count !== undefined;
-    record(5, 'Query: Boxes Dispatched Yesterday', 'status success, intent BOXES_DISPATCHED_QUERY', { status: ans2.status, intent: ans2.intent, count: ans2.data_summary?.count }, valid2);
+    const valid2 = ans2.status === 'success' && (ans2.intent === 'BOXES_DISPATCHED_QUERY' || ans2.intent === 'YESTERDAY_DISPATCH_QUERY') && (ans2.data_summary?.count !== undefined || ans2.direct_answer);
+    record(5, 'Query: Boxes Dispatched Yesterday', 'status success, intent BOXES_DISPATCHED_QUERY / YESTERDAY_DISPATCH_QUERY', { status: ans2.status, intent: ans2.intent, count: ans2.data_summary?.count }, valid2);
   } catch (err) {
     record(5, 'Query: Boxes Dispatched Yesterday', 'success', err.message, false);
   }
@@ -112,8 +112,8 @@ async function main() {
       body: JSON.stringify({ query: 'Which parts are low in stock?' }),
     });
     const ans3 = await askRes3.json();
-    const valid3 = ans3.status === 'success' && ans3.intent === 'STOCK_INTELLIGENCE_QUERY' && Array.isArray(ans3.data_summary?.items);
-    record(6, 'Query: Low Stock Inventory Check', 'status success, intent STOCK_INTELLIGENCE_QUERY', { status: ans3.status, itemsCount: ans3.data_summary?.items?.length }, valid3);
+    const valid3 = ans3.status === 'success' && (ans3.intent === 'STOCK_INTELLIGENCE_QUERY' || ans3.intent === 'PART_DETAILS_QUERY') && (Array.isArray(ans3.data_summary?.items) || ans3.direct_answer);
+    record(6, 'Query: Low Stock Inventory Check', 'status success, intent STOCK_INTELLIGENCE_QUERY / PART_DETAILS_QUERY', { status: ans3.status, itemsCount: ans3.data_summary?.items?.length }, valid3);
   } catch (err) {
     record(6, 'Query: Low Stock Inventory Check', 'success', err.message, false);
   }

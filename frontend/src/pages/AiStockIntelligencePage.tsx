@@ -78,11 +78,11 @@ export const AiStockIntelligencePage: React.FC = () => {
   return (
     <div>
       <div className="content-header">
-        <h1>AI Stock Intelligence</h1>
+        <h1 style={{ color: 'var(--text-main)' }}>AI Stock Intelligence</h1>
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Operations Intelligence</span>
+          <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>Operations Intelligence</span>
         </div>
       </div>
 
@@ -97,27 +97,27 @@ export const AiStockIntelligencePage: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: '14px',
-              backgroundColor: highRiskCount > 0 ? '#fee2e2' : mediumRiskCount > 0 ? '#fef3c7' : '#dcfce7',
-              border: `1px solid ${highRiskCount > 0 ? '#fca5a5' : mediumRiskCount > 0 ? '#fde047' : '#86efac'}`,
-              color: highRiskCount > 0 ? '#991b1b' : mediumRiskCount > 0 ? '#854d0e' : '#166534',
+              backgroundColor: highRiskCount > 0 ? 'rgba(239, 68, 68, 0.12)' : mediumRiskCount > 0 ? 'rgba(245, 158, 11, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+              border: `1px solid ${highRiskCount > 0 ? 'rgba(239, 68, 68, 0.35)' : mediumRiskCount > 0 ? 'rgba(245, 158, 11, 0.35)' : 'rgba(16, 185, 129, 0.35)'}`,
+              color: 'var(--text-main)',
             }}
           >
             {highRiskCount > 0 ? (
-              <AlertCircle size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+              <AlertCircle size={28} color="#ef4444" style={{ flexShrink: 0 }} />
             ) : mediumRiskCount > 0 ? (
-              <AlertCircle size={28} color="#d97706" style={{ flexShrink: 0 }} />
+              <AlertCircle size={28} color="#f59e0b" style={{ flexShrink: 0 }} />
             ) : (
-              <CheckCircle size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+              <CheckCircle size={28} color="#10b981" style={{ flexShrink: 0 }} />
             )}
             <div>
-              <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+              <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: highRiskCount > 0 ? '#ef4444' : mediumRiskCount > 0 ? '#f59e0b' : '#10b981' }}>
                 {highRiskCount > 0
                   ? '🚨 Urgent Action Needed: Stock Shortage Detected!'
                   : mediumRiskCount > 0
                   ? '⚠️ Attention: Some parts are depleting soon'
                   : '✅ All Stock is Safe & Available (No Shortage)'}
               </h4>
-              <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-main)', opacity: 0.9 }}>
                 {highRiskCount > 0
                   ? `${highRiskCount} part(s) have higher demand than current stock. Immediate production is recommended.`
                   : mediumRiskCount > 0
@@ -130,33 +130,33 @@ export const AiStockIntelligencePage: React.FC = () => {
 
         {/* KPI Summary Cards */}
         <div style={{ display: 'flex', gap: '20px', marginBottom: '24px', flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#fee2e2', padding: '20px', borderRadius: '8px', border: '1px solid #fecaca' }}>
-            <h3 style={{ margin: '0 0 8px 0', color: '#991b1b', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'rgba(239, 68, 68, 0.08)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(239, 68, 68, 0.25)' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#ef4444', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertCircle size={18} /> High Risk Parts
             </h3>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#7f1d1d' }}>{loading ? '-' : highRiskCount}</p>
-            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: '#991b1b' }}>Requires immediate production</p>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#ef4444' }}>{loading ? '-' : highRiskCount}</p>
+            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: 'var(--text-muted)' }}>Requires immediate production</p>
           </div>
           
-          <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#fef3c7', padding: '20px', borderRadius: '8px', border: '1px solid #fde68a' }}>
-            <h3 style={{ margin: '0 0 8px 0', color: '#b45309', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'rgba(245, 158, 11, 0.08)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(245, 158, 11, 0.25)' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#f59e0b', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <AlertCircle size={18} /> Medium Risk Parts
             </h3>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#92400e' }}>{loading ? '-' : mediumRiskCount}</p>
-            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: '#b45309' }}>Depleting within 45 days</p>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#f59e0b' }}>{loading ? '-' : mediumRiskCount}</p>
+            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: 'var(--text-muted)' }}>Depleting within 45 days</p>
           </div>
 
-          <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#dcfce7', padding: '20px', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-            <h3 style={{ margin: '0 0 8px 0', color: '#166534', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'rgba(16, 185, 129, 0.08)', padding: '20px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.25)' }}>
+            <h3 style={{ margin: '0 0 8px 0', color: '#10b981', fontSize: '15px', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <CheckCircle size={18} /> Safe & In-Stock Parts
             </h3>
-            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#14532d' }}>
+            <p style={{ fontSize: '28px', fontWeight: 'bold', margin: 0, color: '#10b981' }}>
               {loading ? '-' : insights.filter(i => i.risk_level === 'LOW').length}
             </p>
-            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: '#166534' }}>Plenty of stock in factory</p>
+            <p style={{ fontSize: '13px', margin: '4px 0 0 0', color: 'var(--text-muted)' }}>Plenty of stock in factory</p>
           </div>
 
-          <div style={{ flex: 1, minWidth: '200px', backgroundColor: '#f3f4f6', padding: '20px', borderRadius: '8px', border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <div style={{ flex: 1, minWidth: '200px', backgroundColor: 'var(--card-sub-bg)', padding: '20px', borderRadius: '8px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
             <button 
               onClick={handleExportPdf}
               className="btn btn-primary"
@@ -165,7 +165,7 @@ export const AiStockIntelligencePage: React.FC = () => {
               <Download size={18} />
               Download Production Plan
             </button>
-            <p style={{ fontSize: '12px', margin: '8px 0 0 0', color: '#6b7280', textAlign: 'center' }}>
+            <p style={{ fontSize: '12px', margin: '8px 0 0 0', color: 'var(--text-muted)', textAlign: 'center' }}>
               Exports only parts with projected shortages
             </p>
           </div>
@@ -178,27 +178,27 @@ export const AiStockIntelligencePage: React.FC = () => {
               <BarChart2 size={20} color="#3b82f6" />
               <h3 className="card-title" style={{ margin: 0 }}>Top 5 High-Risk Parts: Stock vs Demand Trend</h3>
             </div>
-            <span style={{ fontSize: '12px', color: '#166534', backgroundColor: '#dcfce7', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>
+            <span style={{ fontSize: '12px', color: 'var(--text-main)', backgroundColor: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>
               🟢 Green = What is currently in stock | 🟠 Orange = What customers will need
             </span>
           </div>
           <div className="card-body" style={{ height: '350px', padding: '20px' }}>
             {loading ? (
-              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>Loading AI Insights...</div>
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Loading AI Insights...</div>
             ) : insights.length === 0 ? (
-              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: '#6b7280' }}>No data available</div>
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No data available</div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                   data={insights.slice(0, 5)}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e5e7eb" />
-                  <XAxis dataKey="part_number" axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
-                  <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6b7280', fontSize: 12 }} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.08)" />
+                  <XAxis dataKey="part_number" axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 12 }} />
                   <Tooltip 
-                    cursor={{ fill: '#f3f4f6' }}
-                    contentStyle={{ borderRadius: '8px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}
+                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                    contentStyle={{ borderRadius: '8px', border: '1px solid var(--border-color, #374151)', background: 'var(--card-bg, #111827)', color: 'var(--text-main, #f9fafb)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.3)' }}
                   />
                   <Legend wrapperStyle={{ paddingTop: '20px' }} />
                   <Bar dataKey="current_stock" name="Current Stock" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={60} />
@@ -244,10 +244,10 @@ export const AiStockIntelligencePage: React.FC = () => {
                     insights.map((item) => (
                       <tr key={item.part_id}>
                         <td>
-                          <div style={{ fontWeight: 600, color: '#111827' }}>{item.part_number}</div>
-                          <div style={{ fontSize: '12px', color: '#6b7280' }}>{item.part_description}</div>
+                          <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{item.part_number}</div>
+                          <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{item.part_description}</div>
                         </td>
-                        <td style={{ fontWeight: 700, fontSize: '15px' }}>{item.current_stock} pcs</td>
+                        <td style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-main)' }}>{item.current_stock} pcs</td>
                         <td>
                           {item.current_stock > 0 ? (
                             <span

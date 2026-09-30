@@ -3,6 +3,7 @@ import { AiService } from './ai.service';
 import { GateRiskService } from './gate-risk.service';
 import { DailySecurityBriefingService } from './daily-security-briefing.service';
 import { AskErpService } from './ask-erp.service';
+import { GeminiService } from './gemini.service';
 import { JwtAuthGuard, RolesGuard } from '../auth/guards';
 import { Roles } from '../auth/roles.decorator';
 
@@ -14,6 +15,7 @@ export class AiController {
     private readonly gateRiskService: GateRiskService,
     private readonly briefingService: DailySecurityBriefingService,
     private readonly askErpService: AskErpService,
+    private readonly geminiService: GeminiService,
   ) {}
 
   @Get('stock-intelligence')
@@ -201,5 +203,30 @@ export class AiController {
       suggestions: this.askErpService.getSuggestedPrompts(role),
     };
   }
+
+  @Get('status')
+  @Roles('admin', 'gate', 'packing', 'box', 'invoice')
+  async getAiStatus() {
+    const isGeminiAvailable = this.geminiService.isAvailable();
+    return {
+      status: 'operational',
+      provider: isGeminiAvailable ? 'google_gemini' : 'internal_rule_engine',
+      gemini_connected: isGeminiAvailable,
+      model: isGeminiAvailable ? this.geminiService.getModelName() : 'offline_rule_engine',
+      features: {
+        natural_language_understanding: isGeminiAvailable,
+        semantic_query_parsing: true,
+        role_based_access_control: true,
+        audit_evidence_trail: true,
+      },
+    };
+  }
+
+  @Post('test-gemini')
+  @Roles('admin')
+  async testGemini() {
+    return this.geminiService.testConnection();
+  }
 }
+
 

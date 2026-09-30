@@ -67,10 +67,10 @@ export const AiSecurityPage: React.FC = () => {
 
   const getSeverityBg = (severity: string) => {
     switch (severity) {
-      case 'CRITICAL': return '#fef2f2';
-      case 'HIGH': return '#fff7ed';
-      case 'MEDIUM': return '#fefce8';
-      default: return '#eff6ff';
+      case 'CRITICAL': return 'rgba(239, 68, 68, 0.15)';
+      case 'HIGH': return 'rgba(249, 115, 22, 0.15)';
+      case 'MEDIUM': return 'rgba(234, 179, 8, 0.15)';
+      default: return 'rgba(59, 130, 246, 0.15)';
     }
   };
 
@@ -157,12 +157,12 @@ export const AiSecurityPage: React.FC = () => {
       {selectedAnomaly && (
         <div style={{
           position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, 
-          background: 'rgba(0,0,0,0.5)', zIndex: 1000, 
+          background: 'rgba(0,0,0,0.65)', zIndex: 1000, 
           display: 'flex', justifyContent: 'center', alignItems: 'center', backdropFilter: 'blur(4px)'
         }} onClick={() => setSelectedAnomaly(null)}>
           <div style={{ 
-            background: '#fff', borderRadius: '16px', padding: '32px', width: '550px', 
-            maxWidth: '90%', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' 
+            background: 'var(--card-bg, #111827)', borderRadius: '16px', padding: '32px', width: '550px', 
+            maxWidth: '90%', border: '1px solid var(--border-color, #374151)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)' 
           }} onClick={e => e.stopPropagation()}>
             
             <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start', marginBottom: '24px' }}>
@@ -170,43 +170,43 @@ export const AiSecurityPage: React.FC = () => {
                 {getIcon(selectedAnomaly.type)}
               </div>
               <div>
-                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: '#111827' }}>{selectedAnomaly.type}</h2>
+                <h2 style={{ margin: '0 0 4px 0', fontSize: '20px', color: 'var(--text-main, #f9fafb)' }}>{selectedAnomaly.type}</h2>
                 <div style={{ color: getSeverityColor(selectedAnomaly.severity), fontWeight: 600, fontSize: '13px' }}>
                   {selectedAnomaly.severity} RISK
                 </div>
               </div>
             </div>
 
-            <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '12px', textTransform: 'uppercase', color: '#6b7280', letterSpacing: '0.05em' }}>Incident Description</h4>
-              <p style={{ margin: 0, color: '#374151', fontSize: '14.5px', lineHeight: '1.6' }}>{selectedAnomaly.description}</p>
+            <div style={{ background: 'var(--card-sub-bg, #1f2937)', border: '1px solid var(--border-color, #374151)', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '12px', textTransform: 'uppercase', color: 'var(--text-muted, #9ca3af)', letterSpacing: '0.05em' }}>Incident Description</h4>
+              <p style={{ margin: 0, color: 'var(--text-main, #f9fafb)', fontSize: '14.5px', lineHeight: '1.6' }}>{selectedAnomaly.description}</p>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 180px), 1fr))', gap: '16px', marginBottom: '24px' }}>
               <div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Time of Occurrence</div>
-                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.timestamp}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Time of Occurrence</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '14px' }}>{selectedAnomaly.timestamp}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Involved Actor (User ID)</div>
-                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.actor_name}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Involved Actor (User ID)</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '14px' }}>{selectedAnomaly.actor_name}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Target Entity</div>
-                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.entity_id}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Target Entity</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '14px' }}>{selectedAnomaly.entity_id}</div>
               </div>
               <div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '4px' }}>Anomaly ID</div>
-                <div style={{ fontWeight: 600, color: '#111827', fontSize: '14px' }}>{selectedAnomaly.id}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '4px' }}>Anomaly ID</div>
+                <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '14px' }}>{selectedAnomaly.id}</div>
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: '20px', marginBottom: '24px' }}>
-              <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: '#111827', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ borderTop: '1px solid var(--border-color, #374151)', paddingTop: '20px', marginBottom: '24px' }}>
+              <h4 style={{ margin: '0 0 8px 0', fontSize: '14px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ShieldCheck size={16} color="#10b981" />
                 AI Recommended Action
               </h4>
-              <p style={{ margin: 0, color: '#4b5563', fontSize: '14px', lineHeight: '1.5', padding: '12px', background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px' }}>
+              <p style={{ margin: 0, color: 'var(--text-main)', fontSize: '14px', lineHeight: '1.5', padding: '12px', background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px' }}>
                 {getRecommendedAction(selectedAnomaly.type)}
               </p>
             </div>
@@ -214,8 +214,8 @@ export const AiSecurityPage: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button 
                 onClick={() => setSelectedAnomaly(null)}
-                className="btn" 
-                style={{ background: '#fff', border: '1px solid #d1d5db', padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+                className="btn btn-secondary" 
+                style={{ padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
               >
                 Close
               </button>
@@ -224,13 +224,13 @@ export const AiSecurityPage: React.FC = () => {
                 <div style={{ display: 'flex', gap: '8px' }}>
                   <button 
                     disabled
-                    style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#10b981', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}
                   >
                     <CheckCircle size={16} /> Investigation Complete
                   </button>
                   <button 
-                    className="btn" 
-                    style={{ background: '#fff', color: '#4b5563', border: '1px solid #d1d5db', padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500, fontSize: '13px' }}
+                    className="btn btn-secondary" 
+                    style={{ padding: '8px 14px', borderRadius: '6px', cursor: 'pointer', fontWeight: 500, fontSize: '13px' }}
                     onClick={handleReopenInvestigation}
                   >
                     Reopen Incident
@@ -261,11 +261,11 @@ export const AiSecurityPage: React.FC = () => {
       {/* Header Area */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: '#111827', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <h1 style={{ margin: 0, fontSize: '28px', fontWeight: 700, color: 'var(--text-main, #f9fafb)', display: 'flex', alignItems: 'center', gap: '12px' }}>
             <ShieldAlert size={32} color="#dc2626" />
             AI Security & Anomaly Detection
           </h1>
-          <p style={{ margin: '8px 0 0 0', color: '#4b5563', fontSize: '15px', maxWidth: '600px' }}>
+          <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted, #9ca3af)', fontSize: '15px', maxWidth: '600px' }}>
             Active Watcher AI is monitoring your ERP workflow for bypassed operations, off-hours activity, and fraudulent quantities.
           </p>
         </div>
@@ -290,39 +290,34 @@ export const AiSecurityPage: React.FC = () => {
             alignItems: 'center',
             gap: '14px',
             backgroundColor: anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
-              ? '#fee2e2'
+              ? 'rgba(239, 68, 68, 0.12)'
               : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
-              ? '#fef3c7'
-              : '#dcfce7',
+              ? 'rgba(245, 158, 11, 0.12)'
+              : 'rgba(16, 185, 129, 0.12)',
             border: `1px solid ${
               anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
-                ? '#fca5a5'
+                ? 'rgba(239, 68, 68, 0.35)'
                 : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
-                ? '#fde047'
-                : '#86efac'
+                ? 'rgba(245, 158, 11, 0.35)'
+                : 'rgba(16, 185, 129, 0.35)'
             }`,
-            color:
-              anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
-                ? '#991b1b'
-                : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
-                ? '#854d0e'
-                : '#166534',
+            color: 'var(--text-main)',
           }}
         >
           {anomalies.filter(a => (a.severity === 'CRITICAL' || a.severity === 'HIGH') && !completedIds.includes(a.id)).length > 0 ? (
-            <AlertTriangle size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+            <AlertTriangle size={28} color="#ef4444" style={{ flexShrink: 0 }} />
           ) : (
-            <CheckCircle size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+            <CheckCircle size={28} color="#10b981" style={{ flexShrink: 0 }} />
           )}
           <div>
-            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
+            <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0 ? '#ef4444' : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0 ? '#f59e0b' : '#10b981' }}>
               {anomalies.filter(a => a.severity === 'CRITICAL' && !completedIds.includes(a.id)).length > 0
                 ? '🚨 High Security Alert: Critical ERP Anomalies Detected'
                 : anomalies.filter(a => (a.severity === 'HIGH' || a.severity === 'MEDIUM') && !completedIds.includes(a.id)).length > 0
                 ? '⚠️ Security Attention Needed: Unresolved Anomalies Found'
                 : '✅ Security Status Safe: No Unauthorized Actions or Bypasses'}
             </h4>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-main)', opacity: 0.9 }}>
               {anomalies.filter(a => !completedIds.includes(a.id)).length > 0
                 ? `${anomalies.filter(a => !completedIds.includes(a.id)).length} event(s) require supervisor review (workflow bypass, off-hours activity, or unusual quantity).`
                 : 'All ERP actions, box packaging sequences, and operator dispatches are authorized and within standard factory compliance.'}
@@ -333,48 +328,48 @@ export const AiSecurityPage: React.FC = () => {
 
       {/* Stats Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '32px' }}>
-        <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-          <div style={{ color: '#6b7280', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Total Anomalies (7D)</div>
-          <div style={{ fontSize: '32px', fontWeight: 700, color: '#111827' }}>{anomalies.length}</div>
+        <div style={{ background: 'var(--card-sub-bg, #1f2937)', borderRadius: '12px', padding: '20px', border: '1px solid var(--border-color, #374151)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.2)' }}>
+          <div style={{ color: 'var(--text-muted, #9ca3af)', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Total Anomalies (7D)</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: 'var(--text-main, #f9fafb)' }}>{anomalies.length}</div>
         </div>
-        <div style={{ background: '#fef2f2', borderRadius: '12px', padding: '20px', border: '1px solid #fecaca', boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.1)' }}>
-          <div style={{ color: '#991b1b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Critical Threats</div>
-          <div style={{ fontSize: '32px', fontWeight: 700, color: '#dc2626' }}>
+        <div style={{ background: 'rgba(239, 68, 68, 0.08)', borderRadius: '12px', padding: '20px', border: '1px solid rgba(239, 68, 68, 0.25)', boxShadow: '0 4px 6px -1px rgba(220, 38, 38, 0.1)' }}>
+          <div style={{ color: '#ef4444', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Critical Threats</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#ef4444' }}>
             {anomalies.filter(a => a.severity === 'CRITICAL').length}
           </div>
         </div>
-        <div style={{ background: '#fff7ed', borderRadius: '12px', padding: '20px', border: '1px solid #fed7aa', boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.1)' }}>
-          <div style={{ color: '#9a3412', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>High Risk Flags</div>
-          <div style={{ fontSize: '32px', fontWeight: 700, color: '#ea580c' }}>
+        <div style={{ background: 'rgba(245, 158, 11, 0.08)', borderRadius: '12px', padding: '20px', border: '1px solid rgba(245, 158, 11, 0.25)', boxShadow: '0 4px 6px -1px rgba(234, 88, 12, 0.1)' }}>
+          <div style={{ color: '#f59e0b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>High Risk Flags</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#f59e0b' }}>
             {anomalies.filter(a => a.severity === 'HIGH').length}
           </div>
         </div>
-        <div style={{ background: '#ecfdf5', borderRadius: '12px', padding: '20px', border: '1px solid #a7f3d0', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)' }}>
-          <div style={{ color: '#065f46', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Resolved Incidents</div>
-          <div style={{ fontSize: '32px', fontWeight: 700, color: '#059669' }}>
+        <div style={{ background: 'rgba(16, 185, 129, 0.08)', borderRadius: '12px', padding: '20px', border: '1px solid rgba(16, 185, 129, 0.25)', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)' }}>
+          <div style={{ color: '#10b981', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', marginBottom: '8px' }}>Resolved Incidents</div>
+          <div style={{ fontSize: '32px', fontWeight: 700, color: '#10b981' }}>
             {anomalies.filter(a => completedIds.includes(a.id)).length}
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e5e7eb', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.05)' }}>
+      <div style={{ background: 'var(--card-bg, #111827)', borderRadius: '16px', border: '1px solid var(--border-color, #374151)', overflow: 'hidden', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)' }}>
         
         {/* Toolbar */}
-        <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f9fafb' }}>
+        <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color, #374151)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--card-sub-bg, #1f2937)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
-            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#374151' }}>Security Log</h2>
+            <h2 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-main, #f9fafb)' }}>Security Log</h2>
             
-            <div style={{ display: 'flex', background: '#e5e7eb', padding: '4px', borderRadius: '8px', gap: '4px' }}>
+            <div style={{ display: 'flex', background: 'var(--input-bg, #111827)', padding: '4px', borderRadius: '8px', gap: '4px', border: '1px solid var(--border-color, #374151)' }}>
               {(['ALL', 'PENDING', 'INVESTIGATING', 'RESOLVED'] as const).map(filter => (
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
                   style={{
-                    background: activeFilter === filter ? '#fff' : 'transparent',
+                    background: activeFilter === filter ? 'var(--card-sub-bg, #374151)' : 'transparent',
                     border: 'none',
-                    boxShadow: activeFilter === filter ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                    color: activeFilter === filter ? '#111827' : '#6b7280',
+                    boxShadow: activeFilter === filter ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                    color: activeFilter === filter ? 'var(--text-main, #f9fafb)' : 'var(--text-muted, #9ca3af)',
                     padding: '6px 16px',
                     borderRadius: '6px',
                     fontSize: '13px',
@@ -388,14 +383,14 @@ export const AiSecurityPage: React.FC = () => {
               ))}
             </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', background: '#fff', border: '1px solid #d1d5db', borderRadius: '8px', padding: '6px 12px', width: '250px' }}>
-            <Search size={16} color="#9ca3af" />
+          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--input-bg, #111827)', border: '1px solid var(--input-border, #4b5563)', borderRadius: '8px', padding: '6px 12px', width: '260px' }}>
+            <Search size={16} color="var(--text-muted, #9ca3af)" />
             <input 
               type="text" 
               placeholder="Search anomalies, users, IDs..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: '8px', width: '100%', fontSize: '14px' }}
+              style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: '8px', width: '100%', fontSize: '14px', color: 'var(--text-main, #f9fafb)' }}
             />
           </div>
         </div>
@@ -403,19 +398,19 @@ export const AiSecurityPage: React.FC = () => {
         {/* List */}
         <div style={{ padding: '0' }}>
           {loading ? (
-            <div style={{ padding: '48px', textAlign: 'center', color: '#6b7280' }}>Running deep scan algorithms...</div>
+            <div style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted, #9ca3af)' }}>Running deep scan algorithms...</div>
           ) : filtered.length === 0 ? (
             <div style={{ padding: '64px 24px', textAlign: 'center' }}>
               <ShieldCheck size={48} color="#10b981" style={{ margin: '0 auto 16px auto', display: 'block' }} />
-              <h3 style={{ margin: '0 0 8px 0', color: '#111827', fontSize: '18px' }}>No Anomalies Detected</h3>
-              <p style={{ margin: 0, color: '#6b7280' }}>Your ERP workflow operations are running smoothly without suspicious patterns.</p>
+              <h3 style={{ margin: '0 0 8px 0', color: 'var(--text-main, #f9fafb)', fontSize: '18px' }}>No Anomalies Detected</h3>
+              <p style={{ margin: 0, color: 'var(--text-muted, #9ca3af)' }}>Your ERP workflow operations are running smoothly without suspicious patterns.</p>
             </div>
           ) : (
             <div>
               {filtered.map(anomaly => (
                 <div key={anomaly.id} style={{ 
                   padding: '20px 24px', 
-                  borderBottom: '1px solid #e5e7eb',
+                  borderBottom: '1px solid var(--border-color, #374151)',
                   display: 'flex',
                   gap: '20px',
                   alignItems: 'flex-start',
@@ -423,7 +418,7 @@ export const AiSecurityPage: React.FC = () => {
                   cursor: 'pointer'
                 }}
                 onClick={() => setSelectedAnomaly(anomaly)}
-                onMouseEnter={(e) => (e.currentTarget.style.background = '#f9fafb')}
+                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--card-sub-bg, rgba(255,255,255,0.03))')}
                 onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                 >
                   <div style={{ 
@@ -440,14 +435,14 @@ export const AiSecurityPage: React.FC = () => {
                   
                   <div style={{ flex: 1 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: '#111827' }}>{anomaly.type}</h4>
-                      <span style={{ fontSize: '13px', color: '#6b7280', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-main, #f9fafb)' }}>{anomaly.type}</h4>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
                         <Clock size={14} />
                         {anomaly.timestamp}
                       </span>
                     </div>
                     
-                    <p style={{ margin: '0 0 12px 0', color: '#374151', fontSize: '14.5px', lineHeight: '1.5' }}>
+                    <p style={{ margin: '0 0 12px 0', color: 'var(--text-main, #e5e7eb)', fontSize: '14.5px', lineHeight: '1.5' }}>
                       {anomaly.description}
                     </p>
                     
@@ -456,11 +451,11 @@ export const AiSecurityPage: React.FC = () => {
                         <span style={{ 
                           fontSize: '12px', 
                           fontWeight: 600, 
-                          color: '#059669',
-                          background: '#ecfdf5',
+                          color: '#10b981',
+                          background: 'rgba(16, 185, 129, 0.12)',
                           padding: '4px 10px',
                           borderRadius: '20px',
-                          border: `1px solid #05966940`,
+                          border: '1px solid rgba(16, 185, 129, 0.3)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px'
@@ -472,11 +467,11 @@ export const AiSecurityPage: React.FC = () => {
                         <span style={{ 
                           fontSize: '12px', 
                           fontWeight: 600, 
-                          color: '#ea580c',
-                          background: '#fff7ed',
+                          color: '#f59e0b',
+                          background: 'rgba(245, 158, 11, 0.12)',
                           padding: '4px 10px',
                           borderRadius: '20px',
-                          border: `1px solid #ea580c40`,
+                          border: '1px solid rgba(245, 158, 11, 0.3)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px'
@@ -498,10 +493,10 @@ export const AiSecurityPage: React.FC = () => {
                         </span>
                       )}
                       
-                      <span style={{ fontSize: '13px', color: '#4b5563', background: '#f3f4f6', padding: '4px 10px', borderRadius: '6px', fontWeight: 500 }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', background: 'var(--card-sub-bg, rgba(255, 255, 255, 0.06))', padding: '4px 10px', borderRadius: '6px', fontWeight: 500, border: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' }}>
                         Actor: {anomaly.actor_name}
                       </span>
-                      <span style={{ fontSize: '13px', color: '#4b5563', background: '#f3f4f6', padding: '4px 10px', borderRadius: '6px', fontWeight: 500 }}>
+                      <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', background: 'var(--card-sub-bg, rgba(255, 255, 255, 0.06))', padding: '4px 10px', borderRadius: '6px', fontWeight: 500, border: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' }}>
                         Entity: {anomaly.entity_id}
                       </span>
                     </div>

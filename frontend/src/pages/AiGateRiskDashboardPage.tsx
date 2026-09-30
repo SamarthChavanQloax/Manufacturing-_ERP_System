@@ -135,22 +135,22 @@ export const AiGateRiskDashboardPage: React.FC = () => {
   const getRiskColor = (lvl: string) => {
     switch (lvl) {
       case 'HIGH':
-        return '#dc2626';
+        return '#f87171';
       case 'MEDIUM':
-        return '#d97706';
+        return '#fbbf24';
       default:
-        return '#16a34a';
+        return '#34d399';
     }
   };
 
   const getRiskBg = (lvl: string) => {
     switch (lvl) {
       case 'HIGH':
-        return '#fef2f2';
+        return 'rgba(239, 68, 68, 0.15)';
       case 'MEDIUM':
-        return '#fffbeb';
+        return 'rgba(245, 158, 11, 0.15)';
       default:
-        return '#f0fdf4';
+        return 'rgba(16, 185, 129, 0.15)';
     }
   };
 
@@ -191,8 +191,8 @@ export const AiGateRiskDashboardPage: React.FC = () => {
               width: '40px',
               height: '40px',
               borderRadius: '10px',
-              background: '#eff6ff',
-              color: '#2563eb',
+              background: 'rgba(59, 130, 246, 0.15)',
+              color: '#3b82f6',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -201,10 +201,10 @@ export const AiGateRiskDashboardPage: React.FC = () => {
             <ShieldAlert size={24} />
           </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+            <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
               AI Gate Risk Analysis & Security Hub
             </h1>
-            <p style={{ margin: '2px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+            <p style={{ margin: '2px 0 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>
               Real-time anomaly scoring, dispatch pattern validation, and supervisor review audit trail.
             </p>
           </div>
@@ -245,31 +245,31 @@ export const AiGateRiskDashboardPage: React.FC = () => {
             gap: '14px',
             backgroundColor:
               (summary?.high_risk_count || 0) > 0
-                ? '#fee2e2'
+                ? 'rgba(239, 68, 68, 0.12)'
                 : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
-                ? '#fef3c7'
-                : '#dcfce7',
+                ? 'rgba(245, 158, 11, 0.12)'
+                : 'rgba(16, 185, 129, 0.12)',
             border: `1px solid ${
               (summary?.high_risk_count || 0) > 0
-                ? '#fca5a5'
+                ? 'rgba(239, 68, 68, 0.3)'
                 : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
-                ? '#fde047'
-                : '#86efac'
+                ? 'rgba(245, 158, 11, 0.3)'
+                : 'rgba(16, 185, 129, 0.3)'
             }`,
             color:
               (summary?.high_risk_count || 0) > 0
-                ? '#991b1b'
+                ? '#f87171'
                 : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0
-                ? '#854d0e'
-                : '#166534',
+                ? '#fbbf24'
+                : '#34d399',
           }}
         >
           {(summary?.high_risk_count || 0) > 0 ? (
-            <ShieldAlert size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+            <ShieldAlert size={28} color="#ef4444" style={{ flexShrink: 0 }} />
           ) : (summary?.medium_risk_count || 0) > 0 || (summary?.pending_review_count || 0) > 0 ? (
-            <AlertTriangle size={28} color="#d97706" style={{ flexShrink: 0 }} />
+            <AlertTriangle size={28} color="#f59e0b" style={{ flexShrink: 0 }} />
           ) : (
-            <ShieldCheck size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+            <ShieldCheck size={28} color="#10b981" style={{ flexShrink: 0 }} />
           )}
           <div>
             <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
@@ -279,7 +279,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                 ? '⚠️ Gate Passes Under Observation / Pending Supervisor Review'
                 : '✅ Gate Security Safe: All Dispatches Verified & Approved'}
             </h4>
-            <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+            <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-main, #e2e8f0)', opacity: 0.9 }}>
               {(summary?.high_risk_count || 0) > 0
                 ? `${summary?.high_risk_count} gate pass(es) have high risk scores (unmatched boxes, off-hour dispatches, or barcode mismatch). Hold gate exit until reviewed.`
                 : (summary?.pending_review_count || 0) > 0
@@ -300,40 +300,40 @@ export const AiGateRiskDashboardPage: React.FC = () => {
         >
           <div
             style={{
-              background: '#ffffff',
+              background: 'var(--card-bg, #111827)',
               borderRadius: '12px',
               padding: '18px 20px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+              border: '1px solid var(--border-color, #374151)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
           >
-            <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>
               Total Gate Scans
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', marginTop: '6px' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--text-main, #f8fafc)', marginTop: '6px' }}>
               {summary?.total_analyzed || 0}
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', marginTop: '4px' }}>
               Avg Risk Score: <strong>{summary?.average_risk_score || 0} / 100</strong>
             </div>
           </div>
 
           <div
             style={{
-              background: '#f0fdf4',
+              background: 'rgba(16, 185, 129, 0.08)',
               borderRadius: '12px',
               padding: '18px 20px',
-              border: '1px solid #bbf7d0',
-              boxShadow: '0 2px 4px rgba(22, 163, 74, 0.05)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              boxShadow: '0 2px 4px rgba(16, 185, 129, 0.1)',
             }}
           >
-            <div style={{ fontSize: '12px', color: '#166534', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: '#10b981', fontWeight: 700, textTransform: 'uppercase' }}>
               Low Risk (Normal)
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#16a34a', marginTop: '6px' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#10b981', marginTop: '6px' }}>
               {summary?.low_risk_count || 0}
             </div>
-            <div style={{ fontSize: '12px', color: '#166534', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: '#34d399', marginTop: '4px' }}>
               {summary?.total_analyzed
                 ? `${Math.round(((summary.low_risk_count || 0) / summary.total_analyzed) * 100)}% of total`
                 : '0%'}
@@ -342,40 +342,40 @@ export const AiGateRiskDashboardPage: React.FC = () => {
 
           <div
             style={{
-              background: '#fffbeb',
+              background: 'rgba(245, 158, 11, 0.08)',
               borderRadius: '12px',
               padding: '18px 20px',
-              border: '1px solid #fde68a',
-              boxShadow: '0 2px 4px rgba(217, 119, 6, 0.05)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              boxShadow: '0 2px 4px rgba(245, 158, 11, 0.1)',
             }}
           >
-            <div style={{ fontSize: '12px', color: '#92400e', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase' }}>
               Medium Risk (Review)
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#d97706', marginTop: '6px' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#f59e0b', marginTop: '6px' }}>
               {summary?.medium_risk_count || 0}
             </div>
-            <div style={{ fontSize: '12px', color: '#92400e', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: '#fbbf24', marginTop: '4px' }}>
               Advisory Signals Flagged
             </div>
           </div>
 
           <div
             style={{
-              background: '#fef2f2',
+              background: 'rgba(239, 68, 68, 0.08)',
               borderRadius: '12px',
               padding: '18px 20px',
-              border: '1px solid #fecaca',
-              boxShadow: '0 2px 4px rgba(220, 38, 38, 0.05)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.1)',
             }}
           >
-            <div style={{ fontSize: '12px', color: '#991b1b', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '12px', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase' }}>
               High Risk Dispatches
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, color: '#dc2626', marginTop: '6px' }}>
+            <div style={{ fontSize: '28px', fontWeight: 800, color: '#ef4444', marginTop: '6px' }}>
               {summary?.high_risk_count || 0}
             </div>
-            <div style={{ fontSize: '12px', color: '#991b1b', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: '#f87171', marginTop: '4px' }}>
               Pending Reviews: <strong>{summary?.pending_reviews_count || 0}</strong>
             </div>
           </div>
@@ -395,11 +395,11 @@ export const AiGateRiskDashboardPage: React.FC = () => {
             className="card"
             style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '320px' }}
           >
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
               Risk Level Breakdown
             </h3>
             {pieData.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 No gate transactions analyzed yet.
               </div>
             ) : (
@@ -424,9 +424,9 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                       contentStyle={{
                         borderRadius: '8px',
                         fontSize: '12px',
-                        background: '#1e293b',
-                        color: '#ffffff',
-                        border: 'none',
+                        background: 'var(--card-bg, #111827)',
+                        color: 'var(--text-main, #f8fafc)',
+                        border: '1px solid var(--border-color, #374151)',
                       }}
                     />
                     <Legend wrapperStyle={{ fontSize: '12px' }} />
@@ -441,26 +441,27 @@ export const AiGateRiskDashboardPage: React.FC = () => {
             className="card"
             style={{ padding: '20px', display: 'flex', flexDirection: 'column', height: '320px' }}
           >
-            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '15px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
               Risk Factor Detection Frequency
             </h3>
             {barData.length === 0 ? (
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted, #94a3b8)' }}>
                 No risk signals recorded.
               </div>
             ) : (
               <div style={{ flex: 1, width: '100%', minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={barData} layout="vertical" margin={{ top: 5, right: 20, left: 60, bottom: 5 }}>
-                    <XAxis type="number" allowDecimals={false} />
-                    <YAxis dataKey="name" type="category" width={140} style={{ fontSize: '11.5px', fill: '#475569' }} />
+                    <XAxis type="number" allowDecimals={false} tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 11 }} />
+                    <YAxis dataKey="name" type="category" width={140} tick={{ fill: 'var(--text-muted, #94a3b8)', fontSize: 11.5 }} />
                     <Tooltip
+                      cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
                       contentStyle={{
                         borderRadius: '8px',
                         fontSize: '12px',
-                        background: '#1e293b',
-                        color: '#ffffff',
-                        border: 'none',
+                        background: 'var(--card-bg, #111827)',
+                        color: 'var(--text-main, #f8fafc)',
+                        border: '1px solid var(--border-color, #374151)',
                       }}
                     />
                     <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} name="Trigger Count" />
@@ -485,7 +486,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               {/* Risk Filter Tabs */}
-              <div style={{ display: 'flex', background: '#f1f5f9', padding: '3px', borderRadius: '8px', gap: '4px' }}>
+              <div style={{ display: 'flex', background: 'var(--input-bg, #111827)', padding: '3px', borderRadius: '8px', gap: '4px', border: '1px solid var(--border-color, #374151)' }}>
                 {(['ALL', 'HIGH', 'MEDIUM', 'LOW'] as const).map((lvl) => (
                   <button
                     key={lvl}
@@ -494,10 +495,10 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                       setPage(1);
                     }}
                     style={{
-                      background: riskFilter === lvl ? '#ffffff' : 'transparent',
+                      background: riskFilter === lvl ? 'var(--card-sub-bg, #374151)' : 'transparent',
                       border: 'none',
-                      boxShadow: riskFilter === lvl ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                      color: riskFilter === lvl ? '#0f172a' : '#64748b',
+                      boxShadow: riskFilter === lvl ? '0 1px 3px rgba(0,0,0,0.2)' : 'none',
+                      color: riskFilter === lvl ? 'var(--text-main, #f8fafc)' : 'var(--text-muted, #94a3b8)',
                       padding: '5px 12px',
                       borderRadius: '6px',
                       fontSize: '12.5px',
@@ -527,14 +528,14 @@ export const AiGateRiskDashboardPage: React.FC = () => {
             </div>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', background: '#ffffff', border: '1px solid #d1d5db', borderRadius: '6px', padding: '4px 10px', width: '260px' }}>
-                <Search size={15} color="#94a3b8" />
+              <div style={{ display: 'flex', alignItems: 'center', background: 'var(--input-bg, #111827)', border: '1px solid var(--input-border, #4b5563)', borderRadius: '6px', padding: '4px 10px', width: '260px' }}>
+                <Search size={15} color="var(--text-muted, #94a3b8)" />
                 <input
                   type="text"
                   placeholder="Search Invoice, Customer, Part..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: '6px', width: '100%', fontSize: '13px' }}
+                  style={{ border: 'none', outline: 'none', background: 'transparent', marginLeft: '6px', width: '100%', fontSize: '13px', color: 'var(--text-main, #f8fafc)' }}
                 />
               </div>
 
@@ -591,15 +592,15 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                         <tr key={t.id}>
                           <td>{(page - 1) * limit + idx + 1}</td>
                           <td>
-                            <div style={{ fontWeight: 700, color: '#0f172a' }}>
+                            <div style={{ fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                               {t.invoice_number || 'INV'}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#0284c7' }}>{t.invoice_barcode}</div>
+                            <div style={{ fontSize: '12px', color: '#38bdf8' }}>{t.invoice_barcode}</div>
                           </td>
-                          <td style={{ fontWeight: 600, color: '#334155' }}>{t.customer_name || 'Generic'}</td>
+                          <td style={{ fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>{t.customer_name || 'Generic'}</td>
                           <td>
-                            <div style={{ fontWeight: 600, color: '#0f172a' }}>{t.part_number}</div>
-                            <div style={{ fontSize: '12px', color: '#64748b' }}>{t.invoice_qty} Pcs</div>
+                            <div style={{ fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>{t.part_number}</div>
+                            <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>{t.invoice_qty} Pcs</div>
                           </td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -758,27 +759,28 @@ export const AiGateRiskDashboardPage: React.FC = () => {
         >
           <div
             style={{
-              background: '#ffffff',
+              background: 'var(--card-bg, #111827)',
               borderRadius: '16px',
+              border: '1px solid var(--border-color, #374151)',
               width: '650px',
               maxWidth: '100%',
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
                 padding: '20px 24px',
-                borderBottom: '1px solid #e2e8f0',
+                borderBottom: '1px solid var(--border-color, #374151)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#f8fafc',
+                background: 'var(--card-sub-bg, #1f2937)',
               }}
             >
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                 AI Gate Risk Details & Evidence Chain
               </h3>
               <button
@@ -786,7 +788,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                   setDetailModalOpen(false);
                   setSelectedTx(null);
                 }}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}
               >
                 <X size={20} />
               </button>
@@ -806,13 +808,13 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                 }}
               >
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>RISK CLASSIFICATION</div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted, #94a3b8)' }}>RISK CLASSIFICATION</div>
                   <div style={{ fontSize: '20px', fontWeight: 800, color: getRiskColor(selectedTx.risk_level) }}>
                     {selectedTx.risk_level} &bull; Score: {selectedTx.risk_score} / 100
                   </div>
                 </div>
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>Status</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Status</div>
                   <span className={`badge ${selectedTx.review_status === 'reviewed' ? 'badge-verified' : 'badge-danger'}`}>
                     {selectedTx.review_status === 'reviewed' ? 'Reviewed' : 'Pending Review'}
                   </span>
@@ -820,17 +822,17 @@ export const AiGateRiskDashboardPage: React.FC = () => {
               </div>
 
               {/* Reasons */}
-              <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>AI Identified Anomalies:</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main, #f8fafc)' }}>AI Identified Anomalies:</h4>
               <ul style={{ paddingLeft: '20px', marginBottom: '20px' }}>
                 {(Array.isArray(selectedTx.reasons) ? selectedTx.reasons : []).map((r: string, idx: number) => (
-                  <li key={idx} style={{ fontSize: '13.5px', color: '#334155', marginBottom: '6px' }}>
+                  <li key={idx} style={{ fontSize: '13.5px', color: 'var(--text-main, #e2e8f0)', marginBottom: '6px' }}>
                     {r}
                   </li>
                 ))}
               </ul>
 
               {/* Risk Factors Table */}
-              <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px' }}>Risk Factor Weights:</h4>
+              <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main, #f8fafc)' }}>Risk Factor Weights:</h4>
               <div className="table-responsive" style={{ marginBottom: '20px' }}>
                 <table className="data-table" style={{ fontSize: '12px' }}>
                   <thead>
@@ -843,11 +845,11 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                   <tbody>
                     {Object.entries(selectedTx.risk_factors || {}).map(([key, f]: [string, any]) => (
                       <tr key={key}>
-                        <td style={{ fontWeight: 600 }}>{f.name}</td>
-                        <td style={{ fontWeight: 700, color: f.score > 0 ? '#dc2626' : '#16a34a' }}>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>{f.name}</td>
+                        <td style={{ fontWeight: 700, color: f.score > 0 ? '#ef4444' : '#10b981' }}>
                           +{f.score} / {f.maxScore}
                         </td>
-                        <td style={{ color: '#475569' }}>{f.detail}</td>
+                        <td style={{ color: 'var(--text-muted, #94a3b8)' }}>{f.detail}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -858,19 +860,19 @@ export const AiGateRiskDashboardPage: React.FC = () => {
               {selectedTx.reviewed_by_name && (
                 <div
                   style={{
-                    background: '#f0fdf4',
-                    border: '1px solid #bbf7d0',
+                    background: 'rgba(16, 185, 129, 0.1)',
+                    border: '1px solid rgba(16, 185, 129, 0.25)',
                     padding: '12px 16px',
                     borderRadius: '8px',
                     fontSize: '13px',
-                    color: '#166534',
+                    color: '#10b981',
                   }}
                 >
                   <strong>Review Decision:</strong> {selectedTx.review_decision?.toUpperCase()} by{' '}
                   {selectedTx.reviewed_by_name} on{' '}
                   {selectedTx.review_timestamp ? new Date(selectedTx.review_timestamp).toLocaleString() : 'N/A'}
                   {selectedTx.review_note && (
-                    <div style={{ marginTop: '4px', fontStyle: 'italic' }}>"{selectedTx.review_note}"</div>
+                    <div style={{ marginTop: '4px', fontStyle: 'italic', color: 'var(--text-main, #f8fafc)' }}>"{selectedTx.review_note}"</div>
                   )}
                 </div>
               )}
@@ -900,30 +902,31 @@ export const AiGateRiskDashboardPage: React.FC = () => {
         >
           <div
             style={{
-              background: '#ffffff',
+              background: 'var(--card-bg, #111827)',
               borderRadius: '16px',
+              border: '1px solid var(--border-color, #374151)',
               width: '560px',
               maxWidth: '100%',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
                 padding: '20px 24px',
-                borderBottom: '1px solid #e2e8f0',
+                borderBottom: '1px solid var(--border-color, #374151)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#f8fafc',
+                background: 'var(--card-sub-bg, #1f2937)',
               }}
             >
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                 Configure AI Risk Scoring Parameters
               </h3>
               <button
                 onClick={() => setConfigModalOpen(false)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}
               >
                 <X size={20} />
               </button>
@@ -932,7 +935,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
             <form onSubmit={handleSaveConfig} style={{ padding: '24px' }}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
                     Quantity Anomaly Weight (Max Points)
                   </label>
                   <input
@@ -944,7 +947,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
                     Off-Hours Dispatch Weight (Max Points)
                   </label>
                   <input
@@ -956,7 +959,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
                     Workflow Bypass / Rapid Sequence Weight
                   </label>
                   <input
@@ -968,7 +971,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                 </div>
 
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
                     Failed Barcode Scans Pattern Weight
                   </label>
                   <input
@@ -981,7 +984,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
                       Off-Hours Start (Hour 0-23)
                     </label>
                     <input
@@ -992,7 +995,7 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                     />
                   </div>
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main, #f8fafc)' }}>
                       Off-Hours End (Hour 0-23)
                     </label>
                     <input

@@ -16,6 +16,8 @@ import {
   GateScanLog,
   Notification,
 } from '../entities';
+import { GeminiService } from './gemini.service';
+import { AiService } from './ai.service';
 
 export interface AskErpAction {
   label: string;
@@ -116,6 +118,8 @@ export class AskErpService {
     private scanLogRepo: Repository<GateScanLog>,
     @InjectRepository(Notification)
     private notificationRepo: Repository<Notification>,
+    private geminiService: GeminiService,
+    private aiService: AiService,
   ) {}
 
   /**
@@ -294,7 +298,11 @@ export class AskErpService {
       domains.add('PART');
     }
 
-    // STOCK & INVENTORY
+    // STOCK & INVENTORY & DEMAND & RISK PARTS
+    const isRiskPartsQuery =
+      (lower.includes('risk') || lower.includes('shortage') || lower.includes('depletion')) &&
+      (lower.includes('part') || lower.includes('parts') || lower.includes('stock') || lower.includes('inventory') || lower.includes('item') || lower.includes('items'));
+
     if (
       lower.includes('stock') ||
       lower.includes('inventory') ||
@@ -302,7 +310,11 @@ export class AskErpService {
       lower.includes('on hand') ||
       lower.includes('shortage') ||
       lower.includes('depletion') ||
-      lower.includes('available')
+      lower.includes('available') ||
+      lower.includes('demand') ||
+      lower.includes('consumption') ||
+      lower.includes('forecast') ||
+      isRiskPartsQuery
     ) {
       domains.add('STOCK');
     }
@@ -341,15 +353,25 @@ export class AskErpService {
       domains.add('PACKING');
     }
 
-    // SECURITY RISK & ANOMALIES
+    // SECURITY RISK & ANOMALIES (Gate passes, dispatches, unauthorized entries, off-hours, driver/vehicle threats)
     if (
-      lower.includes('risk') ||
-      lower.includes('anomaly') ||
-      lower.includes('anomalies') ||
-      lower.includes('threat') ||
-      lower.includes('suspicious') ||
-      lower.includes('unregistered') ||
-      lower.includes('security')
+      !isRiskPartsQuery &&
+      (lower.includes('anomaly') ||
+        lower.includes('anomalies') ||
+        lower.includes('threat') ||
+        lower.includes('suspicious') ||
+        lower.includes('unregistered') ||
+        lower.includes('security') ||
+        (lower.includes('risk') &&
+          (lower.includes('gate') ||
+            lower.includes('pass') ||
+            lower.includes('dispatch') ||
+            lower.includes('vehicle') ||
+            lower.includes('driver') ||
+            lower.includes('scan') ||
+            lower.includes('off hour') ||
+            lower.includes('night') ||
+            lower.includes('tamper'))))
     ) {
       domains.add('SECURITY_RISK');
     }
@@ -389,6 +411,7 @@ export class AskErpService {
 
     if (
       lower.includes('how many') ||
+      lower.includes('how may') ||
       lower.includes('how much') ||
       lower.includes('count') ||
       lower.includes('total') ||
@@ -398,6 +421,44 @@ export class AskErpService {
       lower.includes('volume')
     ) {
       intents.add('COUNT');
+    }
+
+    // DEMAND & CONSUMPTION & RISK INTELLIGENCE INTENT
+    const isDemandQuery =
+      lower.includes('demand') ||
+      lower.includes('consumption') ||
+      lower.includes('forecast') ||
+      lower.includes('depletion') ||
+      lower.includes('shortage') ||
+      lower.includes('fast moving') ||
+      lower.includes('slow moving') ||
+      lower.includes('dead stock') ||
+      lower.includes('non moving') ||
+      lower.includes('non-moving') ||
+      isRiskPartsQuery;
+
+    const isNoDemandQuery =
+      isDemandQuery &&
+      (lower.includes('no demand') ||
+       lower.includes('zero demand') ||
+       lower.includes('without demand') ||
+       lower.includes('0 demand') ||
+       lower.includes('no consumption') ||
+       lower.includes('zero consumption') ||
+       lower.includes('dead stock') ||
+       lower.includes('non moving') ||
+       lower.includes('non-moving') ||
+       (lower.includes('demand') && (/\bno\b/.test(lower) || /\bzero\b/.test(lower) || /\bwithout\b/.test(lower) || /\bnone\b/.test(lower))));
+
+    if (isDemandQuery) {
+      domains.add('STOCK');
+      intents.add('STOCK_INTELLIGENCE');
+      if (isNoDemandQuery) {
+        intents.add('NO_DEMAND');
+      }
+      if (isRiskPartsQuery) {
+        intents.add('RISK_PARTS');
+      }
     }
 
     if (
@@ -442,16 +503,31 @@ export class AskErpService {
     let targetPart: string | undefined;
 
     // Pattern 1: Explicit "part", "part no", "part number", "part #", etc.
-    const partPatternMatch = raw.match(/(?:part\s*(?:number|no\.?|#|name|id)?|part)\s*[:#\s]?\s*([a-zA-Z0-9_.\-\t]+)/i);
+    // Note: Do NOT match plural "parts" (e.g. "parts with no demand", "how many parts")
+    const isPluralParts = /\bparts\b/i.test(raw);
+    const partPatternMatch = raw.match(/\bpart\s*(?:number|no\.?|#|name|id|code)?\s*[:#]\s*([a-zA-Z0-9_.\-\t]+)/i)
+      || raw.match(/\bpart\s+(?:number|no\.?|#|name|id|code)\s+([a-zA-Z0-9_.\-\t]+)/i)
+      || (!isPluralParts ? raw.match(/\bpart\s+([A-Za-z0-9_.\-]+)/i) : null);
+
+    const reservedPartTerms = new Set([
+      's', 'no', 'demand', 'demands', 'consumption', 'forecast', 'forecasted',
+      'zero', 'low', 'high', 'critical', 'shortage', 'depletion', 'stock', 'inventory',
+      'balance', 'master', 'catalog', 'details', 'detail', 'info', 'information',
+      'records', 'record', 'list', 'show', 'all', 'any', 'query', 'count', 'status',
+      'pending', 'available', 'quantities', 'quantity', 'with', 'without', 'having',
+      'have', 'has', 'in', 'on', 'at', 'for', 'from', 'to', 'by', 'of', 'and', 'or',
+      'is', 'are', 'was', 'were', 'parts', 'part', 'item', 'items', 'total', 'how',
+      'many', 'may', 'much', 'which', 'what', 'who', 'where', 'when', 'why', 'can'
+    ]);
+
     if (partPatternMatch && partPatternMatch[1]) {
       const candidate = partPatternMatch[1].trim().replace(/^[#:]/, '');
       const candLower = candidate.toLowerCase();
-      const reservedTerms = new Set([
-        'master', 'stock', 'catalog', 'details', 'detail', 'info', 'information',
-        'records', 'record', 'list', 'show', 'all', 'any', 'query', 'count', 'status',
-        'pending', 'available', 'quantities', 'quantity'
-      ]);
-      if (!reservedTerms.has(candLower)) {
+      if (
+        candidate.length >= 2 &&
+        !reservedPartTerms.has(candLower) &&
+        !/^(?:is|are|was|were|the|an|a|in|on|at|to|for|with|no)$/i.test(candLower)
+      ) {
         targetPart = candidate;
         targetEntity = candidate;
         domains.add('PART');
@@ -472,18 +548,20 @@ export class AskErpService {
 
     // 7. Extract Identifiers (Only actual alphanumeric codes, serials, or known part/invoice names)
     const stopWords = new Set([
-      'how', 'many', 'are', 'the', 'what', 'which', 'who', 'when', 'where', 'why', 'can',
+      'how', 'many', 'may', 'much', 'are', 'the', 'what', 'which', 'who', 'when', 'where', 'why', 'can',
       'you', 'tell', 'show', 'give', 'list', 'details', 'detail', 'info', 'information',
       'remaining', 'messages', 'message', 'notification', 'notifications', 'entities',
       'entity', 'part', 'parts', 'master', 'stock', 'invoice', 'invoices', 'box', 'boxes',
-      'packing', 'gate', 'there', 'have', 'been', 'with', 'from', 'this', 'that', 'these',
+      'packing', 'gate', 'there', 'have', 'been', 'with', 'without', 'from', 'this', 'that', 'these',
       'those', 'find', 'does', 'check', 'any', 'all', 'for', 'about', 'and', 'not', 'out',
       'now', 'has', 'had', 'count', 'pass', 'passes', 'generated', 'customer', 'customers',
       'today', 'yesterday', 'month', 'week', 'system', 'erp', 'waiting', 'mapping',
       'unlocked', 'locked', 'verified', 'clearance', 'available', 'quantities', 'quantity',
       'created', 'dispatched', 'dispatch', 'records', 'activity', 'compare', 'summary',
       'pending', 'cleared', 'happened', 'verification', 'unverified', 'allocated',
-      'registered', 'overview', 'dispatches', 'most', 'more', 'less', 'top', 'total'
+      'registered', 'overview', 'dispatches', 'most', 'more', 'less', 'top', 'total',
+      'demand', 'demands', 'consumption', 'forecast', 'forecasted', 'no', 'zero', 'stagnant',
+      'idle', 'item', 'items'
     ]);
 
     const potentialCodes = raw
@@ -728,6 +806,20 @@ export class AskErpService {
     if (!candidate && !fullQuery) return null;
 
     const term = (candidate || '').trim();
+    const termLower = term.toLowerCase();
+
+    const reservedPartTerms = new Set([
+      's', 'no', 'demand', 'demands', 'consumption', 'forecast', 'forecasted',
+      'zero', 'low', 'high', 'critical', 'shortage', 'depletion', 'stock', 'inventory',
+      'balance', 'master', 'catalog', 'details', 'detail', 'info', 'information',
+      'records', 'record', 'list', 'show', 'all', 'any', 'query', 'count', 'status',
+      'pending', 'available', 'quantities', 'quantity', 'with', 'without', 'having',
+      'have', 'has', 'in', 'on', 'at', 'for', 'from', 'to', 'by', 'of', 'and', 'or',
+      'is', 'are', 'was', 'were', 'parts', 'part', 'item', 'items', 'total', 'how',
+      'many', 'may', 'much', 'which', 'what', 'who', 'where', 'when', 'why', 'can'
+    ]);
+
+    const isReserved = term.length <= 1 || reservedPartTerms.has(termLower);
 
     // 1. Alias: SJOINT or S SJOINT
     if (term.toUpperCase() === 'SJOINT' || (fullQuery && fullQuery.toLowerCase().includes('sjoint'))) {
@@ -737,17 +829,11 @@ export class AskErpService {
       if (sjointPart) return sjointPart;
     }
 
-    // 2. Direct match by candidate term
-    if (term) {
+    // 2. Direct match by candidate term (only if not a reserved term / single char)
+    if (term && !isReserved) {
       // A. Exact match on part_number
       let part = await this.partRepo.findOne({
         where: [{ part_number: term }, { part_number: `\t${term}` }],
-      });
-      if (part) return part;
-
-      // B. Substring match on part_number
-      part = await this.partRepo.findOne({
-        where: { part_number: Like(`%${term}%`) },
       });
       if (part) return part;
 
@@ -758,11 +844,19 @@ export class AskErpService {
         if (part) return part;
       }
 
-      // D. Substring match on part_description
-      part = await this.partRepo.findOne({
-        where: { part_description: Like(`%${term}%`) },
-      });
-      if (part) return part;
+      // B. Substring match on part_number (only if term length >= 3)
+      if (term.length >= 3) {
+        part = await this.partRepo.findOne({
+          where: { part_number: Like(`%${term}%`) },
+        });
+        if (part) return part;
+
+        // D. Substring match on part_description
+        part = await this.partRepo.findOne({
+          where: { part_description: Like(`%${term}%`) },
+        });
+        if (part) return part;
+      }
     }
 
     // 3. Scan potential tokens from full query
@@ -775,10 +869,13 @@ export class AskErpService {
           (w) =>
             w.length >= 3 &&
             ![
-              'how', 'many', 'what', 'show', 'details', 'detail', 'part', 'parts',
+              'how', 'many', 'may', 'much', 'what', 'show', 'details', 'detail', 'part', 'parts',
               'pending', 'available', 'quantities', 'quantity', 'stock', 'view',
-              'with', 'from', 'this', 'that', 'number', 'give', 'list', 'about',
-              'for', 'the', 'are', 'there', 'which', 'record', 'records'
+              'with', 'without', 'from', 'this', 'that', 'number', 'give', 'list', 'about',
+              'for', 'the', 'are', 'there', 'which', 'record', 'records', 'demand', 'demands',
+              'consumption', 'forecast', 'zero', 'item', 'items', 'tell', 'high', 'low', 'risk',
+              'risks', 'critical', 'safe', 'medium', 'stagnant', 'idle', 'urgent', 'alert',
+              'alerts', 'active', 'inactive', 'good', 'bad'
             ].includes(w.toLowerCase()),
         );
 
@@ -824,6 +921,29 @@ export class AskErpService {
   ): Promise<AskErpResponse> {
     const response = await this.executeProcessQuery(queryText, user, context);
     if (response) {
+      // If Gemini is configured and response succeeded, optionally synthesize an executive natural explanation
+      if (
+        this.geminiService.isAvailable() &&
+        response.status === 'success' &&
+        response.intent !== 'NAVIGATION_SHORTCUT' &&
+        response.direct_answer
+      ) {
+        try {
+          const aiAnswer = await this.geminiService.synthesizeExecutiveAnswer({
+            userQuery: queryText,
+            userRole: user?.type || 'gate',
+            directFacts: response.direct_answer,
+            dataSummary: response.data_summary,
+            defaultAnswer: response.direct_answer,
+          });
+          if (aiAnswer && aiAnswer.trim()) {
+            response.direct_answer = aiAnswer.trim();
+          }
+        } catch {
+          // If Gemini fails or errors, keep deterministic answer without interruption
+        }
+      }
+
       if (response.direct_answer) {
         response.direct_answer = this.cleanNoStarText(response.direct_answer);
       }
@@ -853,6 +973,76 @@ export class AskErpService {
         direct_answer: 'I am your dynamic ERP assistant. Ask me anything about gate passes, customer counts, parts stock, invoices waiting for boxes, or notification messages.',
         security_audit: { role_checked: role, authorized: true, timestamp },
       };
+    }
+
+    // 0. Conversational Greeting & Introduction Handler
+    const greetingWords = ['hi', 'hii', 'hiii', 'hello', 'helloo', 'hey', 'heyy', 'namaste', 'good morning', 'good afternoon', 'good evening', 'who are you', 'what can you do', 'help', 'kaise ho'];
+    const lowerTrim = parsed.lower.trim().replace(/[!.,?]+$/, '');
+    const isGreeting = greetingWords.includes(lowerTrim) || lowerTrim.startsWith('hi ') || lowerTrim.startsWith('hello ') || lowerTrim.startsWith('hey ');
+
+    if (isGreeting) {
+      let greetingAnswer = `Hello! I am your Ask ERP AI Assistant powered by Google Gemini Flash. How can I help you today?
+
+You can ask me:
+- Live stock levels and shortage warnings
+- Gate passes cleared and dispatch status
+- Invoices waiting for box packing or gate clearance
+- Real-time factory operations overview`;
+
+      if (this.geminiService.isAvailable()) {
+        try {
+          const aiGreeting = await this.geminiService.generateConversationalResponse({
+            userQuery: queryText,
+            userRole: role,
+          });
+          if (aiGreeting) {
+            greetingAnswer = aiGreeting;
+          }
+        } catch {}
+      }
+
+      return {
+        query: parsed.raw,
+        user_role: role,
+        intent: 'GREETING',
+        status: 'success',
+        message: 'Ask ERP AI Assistant is ready.',
+        direct_answer: greetingAnswer,
+        suggested_actions: this.getSuggestedPrompts(role).slice(0, 4).map((p) => ({
+          label: p,
+          action_type: 'query',
+          follow_up_query: p,
+        })),
+        security_audit: { role_checked: role, authorized: true, timestamp },
+      };
+    }
+
+    // If local analyzer found no domain and Gemini is available, use Gemini to interpret human question
+    if (parsed.raw && parsed.domains.size === 0 && this.geminiService.isAvailable()) {
+      try {
+        const interpreted = await this.geminiService.interpretHumanQuery(parsed.raw, role);
+        if (interpreted?.domain) {
+          const dUpper = interpreted.domain.toUpperCase();
+          parsed.domains.add(dUpper);
+          if (interpreted.filterStatus === 'pending' || interpreted.filterStatus === 'waiting') {
+            parsed.filters.isWaitingOrPending = true;
+          }
+          if (interpreted.filterStatus === 'verified') {
+            parsed.filters.isVerified = true;
+          }
+          if (interpreted.filterStatus === 'low_stock') {
+            parsed.filters.isLowStock = true;
+          }
+          if (interpreted.partNumber && !parsed.targetPart) {
+            parsed.targetPart = interpreted.partNumber;
+          }
+          if (interpreted.identifier && parsed.identifiers.length === 0) {
+            parsed.identifiers.push(interpreted.identifier);
+          }
+        }
+      } catch {
+        // Fallback safely to standard logic
+      }
     }
 
     // Role Permission Checker
@@ -1081,6 +1271,34 @@ export class AskErpService {
       parsed.lower.includes('current totals')
     ) {
       return this.handleDynamicPlantOverview(parsed.raw, role, timestamp);
+    }
+
+    // If Gemini is available, generate an intelligent conversational response
+    if (this.geminiService.isAvailable()) {
+      try {
+        const conversational = await this.geminiService.generateConversationalResponse({
+          userQuery: parsed.raw,
+          userRole: role,
+        });
+        if (conversational && conversational.trim()) {
+          return {
+            query: parsed.raw,
+            user_role: role,
+            intent: 'CONVERSATIONAL_RESPONSE',
+            status: 'success',
+            message: 'Ask ERP AI response generated.',
+            direct_answer: conversational.trim(),
+            suggested_actions: this.getSuggestedPrompts(role).slice(0, 4).map((p) => ({
+              label: p,
+              action_type: 'query',
+              follow_up_query: p,
+            })),
+            security_audit: { role_checked: role, authorized: true, timestamp },
+          };
+        }
+      } catch {
+        // Fallback to structured clarification
+      }
     }
 
     const periodMention = parsed.timePeriod.type !== 'all_time' ? ` for ${parsed.timePeriod.label}` : '';
@@ -2355,13 +2573,34 @@ ${totalCount} total invoices (${locked.length} locked, ${pending.length} draft/p
    * PART MASTER DOMAIN
    */
   private async handlePartMasterDomain(parsed: ParsedQuery, role: string, timestamp: string): Promise<AskErpResponse> {
+    const isDemandOrRiskQuery =
+      parsed.lower.includes('demand') ||
+      parsed.lower.includes('consumption') ||
+      parsed.lower.includes('forecast') ||
+      parsed.lower.includes('risk') ||
+      parsed.intents.has('STOCK_INTELLIGENCE') ||
+      parsed.intents.has('NO_DEMAND') ||
+      parsed.intents.has('RISK_PARTS');
+
+    if (
+      isDemandOrRiskQuery &&
+      (!parsed.targetPart ||
+        parsed.intents.has('NO_DEMAND') ||
+        parsed.intents.has('RISK_PARTS') ||
+        parsed.lower.includes('no demand') ||
+        parsed.lower.includes('zero demand') ||
+        parsed.lower.includes('high risk') ||
+        parsed.lower.includes('risk parts') ||
+        parsed.lower.includes('risk part'))
+    ) {
+      return this.handleDemandIntelligenceQuery(parsed, role, timestamp);
+    }
+
     const candidateTerm = parsed.targetPart || parsed.targetEntity || (parsed.identifiers.length > 0 ? parsed.identifiers[0] : undefined);
     const isSpecificPartQuery =
       !!candidateTerm ||
       parsed.lower.includes('part number') ||
       parsed.lower.includes('part no') ||
-      parsed.lower.includes('details for') ||
-      parsed.lower.includes('details of') ||
       parsed.lower.includes('sjoint') ||
       parsed.lower.includes('d16.');
 
@@ -2591,6 +2830,19 @@ ${count} active parts catalogued, ${totalPhysicalStock.toLocaleString()} cumulat
    * STOCK DOMAIN
    */
   private async handleStockDomain(parsed: ParsedQuery, role: string, timestamp: string): Promise<AskErpResponse> {
+    const isDemandOrRiskQuery =
+      parsed.lower.includes('demand') ||
+      parsed.lower.includes('consumption') ||
+      parsed.lower.includes('forecast') ||
+      parsed.lower.includes('risk') ||
+      parsed.intents.has('STOCK_INTELLIGENCE') ||
+      parsed.intents.has('NO_DEMAND') ||
+      parsed.intents.has('RISK_PARTS');
+
+    if (isDemandOrRiskQuery) {
+      return this.handleDemandIntelligenceQuery(parsed, role, timestamp);
+    }
+
     const candidateTerm = parsed.targetPart || parsed.targetEntity || (parsed.identifiers.length > 0 ? parsed.identifiers[0] : undefined);
     if (candidateTerm || parsed.lower.includes('for part') || parsed.lower.includes('sjoint') || parsed.lower.includes('d16.')) {
       return this.handlePartMasterDomain(parsed, role, timestamp);
@@ -2602,7 +2854,7 @@ ${count} active parts catalogued, ${totalPhysicalStock.toLocaleString()} cumulat
 
     const directAnswer =
       lowStockParts.length > 0
-        ? `Found **${lowStockParts.length} part(s)** with low stock ($\le 100$ pcs), of which **${criticalZero.length}** are completely out of stock.`
+        ? `Found **${lowStockParts.length} part(s)** with low stock (≤ 100 pcs), of which **${criticalZero.length}** are completely out of stock.`
         : `All inventory levels are healthy. No parts are currently below the safety threshold of 100 pcs.`;
 
     return {
@@ -2641,6 +2893,394 @@ ${count} active parts catalogued, ${totalPhysicalStock.toLocaleString()} cumulat
       security_audit: { role_checked: role, authorized: true, timestamp },
     };
   }
+
+  /**
+   * DEMAND & CONSUMPTION INTELLIGENCE HANDLER
+   * Handles queries about parts with no demand, zero consumption, high demand, or specific part forecast
+   */
+  private async handleDemandIntelligenceQuery(parsed: ParsedQuery, role: string, timestamp: string): Promise<AskErpResponse> {
+    const insights = await this.aiService.getStockIntelligence();
+    const totalParts = insights.length;
+
+    // Check if asking for a specific part's demand (e.g. "demand for SJOINT", "forecast for DS101167")
+    const candidateTerm = parsed.targetPart || parsed.targetEntity;
+    const isNoDemand =
+      parsed.intents.has('NO_DEMAND') ||
+      parsed.lower.includes('no demand') ||
+      parsed.lower.includes('zero demand') ||
+      parsed.lower.includes('without demand') ||
+      parsed.lower.includes('0 demand') ||
+      parsed.lower.includes('no consumption') ||
+      parsed.lower.includes('dead stock') ||
+      parsed.lower.includes('non moving') ||
+      parsed.lower.includes('non-moving') ||
+      (parsed.lower.includes('demand') && (/\bno\b/.test(parsed.lower) || /\bzero\b/.test(parsed.lower) || /\bwithout\b/.test(parsed.lower) || /\bnone\b/.test(parsed.lower)));
+
+    if (candidateTerm && !isNoDemand) {
+      const targetInsight = insights.find(
+        (p) =>
+          p.part_number.toLowerCase().trim() === candidateTerm.toLowerCase().trim() ||
+          p.part_number.toLowerCase().includes(candidateTerm.toLowerCase()) ||
+          (p.part_description && p.part_description.toLowerCase().includes(candidateTerm.toLowerCase())),
+      );
+      if (targetInsight) {
+        return this.handleSpecificPartDemand(targetInsight, parsed, role, timestamp);
+      }
+    }
+
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(today.getDate() - 90);
+    const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split('T')[0];
+
+    const noDemandParts = insights.filter((p) => p.historical_demand_90d === 0);
+    const activeDemandParts = insights.filter((p) => p.historical_demand_90d > 0);
+    const highRiskShortageParts = insights.filter((p) => p.risk_level === 'HIGH');
+    const totalIdleStock = noDemandParts.reduce((sum, p) => sum + (Number(p.current_stock) || 0), 0);
+    const totalActiveStock = activeDemandParts.reduce((sum, p) => sum + (Number(p.current_stock) || 0), 0);
+
+    // Check if asking about High-Risk, Medium-Risk, or Shortage Parts
+    const isRiskQuery =
+      parsed.intents.has('RISK_PARTS') ||
+      parsed.lower.includes('high risk') ||
+      parsed.lower.includes('risk part') ||
+      parsed.lower.includes('risk parts') ||
+      parsed.lower.includes('critical part') ||
+      parsed.lower.includes('critical parts') ||
+      parsed.lower.includes('shortage parts') ||
+      (parsed.lower.includes('risk') && (parsed.lower.includes('part') || parsed.lower.includes('stock') || parsed.lower.includes('shortage')));
+
+    if (isRiskQuery) {
+      const isMediumOnly = parsed.lower.includes('medium risk');
+      const isLowOnly = parsed.lower.includes('low risk');
+
+      const targetList = isMediumOnly
+        ? insights.filter((p) => p.risk_level === 'MEDIUM')
+        : isLowOnly
+        ? insights.filter((p) => p.risk_level === 'LOW')
+        : highRiskShortageParts;
+
+      const riskLabel = isMediumOnly ? 'MEDIUM-RISK' : isLowOnly ? 'LOW-RISK' : 'HIGH-RISK';
+      const totalShortageQty = targetList.reduce((sum, p) => sum + (Number(p.projected_shortage) || 0), 0);
+
+      const directAnswer =
+        targetList.length > 0
+          ? `### Answer
+There are **${targetList.length} ${riskLabel} parts** identified in the factory inventory facing projected stock shortages:
+
+${targetList.map((p, idx) => `${idx + 1}. **${p.part_number}** (${p.part_description || 'Component'}): Current Warehouse Stock: **${p.current_stock.toLocaleString()} pcs**, Projected 30D Shortage: **${p.projected_shortage.toLocaleString()} pcs** (Depletion: **${p.depletion_days >= 0 ? `${p.depletion_days} days` : '0 days (Imminent)'}**, 30D Demand Forecast: ${p.forecasted_demand_30d.toLocaleString()} pcs)`).join('\n')}
+
+### Time Period
+30-Day Forward Stock Shortage Projection based on 90-Day Customer Invoicing
+
+### Analysis
+The AI Stock Intelligence engine calculated daily consumption velocity and compared current physical warehouse stock against 30-day forecasted demand with a 15% safety buffer. Parts where projected demand exceeds available stock are flagged for urgent replenishment.
+
+### Evidence
+- **Total Tracked Catalog Items:** ${totalParts}
+- **${riskLabel} Shortage Items:** ${targetList.length}
+- **Total Cumulative Projected Shortage:** ${totalShortageQty.toLocaleString()} pcs
+- **Confidence:** 90% (Calculated from verified ERP invoices and warehouse stock balances)
+
+### Human Review Recommendation
+Prioritize production scheduling, packing runs, or procurement work orders for these ${targetList.length} ${riskLabel} parts to prevent line stoppage and missed dispatch deadlines.`
+          : `### Answer
+No parts are currently categorized as ${riskLabel}. All tracked parts in this category have adequate warehouse stock buffers for the next 30 days.
+
+### Analysis
+Audited 30-day projected demand against current warehouse stock. No critical shortages detected.`;
+
+      return {
+        query: parsed.raw,
+        user_role: role,
+        intent: 'STOCK_RISK_PARTS_QUERY',
+        status: 'success',
+        message: `${targetList.length} ${riskLabel} parts identified.`,
+        direct_answer: directAnswer,
+        time_period: {
+          type: 'last_30_days',
+          label: `30-Day Forward Projection (${todayStr})`,
+          dateFrom: ninetyDaysAgoStr,
+          dateTo: todayStr,
+        },
+        analysis: 'Calculated daily consumption velocity and compared current stock against 30-day forecasted demand.',
+        evidence: `${targetList.length} parts flagged with ${riskLabel} shortage status. Projected shortage volume: ${totalShortageQty} pcs.`,
+        context: { previousQuery: parsed.raw, previousDomain: 'STOCK', previousIntent: 'STOCK_RISK_PARTS_QUERY' },
+        data_summary: {
+          title: `${riskLabel} Stock Shortage Parts`,
+          count: targetList.length,
+          metrics: [
+            { label: 'High Risk Items', value: highRiskShortageParts.length, color: '#ef4444' },
+            { label: 'Medium Risk Items', value: insights.filter((p) => p.risk_level === 'MEDIUM').length, color: '#f59e0b' },
+            { label: 'Total Projected Shortage', value: `${totalShortageQty.toLocaleString()} pcs`, color: '#dc2626' },
+            { label: 'Total Catalog', value: totalParts, color: '#6366f1' },
+          ],
+          columns: [
+            { key: 'part_number', label: 'Part Number' },
+            { key: 'part_description', label: 'Description' },
+            { key: 'current_stock', label: 'Current Stock' },
+            { key: 'forecasted_demand_30d', label: '30D Forecast' },
+            { key: 'projected_shortage', label: 'Shortage Qty' },
+            { key: 'depletion_days', label: 'Depletion Days' },
+            { key: 'risk_level', label: 'Risk Level' },
+          ],
+          items: targetList.map((p) => ({
+            part_number: p.part_number,
+            part_description: p.part_description,
+            current_stock: `${p.current_stock.toLocaleString()} pcs`,
+            forecasted_demand_30d: `${p.forecasted_demand_30d.toLocaleString()} pcs`,
+            projected_shortage: `${p.projected_shortage.toLocaleString()} pcs`,
+            depletion_days: p.depletion_days >= 0 ? `${p.depletion_days} days` : '0 days (Imminent)',
+            risk_level: p.risk_level,
+          })),
+        },
+        suggested_actions: [
+          { label: 'Open AI Stock Intelligence', action_type: 'navigate', url: '/ai_stock_intelligence' },
+          { label: 'View Part Stock', action_type: 'navigate', url: '/part_stock' },
+          { label: 'Create Packing DPR', action_type: 'navigate', url: '/create_packing' },
+        ],
+        security_audit: { role_checked: role, authorized: true, timestamp },
+      };
+    }
+
+    const isHighDemand =
+      parsed.lower.includes('high demand') ||
+      parsed.lower.includes('highest demand') ||
+      parsed.lower.includes('top demand') ||
+      parsed.lower.includes('fast moving') ||
+      parsed.lower.includes('most demand');
+
+    if (isHighDemand) {
+      const topDemandParts = [...activeDemandParts].sort((a, b) => b.historical_demand_90d - a.historical_demand_90d);
+
+      const directAnswer = `### Answer
+Top high-demand parts across the factory based on 90-day customer invoice consumption:
+${topDemandParts.slice(0, 5).map((p, idx) => `${idx + 1}. **${p.part_number}** (${p.part_description || 'Part'}): **${p.historical_demand_90d.toLocaleString()} pcs** 90d demand (Forecast: ${p.forecasted_demand_30d.toLocaleString()} pcs/30d, Current Stock: ${p.current_stock.toLocaleString()} pcs)`).join('\n')}
+
+### Time Period
+90-Day Rolling Invoiced Demand (${ninetyDaysAgoStr} to ${todayStr})
+
+### Analysis
+Ranked active parts by total customer invoice quantities over the last 90 days with next 30-day projection.
+
+### Evidence
+- **Total Parts with Active Demand:** ${activeDemandParts.length}
+- **Top 5 Volume:** ${topDemandParts.slice(0, 5).reduce((s, p) => s + p.historical_demand_90d, 0).toLocaleString()} pcs
+- **Confidence:** 92% (Calculated from verified ERP invoices)
+
+### Human Review Recommendation
+Ensure production and raw material planning prioritize these high-demand parts to prevent stockouts.`;
+
+      return {
+        query: parsed.raw,
+        user_role: role,
+        intent: 'HIGH_DEMAND_QUERY',
+        status: 'success',
+        message: 'High demand parts analysis complete.',
+        direct_answer: directAnswer,
+        time_period: {
+          type: 'last_30_days',
+          label: `90-Day Audit (${ninetyDaysAgoStr} to ${todayStr})`,
+          dateFrom: ninetyDaysAgoStr,
+          dateTo: todayStr,
+        },
+        analysis: 'Ranked active parts by total customer invoice quantities over the last 90 days with next 30-day projection.',
+        evidence: `Total Active Parts: ${activeDemandParts.length}. Highest consumer: ${topDemandParts[0]?.part_number || 'N/A'}.`,
+        data_summary: {
+          title: 'Top High Demand Parts (90-Day Invoicing)',
+          count: topDemandParts.length,
+          metrics: [
+            { label: 'Active Demand Parts', value: activeDemandParts.length, color: '#10b981' },
+            { label: 'High Stock Shortage Risk', value: highRiskShortageParts.length, color: '#ef4444' },
+            { label: 'Total Catalog', value: totalParts, color: '#6366f1' },
+          ],
+          columns: [
+            { key: 'part_number', label: 'Part Number' },
+            { key: 'part_description', label: 'Description' },
+            { key: 'historical_demand_90d', label: '90D Demand' },
+            { key: 'forecasted_demand_30d', label: '30D Forecast' },
+            { key: 'current_stock', label: 'Warehouse Stock' },
+            { key: 'risk_level', label: 'Shortage Risk' },
+          ],
+          items: topDemandParts.slice(0, 15).map((p) => ({
+            part_number: p.part_number,
+            part_description: p.part_description,
+            historical_demand_90d: `${p.historical_demand_90d.toLocaleString()} pcs`,
+            forecasted_demand_30d: `${p.forecasted_demand_30d.toLocaleString()} pcs`,
+            current_stock: `${p.current_stock.toLocaleString()} pcs`,
+            risk_level: p.risk_level,
+          })),
+        },
+        suggested_actions: [
+          { label: 'Open AI Stock Intelligence', action_type: 'navigate', url: '/ai_stock_intelligence' },
+          { label: 'View Stock Inventory', action_type: 'navigate', url: '/part_stock' },
+        ],
+        security_audit: { role_checked: role, authorized: true, timestamp },
+      };
+    }
+
+    // Default or No Demand Query
+    const noDemandPct = totalParts > 0 ? ((noDemandParts.length / totalParts) * 100).toFixed(1) : '0';
+    const activeDemandPct = totalParts > 0 ? ((activeDemandParts.length / totalParts) * 100).toFixed(1) : '0';
+
+    const directAnswer = `### Answer
+There are **${noDemandParts.length} parts with NO demand** recorded in the ERP system out of **${totalParts} total catalog parts** (based on customer invoices over the last 90 days).
+
+- **Parts with No Demand:** **${noDemandParts.length}** (${noDemandPct}%)
+- **Parts with Active Demand:** **${activeDemandParts.length}** (${activeDemandPct}%)
+- **Total Physical Stock Tied to Zero-Demand Parts:** **${totalIdleStock.toLocaleString()} pcs**
+
+### Time Period
+90-Day Rolling Consumption Analysis (${ninetyDaysAgoStr} to ${todayStr})
+
+### Analysis
+Cross-referenced Part Master items against all verified customer invoice dispatches in the last 90 days. Parts with 0 invoice dispatches have no active customer consumption and are flagged as stagnant / idle stock.
+
+### Evidence
+- **Total Catalog Items:** ${totalParts}
+- **Zero Invoiced Consumption:** ${noDemandParts.length} items (0 pcs dispatched in 90 days)
+- **Idle Stock Balance:** ${totalIdleStock.toLocaleString()} pcs on-hand
+- **Confidence:** 95% (Direct audit of ERP invoices and part inventory)
+
+### Human Review Recommendation
+Review production planning and safety thresholds for these ${noDemandParts.length} zero-demand parts. Consider pausing replenishments for inactive codes to avoid warehouse stagnation.`;
+
+    return {
+      query: parsed.raw,
+      user_role: role,
+      intent: 'NO_DEMAND_PARTS_QUERY',
+      status: 'success',
+      message: `${noDemandParts.length} parts found with zero demand.`,
+      direct_answer: directAnswer,
+      time_period: {
+        type: 'last_30_days',
+        label: `90-Day Window (${ninetyDaysAgoStr} to ${todayStr})`,
+        dateFrom: ninetyDaysAgoStr,
+        dateTo: todayStr,
+      },
+      analysis: 'Cross-referenced Part Master items against all verified customer invoice dispatches in the last 90 days.',
+      evidence: `${noDemandParts.length} parts with zero invoice activity out of ${totalParts} total parts. Total idle stock: ${totalIdleStock} pcs.`,
+      context: { previousQuery: parsed.raw, previousDomain: 'STOCK', previousIntent: 'NO_DEMAND_PARTS_QUERY' },
+      data_summary: {
+        title: 'Parts With No Demand (Zero 90-Day Invoicing)',
+        count: noDemandParts.length,
+        metrics: [
+          { label: 'Zero Demand Parts', value: noDemandParts.length, color: '#f59e0b' },
+          { label: 'Active Demand Parts', value: activeDemandParts.length, color: '#10b981' },
+          { label: 'Total Catalog', value: totalParts, color: '#6366f1' },
+          { label: 'Idle Warehouse Stock', value: `${totalIdleStock.toLocaleString()} pcs`, color: '#64748b' },
+        ],
+        columns: [
+          { key: 'part_number', label: 'Part Number' },
+          { key: 'part_description', label: 'Description' },
+          { key: 'current_stock', label: 'Current Stock' },
+          { key: 'historical_demand_90d', label: '90D Demand' },
+          { key: 'status', label: 'Demand Status' },
+        ],
+        items: noDemandParts.slice(0, 25).map((p) => ({
+          part_number: p.part_number,
+          part_description: p.part_description,
+          current_stock: `${p.current_stock.toLocaleString()} pcs`,
+          historical_demand_90d: `0 pcs`,
+          status: 'Zero Demand (Idle)',
+        })),
+      },
+      suggested_actions: [
+        { label: 'Open AI Stock Intelligence', action_type: 'navigate', url: '/ai_stock_intelligence' },
+        { label: 'View Part Stock', action_type: 'navigate', url: '/part_stock' },
+        { label: 'View Part Master', action_type: 'navigate', url: '/part_master' },
+      ],
+      security_audit: { role_checked: role, authorized: true, timestamp },
+    };
+  }
+
+  /**
+   * SPECIFIC PART DEMAND HANDLER
+   */
+  private handleSpecificPartDemand(
+    insight: any,
+    parsed: ParsedQuery,
+    role: string,
+    timestamp: string,
+  ): AskErpResponse {
+    const partNum = insight.part_number;
+    const partDesc = insight.part_description || 'Component';
+    const isZeroDemand = insight.historical_demand_90d === 0;
+
+    const directAnswer = isZeroDemand
+      ? `### Answer
+For part **${partNum}** (**${partDesc}**): **There is NO recorded customer demand** in the ERP (0 pcs invoiced across the last 90 days).
+- **Current Warehouse Stock:** **${insight.current_stock.toLocaleString()} pcs**
+- **90-Day Consumption:** 0 pcs
+- **30-Day Forecast:** 0 pcs (No historical dispatch basis)
+- **Stock Depletion Status:** Stagnant / Idle Stock
+
+### Time Period
+90-Day Rolling Consumption Analysis
+
+### Analysis
+Examined customer invoice dispatches and stock movements for part ${partNum} over the last 90 days.
+
+### Evidence
+Historical 90-day demand is 0 pcs. On-hand stock is ${insight.current_stock} pcs.
+
+### Human Review Recommendation
+Evaluate whether this part is obsolete or seasonal before generating additional production lots.`
+      : `### Answer
+For part **${partNum}** (**${partDesc}**):
+- **90-Day Demand:** **${insight.historical_demand_90d.toLocaleString()} pcs**
+- **30-Day Forecasted Demand:** **${insight.forecasted_demand_30d.toLocaleString()} pcs** (with 15% safety buffer)
+- **Current Warehouse Stock:** **${insight.current_stock.toLocaleString()} pcs**
+- **Projected Shortage:** **${insight.projected_shortage > 0 ? `${insight.projected_shortage.toLocaleString()} pcs` : 'None (Sufficient)'}**
+- **Estimated Stock Depletion:** **${insight.depletion_days >= 0 ? `${insight.depletion_days} days` : 'Stable / Low Consumption'}**
+- **Stock Shortage Risk Level:** **${insight.risk_level}** (Confidence: ${insight.confidence_score}%)
+
+### Time Period
+90-Day Rolling Consumption Analysis with 30-Day Forward Projection
+
+### Analysis
+Calculated daily consumption rate from 90-day invoices and compared recent 30-day velocity to determine trend (${insight.trend_reason}).
+
+### Evidence
+90-Day Invoices: ${insight.historical_demand_90d} pcs. 30-Day Forecast: ${insight.forecasted_demand_30d} pcs. Shortage: ${insight.projected_shortage} pcs.
+
+### Human Review Recommendation
+${insight.risk_level === 'HIGH' ? 'Immediate replenishment required to prevent stockout.' : 'Stock is within operational buffer.'}`;
+
+    return {
+      query: parsed.raw,
+      user_role: role,
+      intent: 'PART_DEMAND_QUERY',
+      status: 'success',
+      message: `Demand analysis for ${partNum}.`,
+      direct_answer: directAnswer,
+      time_period: {
+        type: 'last_30_days',
+        label: '90-Day Rolling Demand',
+        dateFrom: '',
+        dateTo: '',
+      },
+      analysis: `Examined customer invoice dispatches and stock movements for part ${partNum}.`,
+      evidence: `90-day demand: ${insight.historical_demand_90d} pcs. Stock: ${insight.current_stock} pcs.`,
+      context: { previousQuery: parsed.raw, previousDomain: 'STOCK', previousEntity: partNum },
+      data_summary: {
+        title: `Demand Intelligence: ${partNum}`,
+        metrics: [
+          { label: '90D Demand', value: `${insight.historical_demand_90d.toLocaleString()} pcs`, color: isZeroDemand ? '#f59e0b' : '#10b981' },
+          { label: '30D Forecast', value: `${insight.forecasted_demand_30d.toLocaleString()} pcs`, color: '#6366f1' },
+          { label: 'Current Stock', value: `${insight.current_stock.toLocaleString()} pcs`, color: '#38bdf8' },
+          { label: 'Shortage Risk', value: insight.risk_level, color: insight.risk_level === 'HIGH' ? '#ef4444' : '#10b981' },
+        ],
+      },
+      suggested_actions: [
+        { label: 'Open AI Stock Intelligence', action_type: 'navigate', url: '/ai_stock_intelligence' },
+        { label: 'View Part Stock', action_type: 'navigate', url: '/part_stock' },
+      ],
+      security_audit: { role_checked: role, authorized: true, timestamp },
+    };
+  }
+
 
   /**
    * BOX DOMAIN

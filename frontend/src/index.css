@@ -1437,5 +1437,70 @@ table tbody tr {
   }
 }
 
+/* Ask ERP Gemini-Style Capsule Bar (Theme Adaptive) */
+.ask-erp-pill {
+  background-color: var(--card-sub-bg, #f8fafc);
+  border: 1.5px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
 
+.ask-erp-pill.focused {
+  background-color: var(--card-bg, #ffffff);
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3.5px rgba(37, 99, 235, 0.16), 0 4px 12px rgba(0, 0, 0, 0.06);
+}
 
+[data-theme="dark"] .ask-erp-pill {
+  background-color: #1e293b;
+  border-color: #374151;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="dark"] .ask-erp-pill.focused {
+  background-color: #0f172a;
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 3.5px rgba(59, 130, 246, 0.28), 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+.ask-erp-textarea {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  color: var(--text-main) !important;
+  caret-color: #2563eb !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+.ask-erp-textarea:focus,
+.ask-erp-textarea:focus-visible,
+.ask-erp-textarea:active {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.ask-erp-textarea::placeholder {
+  color: var(--text-muted) !important;
+  opacity: 0.75;
+}
+
+.ask-erp-clear-btn {
+  color: var(--text-muted);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.ask-erp-clear-btn:hover {
+  color: var(--text-main);
+  background-color: rgba(100, 116, 139, 0.15);
+}

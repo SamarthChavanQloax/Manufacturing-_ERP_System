@@ -25,12 +25,12 @@ export const ToastNotification: React.FC = () => {
   const handleAction = () => {
     markAsRead(activeToast.id);
     dismissToast();
-    const destination = getNotificationUrl(activeToast);
-    navigate(destination);
+    navigate(`/notifications?id=${activeToast.id}`);
   };
 
   return (
     <div
+      onClick={handleAction}
       style={{
         position: 'fixed',
         bottom: '24px',
@@ -48,6 +48,7 @@ export const ToastNotification: React.FC = () => {
         gap: '12px',
         alignItems: 'flex-start',
         animation: 'slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        cursor: 'pointer',
       }}
     >
       <div style={{ marginTop: '2px', flexShrink: 0 }}>
@@ -79,7 +80,10 @@ export const ToastNotification: React.FC = () => {
           </span>
           <button
             type="button"
-            onClick={dismissToast}
+            onClick={(e) => {
+              e.stopPropagation();
+              dismissToast();
+            }}
             style={{
               border: 'none',
               background: 'transparent',
@@ -128,7 +132,10 @@ export const ToastNotification: React.FC = () => {
           </button>
           <button
             type="button"
-            onClick={dismissToast}
+            onClick={(e) => {
+              e.stopPropagation();
+              dismissToast();
+            }}
             style={{
               background: 'transparent',
               color: 'var(--text-muted)',

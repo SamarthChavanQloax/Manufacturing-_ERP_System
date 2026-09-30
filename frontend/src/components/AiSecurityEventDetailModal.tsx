@@ -23,11 +23,11 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
     switch (p) {
       case 'CRITICAL':
       case 'HIGH':
-        return '#dc2626';
+        return '#f87171';
       case 'MEDIUM':
-        return '#d97706';
+        return '#fbbf24';
       default:
-        return '#2563eb';
+        return '#38bdf8';
     }
   };
 
@@ -35,11 +35,11 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
     switch (p) {
       case 'CRITICAL':
       case 'HIGH':
-        return '#fef2f2';
+        return 'rgba(239, 68, 68, 0.15)';
       case 'MEDIUM':
-        return '#fffbeb';
+        return 'rgba(245, 158, 11, 0.15)';
       default:
-        return '#eff6ff';
+        return 'rgba(56, 189, 248, 0.15)';
     }
   };
 
@@ -68,14 +68,14 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
     >
       <div
         style={{
-          background: '#ffffff',
+          background: 'var(--card-bg, #111827)',
           borderRadius: '16px',
           width: '720px',
           maxWidth: '100%',
           maxHeight: '92vh',
           overflowY: 'auto',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          border: '1px solid #e2e8f0',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          border: '1px solid var(--border-color, #374151)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -83,11 +83,11 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
         <div
           style={{
             padding: '20px 24px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid var(--border-color, #374151)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'flex-start',
-            background: '#f8fafc',
+            background: 'var(--card-sub-bg, #1f2937)',
             borderTopLeftRadius: '16px',
             borderTopRightRadius: '16px',
           }}
@@ -123,11 +123,11 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
                 >
                   {event.priority} PRIORITY
                 </span>
-                <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>
+                <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>
                   Category: {event.category}
                 </span>
               </div>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
                 {event.title}
               </h3>
             </div>
@@ -139,7 +139,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748b',
+              color: 'var(--text-muted, #94a3b8)',
               padding: '6px',
               borderRadius: '6px',
             }}
@@ -156,7 +156,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               style={{
                 fontSize: '12px',
                 fontWeight: 800,
-                color: '#475569',
+                color: 'var(--text-muted, #94a3b8)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '6px',
@@ -166,12 +166,12 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
             </div>
             <div
               style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--card-sub-bg, #1f2937)',
+                border: '1px solid var(--border-color, #374151)',
                 borderRadius: '8px',
                 padding: '14px 16px',
                 fontSize: '14px',
-                color: '#1e293b',
+                color: 'var(--text-main, #f8fafc)',
                 lineHeight: '1.5',
                 fontWeight: 600,
               }}
@@ -186,7 +186,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               style={{
                 fontSize: '12px',
                 fontWeight: 800,
-                color: '#475569',
+                color: 'var(--text-muted, #94a3b8)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '6px',
@@ -196,12 +196,12 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
             </div>
             <div
               style={{
-                background: '#fffbeb',
-                border: '1px solid #fde68a',
+                background: 'rgba(245, 158, 11, 0.08)',
+                border: '1px solid rgba(245, 158, 11, 0.25)',
                 borderRadius: '8px',
                 padding: '14px 16px',
                 fontSize: '14px',
-                color: '#92400e',
+                color: 'var(--text-main, #f8fafc)',
                 lineHeight: '1.5',
               }}
             >
@@ -215,7 +215,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               style={{
                 fontSize: '12px',
                 fontWeight: 800,
-                color: '#475569',
+                color: 'var(--text-muted, #94a3b8)',
                 textTransform: 'uppercase',
                 letterSpacing: '0.05em',
                 marginBottom: '8px',
@@ -229,49 +229,49 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
                 gap: '10px',
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--card-sub-bg, #1f2937)',
+                border: '1px solid var(--border-color, #374151)',
                 padding: '14px',
                 borderRadius: '8px',
                 marginBottom: '16px',
               }}
             >
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Invoice # / Barcode</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Invoice # / Barcode</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                   {evidence.invoice_number || evidence.invoice_barcode || 'N/A'}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Customer Name</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Customer Name</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                   {evidence.customer_name || 'Standard Account'}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Part / Dispatch Qty</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Part / Dispatch Qty</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                   {evidence.part_number || 'N/A'}{' '}
                   {evidence.quantity ? `(${evidence.quantity} pcs)` : ''}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Gate Risk Score</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Gate Risk Score</div>
                 <div style={{ fontSize: '14px', fontWeight: 800, color: color }}>
                   {evidence.risk_score ? `${evidence.risk_score} / 100 (${evidence.risk_level})` : 'N/A'}
                 </div>
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Failed Scans Count</div>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Failed Scans Count</div>
                 <div
                   style={{
                     fontSize: '14px',
                     fontWeight: 800,
-                    color: evidence.failed_scans_count > 0 ? '#dc2626' : '#16a34a',
+                    color: evidence.failed_scans_count > 0 ? '#ef4444' : '#10b981',
                   }}
                 >
                   {evidence.failed_scans_count || 0} attempts
@@ -279,8 +279,8 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               </div>
 
               <div>
-                <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Scan Timestamp</div>
-                <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a' }}>
+                <div style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>Scan Timestamp</div>
+                <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                   {evidence.scan_time || 'Standard Shift'}
                 </div>
               </div>
@@ -289,7 +289,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
             {/* Scan Timeline Table */}
             {scanTimeline.length > 0 && (
               <div>
-                <h5 style={{ fontSize: '13px', fontWeight: 700, color: '#334155', marginBottom: '8px' }}>
+                <h5 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main, #f8fafc)', marginBottom: '8px' }}>
                   Scan Attempt Event Timeline ({scanTimeline.length} events logged)
                 </h5>
                 <div className="table-responsive" style={{ maxHeight: '200px', overflowY: 'auto' }}>
@@ -308,7 +308,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
                       {scanTimeline.map((item: any, idx: number) => (
                         <tr key={idx}>
                           <td>{item.time}</td>
-                          <td style={{ fontWeight: 600, color: '#0284c7' }}>{item.barcode}</td>
+                          <td style={{ fontWeight: 600, color: '#38bdf8' }}>{item.barcode}</td>
                           <td>{item.scan_type}</td>
                           <td>
                             <span
@@ -318,7 +318,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
                                 gap: '4px',
                                 fontSize: '11px',
                                 fontWeight: 700,
-                                color: item.is_valid ? '#16a34a' : '#dc2626',
+                                color: item.is_valid ? '#10b981' : '#ef4444',
                               }}
                             >
                               {item.is_valid ? (
@@ -332,8 +332,8 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
                               )}
                             </span>
                           </td>
-                          <td style={{ color: '#475569' }}>{item.failure_reason || 'Scan matched'}</td>
-                          <td style={{ color: '#64748b' }}>{item.user_name || 'Gate Operator'}</td>
+                          <td style={{ color: 'var(--text-muted, #94a3b8)' }}>{item.failure_reason || 'Scan matched'}</td>
+                          <td style={{ color: 'var(--text-muted, #94a3b8)' }}>{item.user_name || 'Gate Operator'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -347,12 +347,12 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
           {evidence.review_status === 'reviewed' && (
             <div
               style={{
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
                 borderRadius: '8px',
                 padding: '12px 16px',
                 fontSize: '13px',
-                color: '#166534',
+                color: '#10b981',
                 marginBottom: '20px',
               }}
             >
@@ -362,7 +362,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               <div style={{ marginTop: '4px' }}>
                 Reviewed by: <strong>{evidence.reviewed_by || 'Admin'}</strong>
                 {evidence.review_note && (
-                  <div style={{ marginTop: '4px', fontStyle: 'italic' }}>
+                  <div style={{ marginTop: '4px', fontStyle: 'italic', color: 'var(--text-main, #f8fafc)' }}>
                     Note: "{evidence.review_note}"
                   </div>
                 )}
@@ -371,7 +371,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
           )}
 
           {/* Footer Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color, #374151)', paddingTop: '16px' }}>
             <button
               type="button"
               onClick={() => {

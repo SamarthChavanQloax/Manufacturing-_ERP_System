@@ -102,11 +102,11 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
     switch (p) {
       case 'CRITICAL':
       case 'HIGH':
-        return '#fef2f2';
+        return 'rgba(239, 68, 68, 0.15)';
       case 'MEDIUM':
-        return '#fffbeb';
+        return 'rgba(245, 158, 11, 0.15)';
       default:
-        return '#eff6ff';
+        return 'rgba(59, 130, 246, 0.15)';
     }
   };
 
@@ -114,11 +114,11 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
     switch (p) {
       case 'CRITICAL':
       case 'HIGH':
-        return '#fecaca';
+        return 'rgba(239, 68, 68, 0.3)';
       case 'MEDIUM':
-        return '#fde68a';
+        return 'rgba(245, 158, 11, 0.3)';
       default:
-        return '#bfdbfe';
+        return 'rgba(59, 130, 246, 0.3)';
     }
   };
 
@@ -202,8 +202,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
               width: '44px',
               height: '44px',
               borderRadius: '12px',
-              background: '#fef2f2',
-              color: '#dc2626',
+              background: 'rgba(239, 68, 68, 0.15)',
+              color: '#ef4444',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -214,7 +214,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
           </div>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: '#0f172a' }}>
+              <h1 style={{ margin: 0, fontSize: '22px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
                 AI Daily Security Briefing
               </h1>
               <span
@@ -233,7 +233,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                 <Sparkles size={12} /> Executive Intelligence
               </span>
             </div>
-            <p style={{ margin: '2px 0 0 0', color: '#64748b', fontSize: '13px' }}>
+            <p style={{ margin: '2px 0 0 0', color: 'var(--text-muted, #94a3b8)', fontSize: '13px' }}>
               Synthesizing daily gate transactions, scan logs, and risk patterns into executive security insights.
             </p>
           </div>
@@ -246,8 +246,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              background: '#ffffff',
-              border: '1px solid #cbd5e1',
+              background: 'var(--input-bg, #111827)',
+              border: '1px solid var(--border-color, #374151)',
               borderRadius: '8px',
               padding: '2px',
             }}
@@ -255,7 +255,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
             <button
               type="button"
               onClick={() => shiftDate(-1)}
-              style={{ background: 'transparent', border: 'none', padding: '6px 8px', cursor: 'pointer', color: '#475569' }}
+              style={{ background: 'transparent', border: 'none', padding: '6px 8px', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}
               title="Previous Day"
             >
               <ChevronLeft size={16} />
@@ -270,17 +270,18 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                 background: 'transparent',
                 fontSize: '13px',
                 fontWeight: 700,
-                color: '#0f172a',
+                color: 'var(--text-main, #f8fafc)',
                 padding: '4px 6px',
                 outline: 'none',
                 cursor: 'pointer',
+                colorScheme: 'dark',
               }}
             />
 
             <button
               type="button"
               onClick={() => shiftDate(1)}
-              style={{ background: 'transparent', border: 'none', padding: '6px 8px', cursor: 'pointer', color: '#475569' }}
+              style={{ background: 'transparent', border: 'none', padding: '6px 8px', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}
               title="Next Day"
             >
               <ChevronRight size={16} />
@@ -353,31 +354,31 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
               gap: '14px',
               backgroundColor:
                 (briefing?.high_priority_count || 0) > 0
-                  ? '#fee2e2'
+                  ? 'rgba(239, 68, 68, 0.12)'
                   : (briefing?.medium_priority_count || 0) > 0
-                  ? '#fef3c7'
-                  : '#dcfce7',
+                  ? 'rgba(245, 158, 11, 0.12)'
+                  : 'rgba(16, 185, 129, 0.12)',
               border: `1px solid ${
                 (briefing?.high_priority_count || 0) > 0
-                  ? '#fca5a5'
+                  ? 'rgba(239, 68, 68, 0.3)'
                   : (briefing?.medium_priority_count || 0) > 0
-                  ? '#fde047'
-                  : '#86efac'
+                  ? 'rgba(245, 158, 11, 0.3)'
+                  : 'rgba(16, 185, 129, 0.3)'
               }`,
               color:
                 (briefing?.high_priority_count || 0) > 0
-                  ? '#991b1b'
+                  ? '#f87171'
                   : (briefing?.medium_priority_count || 0) > 0
-                  ? '#854d0e'
-                  : '#166534',
+                  ? '#fbbf24'
+                  : '#34d399',
             }}
           >
             {(briefing?.high_priority_count || 0) > 0 ? (
-              <ShieldAlert size={28} color="#dc2626" style={{ flexShrink: 0 }} />
+              <ShieldAlert size={28} color="#ef4444" style={{ flexShrink: 0 }} />
             ) : (briefing?.medium_priority_count || 0) > 0 ? (
-              <AlertTriangle size={28} color="#d97706" style={{ flexShrink: 0 }} />
+              <AlertTriangle size={28} color="#f59e0b" style={{ flexShrink: 0 }} />
             ) : (
-              <ShieldCheck size={28} color="#16a34a" style={{ flexShrink: 0 }} />
+              <ShieldCheck size={28} color="#10b981" style={{ flexShrink: 0 }} />
             )}
             <div>
               <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>
@@ -387,7 +388,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                   ? `⚠️ Daily Briefing Notice: ${briefing.medium_priority_count} Advisory Incident(s) Logged for ${currentDate}`
                   : `✅ Daily Briefing Safe: 100% Normal Operations for ${currentDate}`}
               </h4>
-              <p style={{ margin: '4px 0 0 0', fontSize: '13px', opacity: 0.9 }}>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'var(--text-main, #e2e8f0)', opacity: 0.9 }}>
                 {(briefing?.high_priority_count || 0) > 0
                   ? 'Urgent attention required. Executive review and action steps are listed below before finalizing shift clearance.'
                   : (briefing?.medium_priority_count || 0) > 0
@@ -409,80 +410,80 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
         >
           <div
             style={{
-              background: '#ffffff',
+              background: 'var(--card-bg, #111827)',
               borderRadius: '12px',
               padding: '16px 18px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
+              border: '1px solid var(--border-color, #374151)',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
             }}
           >
-            <div style={{ fontSize: '11.5px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11.5px', color: 'var(--text-muted, #94a3b8)', fontWeight: 700, textTransform: 'uppercase' }}>
               Monitored Gate Operations
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: 'var(--text-main, #f8fafc)', marginTop: '4px' }}>
               {briefing?.total_events || 0}
             </div>
-            <div style={{ fontSize: '11.5px', color: '#16a34a', marginTop: '2px', fontWeight: 600 }}>
+            <div style={{ fontSize: '11.5px', color: '#34d399', marginTop: '2px', fontWeight: 600 }}>
               {briefing?.normal_count || 0} Normal Operations
             </div>
           </div>
 
           <div
             style={{
-              background: '#fef2f2',
+              background: 'rgba(239, 68, 68, 0.08)',
               borderRadius: '12px',
               padding: '16px 18px',
-              border: '1px solid #fecaca',
-              boxShadow: '0 2px 4px rgba(220, 38, 38, 0.05)',
+              border: '1px solid rgba(239, 68, 68, 0.25)',
+              boxShadow: '0 2px 4px rgba(239, 68, 68, 0.1)',
             }}
           >
-            <div style={{ fontSize: '11.5px', color: '#991b1b', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11.5px', color: '#ef4444', fontWeight: 700, textTransform: 'uppercase' }}>
               High Priority Alerts
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#ef4444', marginTop: '4px' }}>
               {briefing?.high_priority_count || 0}
             </div>
-            <div style={{ fontSize: '11.5px', color: '#991b1b', marginTop: '2px' }}>
+            <div style={{ fontSize: '11.5px', color: '#f87171', marginTop: '2px' }}>
               Critical Risk Signals
             </div>
           </div>
 
           <div
             style={{
-              background: '#fffbeb',
+              background: 'rgba(245, 158, 11, 0.08)',
               borderRadius: '12px',
               padding: '16px 18px',
-              border: '1px solid #fde68a',
-              boxShadow: '0 2px 4px rgba(217, 119, 6, 0.05)',
+              border: '1px solid rgba(245, 158, 11, 0.25)',
+              boxShadow: '0 2px 4px rgba(245, 158, 11, 0.1)',
             }}
           >
-            <div style={{ fontSize: '11.5px', color: '#92400e', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11.5px', color: '#f59e0b', fontWeight: 700, textTransform: 'uppercase' }}>
               Medium Priority Alerts
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#d97706', marginTop: '4px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#f59e0b', marginTop: '4px' }}>
               {briefing?.medium_priority_count || 0}
             </div>
-            <div style={{ fontSize: '11.5px', color: '#92400e', marginTop: '2px' }}>
+            <div style={{ fontSize: '11.5px', color: '#fbbf24', marginTop: '2px' }}>
               Advisory Deviations
             </div>
           </div>
 
           <div
             style={{
-              background: '#eff6ff',
+              background: 'rgba(59, 130, 246, 0.08)',
               borderRadius: '12px',
               padding: '16px 18px',
-              border: '1px solid #bfdbfe',
-              boxShadow: '0 2px 4px rgba(37, 99, 235, 0.05)',
+              border: '1px solid rgba(59, 130, 246, 0.25)',
+              boxShadow: '0 2px 4px rgba(59, 130, 246, 0.1)',
             }}
           >
-            <div style={{ fontSize: '11.5px', color: '#1e40af', fontWeight: 700, textTransform: 'uppercase' }}>
+            <div style={{ fontSize: '11.5px', color: '#3b82f6', fontWeight: 700, textTransform: 'uppercase' }}>
               Pending Supervisor Reviews
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#2563eb', marginTop: '4px' }}>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#3b82f6', marginTop: '4px' }}>
               {briefing?.pending_reviews_count || 0}
             </div>
-            <div style={{ fontSize: '11.5px', color: '#1e40af', marginTop: '2px' }}>
+            <div style={{ fontSize: '11.5px', color: '#60a5fa', marginTop: '2px' }}>
               Awaiting Audit Sign-off
             </div>
           </div>
@@ -491,17 +492,17 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
         {/* Executive Summary Card */}
         <div
           style={{
-            background: '#ffffff',
+            background: 'var(--card-bg, #111827)',
             borderRadius: '12px',
-            border: '1px solid #e2e8f0',
+            border: '1px solid var(--border-color, #374151)',
             padding: '18px 22px',
             marginBottom: '24px',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+            boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-            <Sparkles size={18} color="#2563eb" />
-            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '0.3px' }}>
+            <Sparkles size={18} color="#3b82f6" />
+            <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: 'var(--text-main, #f8fafc)', letterSpacing: '0.3px' }}>
               EXECUTIVE SECURITY BRIEFING SUMMARY &bull;{' '}
               {new Date(`${currentDate}T12:00:00`).toLocaleDateString('en-US', {
                 month: 'long',
@@ -515,7 +516,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
               margin: 0,
               fontSize: '14px',
               lineHeight: '1.6',
-              color: '#334155',
+              color: 'var(--text-main, #e2e8f0)',
               fontWeight: 500,
             }}
           >
@@ -533,16 +534,16 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
               marginBottom: '14px',
             }}
           >
-            <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: '#0f172a' }}>
+            <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
               Daily Incident Digest & Evidence Trace ({events.length} Flagged Events)
             </h2>
-            <div style={{ fontSize: '12.5px', color: '#64748b' }}>
+            <div style={{ fontSize: '12.5px', color: 'var(--text-muted, #94a3b8)' }}>
               Prioritized by risk severity: 🔴 High &bull; 🟠 Medium &bull; 🟡 Low
             </div>
           </div>
 
           {loading ? (
-            <div className="card" style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
+            <div className="card" style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted, #94a3b8)' }}>
               Synthesizing daily ERP gate logs and risk patterns...
             </div>
           ) : events.length === 0 ? (
@@ -552,16 +553,16 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
               style={{
                 padding: '48px 24px',
                 textAlign: 'center',
-                background: '#f0fdf4',
-                border: '1px solid #bbf7d0',
+                background: 'rgba(16, 185, 129, 0.08)',
+                border: '1px solid rgba(16, 185, 129, 0.25)',
                 borderRadius: '12px',
               }}
             >
-              <ShieldCheck size={52} color="#16a34a" style={{ margin: '0 auto 16px auto', display: 'block' }} />
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 800, color: '#166534' }}>
+              <ShieldCheck size={52} color="#10b981" style={{ margin: '0 auto 16px auto', display: 'block' }} />
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 800, color: '#10b981' }}>
                 🟢 100% Operational Integrity
               </h3>
-              <p style={{ margin: '0 auto', maxWidth: '580px', fontSize: '14.5px', color: '#15803d', lineHeight: '1.5' }}>
+              <p style={{ margin: '0 auto', maxWidth: '580px', fontSize: '14.5px', color: 'var(--text-main, #e2e8f0)', lineHeight: '1.5' }}>
                 All gate verification scans and dispatch quantities on{' '}
                 <strong>
                   {new Date(`${currentDate}T12:00:00`).toLocaleDateString('en-US', {
@@ -586,11 +587,11 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                   <div
                     key={event.id}
                     style={{
-                      background: '#ffffff',
+                      background: 'var(--card-bg, #111827)',
                       border: `1px solid ${border}`,
                       borderRadius: '12px',
                       overflow: 'hidden',
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.04)',
+                      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
                     }}
                   >
                     {/* Header Strip */}
@@ -620,7 +621,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                         >
                           {event.priority} PRIORITY
                         </span>
-                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#0f172a' }}>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
                           {event.title}
                         </h3>
                       </div>
@@ -644,7 +645,9 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                             gap: '6px',
                             fontSize: '12px',
                             fontWeight: 700,
-                            background: '#ffffff',
+                            background: 'var(--card-sub-bg, #1f2937)',
+                            color: 'var(--text-main, #f8fafc)',
+                            border: '1px solid var(--border-color, #374151)',
                           }}
                         >
                           <Eye size={13} /> View Evidence
@@ -665,8 +668,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                         {/* What Happened */}
                         <div
                           style={{
-                            background: '#f8fafc',
-                            border: '1px solid #e2e8f0',
+                            background: 'var(--card-sub-bg, #1f2937)',
+                            border: '1px solid var(--border-color, #374151)',
                             borderRadius: '8px',
                             padding: '14px',
                           }}
@@ -675,7 +678,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                             style={{
                               fontSize: '11px',
                               fontWeight: 800,
-                              color: '#64748b',
+                              color: 'var(--text-muted, #94a3b8)',
                               textTransform: 'uppercase',
                               letterSpacing: '0.05em',
                               marginBottom: '4px',
@@ -683,7 +686,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                           >
                             WHAT HAPPENED?
                           </div>
-                          <p style={{ margin: 0, fontSize: '13.5px', color: '#1e293b', lineHeight: '1.5', fontWeight: 600 }}>
+                          <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-main, #f8fafc)', lineHeight: '1.5', fontWeight: 600 }}>
                             {event.what_happened}
                           </p>
                         </div>
@@ -691,8 +694,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                         {/* Why It Matters */}
                         <div
                           style={{
-                            background: '#fffbeb',
-                            border: '1px solid #fde68a',
+                            background: 'rgba(245, 158, 11, 0.08)',
+                            border: '1px solid rgba(245, 158, 11, 0.25)',
                             borderRadius: '8px',
                             padding: '14px',
                           }}
@@ -701,7 +704,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                             style={{
                               fontSize: '11px',
                               fontWeight: 800,
-                              color: '#b45309',
+                              color: '#fbbf24',
                               textTransform: 'uppercase',
                               letterSpacing: '0.05em',
                               marginBottom: '4px',
@@ -709,7 +712,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                           >
                             WHY DOES IT MATTER?
                           </div>
-                          <p style={{ margin: 0, fontSize: '13.5px', color: '#92400e', lineHeight: '1.5' }}>
+                          <p style={{ margin: 0, fontSize: '13.5px', color: 'var(--text-main, #f8fafc)', lineHeight: '1.5' }}>
                             {event.why_it_matters}
                           </p>
                         </div>
@@ -718,8 +721,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                       {/* Evidence Summary Strip */}
                       <div
                         style={{
-                          background: '#f8fafc',
-                          border: '1px solid #e2e8f0',
+                          background: 'var(--card-sub-bg, #1f2937)',
+                          border: '1px solid var(--border-color, #374151)',
                           borderRadius: '8px',
                           padding: '12px 16px',
                           display: 'flex',
@@ -731,16 +734,16 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
                           <div>
-                            <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Invoice:</span>
-                            <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>
+                            <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Invoice:</span>
+                            <strong style={{ fontSize: '13.5px', color: 'var(--text-main, #f8fafc)' }}>
                               {evidence.invoice_number || evidence.invoice_barcode || 'N/A'}
                             </strong>
                           </div>
 
                           {evidence.customer_name && (
                             <div>
-                              <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Customer:</span>
-                              <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Customer:</span>
+                              <strong style={{ fontSize: '13.5px', color: 'var(--text-main, #f8fafc)' }}>
                                 {evidence.customer_name}
                               </strong>
                             </div>
@@ -748,7 +751,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
 
                           {evidence.risk_score !== undefined && (
                             <div>
-                              <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Risk Score:</span>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Risk Score:</span>
                               <strong style={{ fontSize: '13.5px', color: color }}>
                                 {evidence.risk_score} / 100 ({evidence.risk_level})
                               </strong>
@@ -757,8 +760,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
 
                           {evidence.failed_scans_count > 0 && (
                             <div>
-                              <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Failed Scans:</span>
-                              <strong style={{ fontSize: '13.5px', color: '#dc2626' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Failed Scans:</span>
+                              <strong style={{ fontSize: '13.5px', color: '#ef4444' }}>
                                 {evidence.failed_scans_count} attempts
                               </strong>
                             </div>
@@ -766,8 +769,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
 
                           {evidence.scan_time && (
                             <div>
-                              <span style={{ fontSize: '11px', color: '#64748b', display: 'block' }}>Scan Time:</span>
-                              <strong style={{ fontSize: '13.5px', color: '#0f172a' }}>
+                              <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Scan Time:</span>
+                              <strong style={{ fontSize: '13.5px', color: 'var(--text-main, #f8fafc)' }}>
                                 {evidence.scan_time}
                               </strong>
                             </div>
@@ -823,35 +826,36 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
         >
           <div
             style={{
-              background: '#ffffff',
+              background: 'var(--card-bg, #111827)',
               borderRadius: '16px',
+              border: '1px solid var(--border-color, #374151)',
               width: '680px',
               maxWidth: '100%',
               maxHeight: '85vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               style={{
                 padding: '20px 24px',
-                borderBottom: '1px solid #e2e8f0',
+                borderBottom: '1px solid var(--border-color, #374151)',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                background: '#f8fafc',
+                background: 'var(--card-sub-bg, #1f2937)',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <History size={20} color="#2563eb" />
-                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                <History size={20} color="#3b82f6" />
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
                   Historical Security Briefings Archive
                 </h3>
               </div>
               <button
                 onClick={() => setHistoryOpen(false)}
-                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b' }}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted, #94a3b8)' }}
               >
                 <X size={20} />
               </button>
@@ -880,7 +884,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                     ) : (
                       historyList.map((h) => (
                         <tr key={h.id}>
-                          <td style={{ fontWeight: 700, color: '#0f172a' }}>
+                          <td style={{ fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
                             {new Date(`${h.briefing_date}T12:00:00`).toLocaleDateString('en-US', {
                               month: 'short',
                               day: 'numeric',
