@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { usePreferences } from '../context/PreferencesContext';
 import {
   Mail,
   Lock,
@@ -13,10 +14,14 @@ import {
   Box as BoxIcon,
   FileText,
   Truck,
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
+  const { theme, setTheme } = usePreferences();
+  const isDark = theme === 'dark';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const noticeParam = searchParams.get('notice');
@@ -47,18 +52,20 @@ export const LoginPage: React.FC = () => {
   };
 
   const presets = [
-    { label: 'Admin', email: 'admin@admin.com', pass: 'admin', icon: Shield, color: '#dc2626', bg: '#fef2f2' },
-    { label: 'Packing', email: 'dpr@talbros.com', pass: 'dpr', icon: Package, color: '#d97706', bg: '#fffbeb' },
-    { label: 'Box', email: 'fgs@talbros.com', pass: 'fgs', icon: BoxIcon, color: '#2563eb', bg: '#eff6ff' },
-    { label: 'Invoice', email: 'invoice@talbros.com', pass: 'invoice', icon: FileText, color: '#7c3aed', bg: '#f5f3ff' },
-    { label: 'Gate', email: 'gate@talbros.com', pass: 'gate', icon: Truck, color: '#059669', bg: '#ecfdf5' },
+    { label: 'Admin', email: 'admin@admin.com', pass: 'admin', icon: Shield, color: '#dc2626', bg: '#fef2f2', darkColor: '#f87171', darkBg: 'rgba(239, 68, 68, 0.2)' },
+    { label: 'Packing', email: 'dpr@talbros.com', pass: 'dpr', icon: Package, color: '#d97706', bg: '#fffbeb', darkColor: '#fbbf24', darkBg: 'rgba(245, 158, 11, 0.2)' },
+    { label: 'Box', email: 'fgs@talbros.com', pass: 'fgs', icon: BoxIcon, color: '#2563eb', bg: '#eff6ff', darkColor: '#60a5fa', darkBg: 'rgba(59, 130, 246, 0.2)' },
+    { label: 'Invoice', email: 'invoice@talbros.com', pass: 'invoice', icon: FileText, color: '#7c3aed', bg: '#f5f3ff', darkColor: '#c084fc', darkBg: 'rgba(168, 85, 247, 0.2)' },
+    { label: 'Gate', email: 'gate@talbros.com', pass: 'gate', icon: Truck, color: '#059669', bg: '#ecfdf5', darkColor: '#34d399', darkBg: 'rgba(16, 185, 129, 0.2)' },
   ];
 
   return (
     <div
       style={{
         minHeight: '100vh',
-        background: '#f8fafc',
+        background: isDark
+          ? 'radial-gradient(circle at 50% 0%, #0f172a 0%, #0b0f19 50%, #030712 100%)'
+          : '#f8fafc',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -66,8 +73,49 @@ export const LoginPage: React.FC = () => {
         fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         position: 'relative',
         overflow: 'hidden',
+        transition: 'background 0.3s ease',
       }}
     >
+      {/* Top Floating Theme Toggle */}
+      <button
+        type="button"
+        onClick={() => setTheme(isDark ? 'light' : 'dark')}
+        aria-label="Toggle dark/light mode"
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '8px 14px',
+          borderRadius: '9999px',
+          border: isDark ? '1px solid rgba(255, 255, 255, 0.15)' : '1px solid #e2e8f0',
+          background: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.85)',
+          backdropFilter: 'blur(8px)',
+          color: isDark ? '#f9fafb' : '#334155',
+          fontSize: '12.5px',
+          fontWeight: 600,
+          cursor: 'pointer',
+          zIndex: 10,
+          boxShadow: isDark
+            ? '0 4px 12px rgba(0, 0, 0, 0.4)'
+            : '0 4px 12px rgba(15, 23, 42, 0.06)',
+          transition: 'all 0.2s ease',
+        }}
+      >
+        {isDark ? (
+          <>
+            <Sun size={15} color="#fbbf24" />
+            <span>Light Mode</span>
+          </>
+        ) : (
+          <>
+            <Moon size={15} color="#6366f1" />
+            <span>Dark Mode</span>
+          </>
+        )}
+      </button>
       {/* Background glow effects */}
       <div
         style={{
@@ -77,7 +125,9 @@ export const LoginPage: React.FC = () => {
           width: '450px',
           height: '450px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(2, 132, 199, 0.07) 0%, transparent 70%)',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(2, 132, 199, 0.18) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(2, 132, 199, 0.07) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
@@ -89,23 +139,28 @@ export const LoginPage: React.FC = () => {
           width: '400px',
           height: '400px',
           borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)',
+          background: isDark
+            ? 'radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)'
+            : 'radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)',
           pointerEvents: 'none',
         }}
       />
 
-      {/* Pure White Clean Card */}
+      {/* Clean Login Card */}
       <div
         style={{
           width: '100%',
           maxWidth: '430px',
-          background: '#ffffff',
+          background: isDark ? '#111827' : '#ffffff',
           borderRadius: '20px',
-          boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05)',
+          boxShadow: isDark
+            ? '0 25px 50px -12px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.08)'
+            : '0 20px 40px -10px rgba(15, 23, 42, 0.08), 0 0 0 1px rgba(15, 23, 42, 0.05)',
           overflow: 'hidden',
           position: 'relative',
           zIndex: 1,
           animation: 'loginCardAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1)',
+          transition: 'background 0.3s ease, box-shadow 0.3s ease',
         }}
       >
         {/* Top accent border line */}
@@ -133,7 +188,9 @@ export const LoginPage: React.FC = () => {
                 fontWeight: 800,
                 letterSpacing: '0.5px',
                 marginBottom: '12px',
-                boxShadow: '0 8px 18px rgba(2, 132, 199, 0.3)',
+                boxShadow: isDark
+                  ? '0 8px 24px rgba(2, 132, 199, 0.45)'
+                  : '0 8px 18px rgba(2, 132, 199, 0.3)',
               }}
             >
               ERP
@@ -142,7 +199,7 @@ export const LoginPage: React.FC = () => {
               style={{
                 fontSize: '22px',
                 fontWeight: 800,
-                color: '#0f172a',
+                color: isDark ? '#f9fafb' : '#0f172a',
                 margin: '0 0 4px',
                 letterSpacing: '-0.02em',
               }}
@@ -152,7 +209,7 @@ export const LoginPage: React.FC = () => {
             <p
               style={{
                 fontSize: '12.5px',
-                color: '#64748b',
+                color: isDark ? '#9ca3af' : '#64748b',
                 margin: 0,
                 fontWeight: 500,
               }}
@@ -167,13 +224,13 @@ export const LoginPage: React.FC = () => {
               style={{
                 fontSize: '17px',
                 fontWeight: 700,
-                color: '#1e293b',
+                color: isDark ? '#f3f4f6' : '#1e293b',
                 margin: '0 0 4px',
               }}
             >
               Sign In
             </h2>
-            <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+            <p style={{ fontSize: '13px', color: isDark ? '#9ca3af' : '#64748b', margin: 0 }}>
               Please enter your credentials to login
             </p>
           </div>
@@ -182,9 +239,9 @@ export const LoginPage: React.FC = () => {
           {!error && (
             <div
               style={{
-                background: '#f0f9ff',
-                color: '#0369a1',
-                border: '1px solid #bae6fd',
+                background: isDark ? 'rgba(2, 132, 199, 0.15)' : '#f0f9ff',
+                color: isDark ? '#38bdf8' : '#0369a1',
+                border: isDark ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid #bae6fd',
                 borderRadius: '10px',
                 padding: '11px 14px',
                 marginBottom: '18px',
@@ -195,7 +252,7 @@ export const LoginPage: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              <Lock size={16} style={{ flexShrink: 0, color: '#0284c7' }} />
+              <Lock size={16} style={{ flexShrink: 0, color: isDark ? '#38bdf8' : '#0284c7' }} />
               <span>
                 {noticeParam === 'session_expired'
                   ? 'Session expired. Please log in first to continue.'
@@ -208,9 +265,9 @@ export const LoginPage: React.FC = () => {
           {error && (
             <div
               style={{
-                background: '#fef2f2',
-                color: '#dc2626',
-                border: '1px solid #fecaca',
+                background: isDark ? 'rgba(239, 68, 68, 0.15)' : '#fef2f2',
+                color: isDark ? '#fca5a5' : '#dc2626',
+                border: isDark ? '1px solid rgba(239, 68, 68, 0.3)' : '1px solid #fecaca',
                 borderRadius: '10px',
                 padding: '11px 13px',
                 marginBottom: '18px',
@@ -235,7 +292,7 @@ export const LoginPage: React.FC = () => {
                   display: 'block',
                   fontSize: '12.5px',
                   fontWeight: 600,
-                  color: '#334155',
+                  color: isDark ? '#e2e8f0' : '#334155',
                   marginBottom: '6px',
                 }}
               >
@@ -249,7 +306,9 @@ export const LoginPage: React.FC = () => {
                     left: '13px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: focused === 'email' ? '#0284c7' : '#94a3b8',
+                    color: focused === 'email'
+                      ? (isDark ? '#38bdf8' : '#0284c7')
+                      : (isDark ? '#64748b' : '#94a3b8'),
                     transition: 'color 0.15s ease',
                     pointerEvents: 'none',
                   }}
@@ -266,14 +325,22 @@ export const LoginPage: React.FC = () => {
                     width: '100%',
                     padding: '11px 14px 11px 40px',
                     fontSize: '13.5px',
-                    border: `1.5px solid ${focused === 'email' ? '#0284c7' : '#e2e8f0'}`,
+                    border: `1.5px solid ${
+                      focused === 'email'
+                        ? (isDark ? '#38bdf8' : '#0284c7')
+                        : (isDark ? '#374151' : '#e2e8f0')
+                    }`,
                     borderRadius: '10px',
-                    background: focused === 'email' ? '#ffffff' : '#f8fafc',
-                    color: '#0f172a',
+                    background: isDark
+                      ? (focused === 'email' ? '#1f2937' : '#161e2e')
+                      : (focused === 'email' ? '#ffffff' : '#f8fafc'),
+                    color: isDark ? '#f9fafb' : '#0f172a',
                     outline: 'none',
                     transition: 'all 0.15s ease',
                     boxSizing: 'border-box',
-                    boxShadow: focused === 'email' ? '0 0 0 3px rgba(2, 132, 199, 0.12)' : 'none',
+                    boxShadow: focused === 'email'
+                      ? (isDark ? '0 0 0 3px rgba(56, 189, 248, 0.2)' : '0 0 0 3px rgba(2, 132, 199, 0.12)')
+                      : 'none',
                   }}
                 />
               </div>
@@ -286,7 +353,7 @@ export const LoginPage: React.FC = () => {
                   display: 'block',
                   fontSize: '12.5px',
                   fontWeight: 600,
-                  color: '#334155',
+                  color: isDark ? '#e2e8f0' : '#334155',
                   marginBottom: '6px',
                 }}
               >
@@ -300,7 +367,9 @@ export const LoginPage: React.FC = () => {
                     left: '13px',
                     top: '50%',
                     transform: 'translateY(-50%)',
-                    color: focused === 'password' ? '#0284c7' : '#94a3b8',
+                    color: focused === 'password'
+                      ? (isDark ? '#38bdf8' : '#0284c7')
+                      : (isDark ? '#64748b' : '#94a3b8'),
                     transition: 'color 0.15s ease',
                     pointerEvents: 'none',
                   }}
@@ -317,14 +386,22 @@ export const LoginPage: React.FC = () => {
                     width: '100%',
                     padding: '11px 40px 11px 40px',
                     fontSize: '13.5px',
-                    border: `1.5px solid ${focused === 'password' ? '#0284c7' : '#e2e8f0'}`,
+                    border: `1.5px solid ${
+                      focused === 'password'
+                        ? (isDark ? '#38bdf8' : '#0284c7')
+                        : (isDark ? '#374151' : '#e2e8f0')
+                    }`,
                     borderRadius: '10px',
-                    background: focused === 'password' ? '#ffffff' : '#f8fafc',
-                    color: '#0f172a',
+                    background: isDark
+                      ? (focused === 'password' ? '#1f2937' : '#161e2e')
+                      : (focused === 'password' ? '#ffffff' : '#f8fafc'),
+                    color: isDark ? '#f9fafb' : '#0f172a',
                     outline: 'none',
                     transition: 'all 0.15s ease',
                     boxSizing: 'border-box',
-                    boxShadow: focused === 'password' ? '0 0 0 3px rgba(2, 132, 199, 0.12)' : 'none',
+                    boxShadow: focused === 'password'
+                      ? (isDark ? '0 0 0 3px rgba(56, 189, 248, 0.2)' : '0 0 0 3px rgba(2, 132, 199, 0.12)')
+                      : 'none',
                   }}
                 />
                 <button
@@ -338,7 +415,7 @@ export const LoginPage: React.FC = () => {
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
-                    color: '#94a3b8',
+                    color: isDark ? '#9ca3af' : '#94a3b8',
                     padding: '4px',
                     display: 'flex',
                     alignItems: 'center',
@@ -358,14 +435,14 @@ export const LoginPage: React.FC = () => {
                 gap: '8px',
                 marginBottom: '20px',
                 fontSize: '12.5px',
-                color: '#64748b',
-                background: '#f8fafc',
+                color: isDark ? '#9ca3af' : '#64748b',
+                background: isDark ? 'rgba(255, 255, 255, 0.04)' : '#f8fafc',
                 padding: '8px 12px',
                 borderRadius: '8px',
-                border: '1px solid #f1f5f9',
+                border: isDark ? '1px solid #1f2937' : '1px solid #f1f5f9',
               }}
             >
-              <Shield size={14} style={{ color: '#0284c7', flexShrink: 0 }} />
+              <Shield size={14} style={{ color: isDark ? '#38bdf8' : '#0284c7', flexShrink: 0 }} />
               <span>Session active until window/project is closed</span>
             </div>
 
@@ -390,7 +467,9 @@ export const LoginPage: React.FC = () => {
                 justifyContent: 'center',
                 gap: '8px',
                 letterSpacing: '0.01em',
-                boxShadow: loading ? 'none' : '0 4px 14px rgba(2, 132, 199, 0.35)',
+                boxShadow: loading
+                  ? 'none'
+                  : (isDark ? '0 4px 18px rgba(2, 132, 199, 0.4)' : '0 4px 14px rgba(2, 132, 199, 0.35)'),
                 transition: 'all 0.2s ease',
               }}
             >
@@ -428,11 +507,11 @@ export const LoginPage: React.FC = () => {
                 marginBottom: '12px',
               }}
             >
-              <div style={{ flex: 1, height: '1px', background: '#f1f5f9' }} />
+              <div style={{ flex: 1, height: '1px', background: isDark ? '#1f2937' : '#f1f5f9' }} />
               <span
                 style={{
                   fontSize: '11px',
-                  color: '#94a3b8',
+                  color: isDark ? '#6b7280' : '#94a3b8',
                   fontWeight: 600,
                   textTransform: 'uppercase',
                   letterSpacing: '0.05em',
@@ -440,13 +519,19 @@ export const LoginPage: React.FC = () => {
               >
                 Quick Role Login
               </span>
-              <div style={{ flex: 1, height: '1px', background: '#f1f5f9' }} />
+              <div style={{ flex: 1, height: '1px', background: isDark ? '#1f2937' : '#f1f5f9' }} />
             </div>
 
             <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {presets.map((preset) => {
                 const Icon = preset.icon;
                 const isActive = email === preset.email;
+                const activeBg = isDark ? preset.darkBg : preset.bg;
+                const activeColor = isDark ? preset.darkColor : preset.color;
+                const inactiveBg = isDark ? '#1e293b' : '#ffffff';
+                const inactiveBorder = isDark ? '#334155' : '#e2e8f0';
+                const inactiveColor = isDark ? '#94a3b8' : '#475569';
+
                 return (
                   <button
                     key={preset.label}
@@ -457,12 +542,12 @@ export const LoginPage: React.FC = () => {
                       alignItems: 'center',
                       gap: '5px',
                       padding: '6px 10px',
-                      background: isActive ? preset.bg : '#ffffff',
-                      border: `1.5px solid ${isActive ? preset.color : '#e2e8f0'}`,
+                      background: isActive ? activeBg : inactiveBg,
+                      border: `1.5px solid ${isActive ? activeColor : inactiveBorder}`,
                       borderRadius: '8px',
                       fontSize: '11.5px',
                       fontWeight: 600,
-                      color: isActive ? preset.color : '#475569',
+                      color: isActive ? activeColor : inactiveColor,
                       cursor: 'pointer',
                       transition: 'all 0.15s ease',
                       flex: '1 1 auto',
@@ -470,7 +555,7 @@ export const LoginPage: React.FC = () => {
                       minWidth: '0',
                     }}
                   >
-                    <Icon size={12} color={preset.color} />
+                    <Icon size={12} color={isActive ? activeColor : (isDark ? '#64748b' : preset.color)} />
                     {preset.label}
                   </button>
                 );
@@ -483,12 +568,12 @@ export const LoginPage: React.FC = () => {
         <div
           style={{
             padding: '12px 32px',
-            background: '#f8fafc',
-            borderTop: '1px solid #f1f5f9',
+            background: isDark ? '#0b0f19' : '#f8fafc',
+            borderTop: isDark ? '1px solid #1f2937' : '1px solid #f1f5f9',
             textAlign: 'center',
           }}
         >
-          <p style={{ fontSize: '11.5px', color: '#94a3b8', margin: 0 }}>
+          <p style={{ fontSize: '11.5px', color: isDark ? '#64748b' : '#94a3b8', margin: 0 }}>
             © 2026 SofTech ERP · Talbros Automotive Components Ltd.
           </p>
         </div>
