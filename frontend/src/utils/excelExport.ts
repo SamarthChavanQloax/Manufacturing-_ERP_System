@@ -34,5 +34,22 @@ export const exportToExcel = (
   XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
 
   const fullFileName = fileName.endsWith('.xlsx') ? fileName : `${fileName}.xlsx`;
-  XLSX.writeFile(workbook, fullFileName);
+
+  try {
+    const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fullFileName;
+    document.body.appendChild(anchor);
+    anchor.click();
+    setTimeout(() => {
+      document.body.removeChild(anchor);
+      window.URL.revokeObjectURL(url);
+    }, 150);
+  } catch (err) {
+    console.error('Error generating Excel download via Blob, falling back to XLSX.writeFile', err);
+    XLSX.writeFile(workbook, fullFileName);
+  }
 };

@@ -88,7 +88,53 @@ export class InvoicesService {
       status_new: 'pending',
     });
 
-    return this.invoiceRepo.save(invoice);
+    const saved = await this.invoiceRepo.save(invoice);
+
+    // Notify admin on invoice creation & highlight anomalies immediately
+    try {
+      if (Number(data.qty) > 5000) {
+        await this.notificationService.createNotification({
+          recipient_role: 'admin',
+          type: 'SECURITY_ANOMALY',
+          priority: 'CRITICAL',
+          title: `🚨 AI Security Alert: Anomalous Invoice Quantity (${saved.qty} pcs)`,
+          message: `Invoice ${saved.invoice_number} was generated with an unusually high quantity of ${saved.qty} pcs. Immediate supervisor audit required.`,
+          entity_type: 'INVOICE',
+          entity_id: saved.invoice_number,
+          action_url: `/ai_security?search=${encodeURIComponent(saved.invoice_number)}`,
+          dedup_key: `anomaly_qty_${saved.id}`,
+          metadata: {
+            invoice_id: saved.id,
+            invoice_number: saved.invoice_number,
+            qty: saved.qty,
+            created_by: userId,
+            anomaly_type: 'Anomalous Quantity',
+          },
+        });
+      } else {
+        await this.notificationService.createNotification({
+          recipient_role: 'admin',
+          type: 'INVOICE_CREATED',
+          priority: 'INFO',
+          title: `📄 New Invoice Created: ${saved.invoice_number}`,
+          message: `Invoice ${saved.invoice_number} was created with quantity ${saved.qty} pcs. Ready for packaging.`,
+          entity_type: 'INVOICE',
+          entity_id: saved.invoice_number,
+          action_url: `/add_box_to_invoice?invoice_id=${saved.id}`,
+          dedup_key: `inv_created_${saved.id}`,
+          metadata: {
+            invoice_id: saved.id,
+            invoice_number: saved.invoice_number,
+            qty: saved.qty,
+            created_by: userId,
+          },
+        });
+      }
+    } catch (err) {
+      this.logger.error('Failed to dispatch notification for invoice creation', err);
+    }
+
+    return saved;
   }
 
   async findAll(fromDate?: string, toDate?: string) {

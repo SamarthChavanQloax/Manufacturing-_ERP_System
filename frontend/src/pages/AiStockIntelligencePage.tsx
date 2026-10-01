@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
-import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, Download, Minus, BarChart2, FileSpreadsheet } from 'lucide-react';
+import { AlertCircle, TrendingUp, TrendingDown, CheckCircle, Download, Minus, BarChart2, FileSpreadsheet, Search, X } from 'lucide-react';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { exportToExcel } from '../utils/excelExport';
@@ -23,6 +23,7 @@ interface StockInsight {
 export const AiStockIntelligencePage: React.FC = () => {
   const [insights, setInsights] = useState<StockInsight[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     fetchInsights();
@@ -38,6 +39,19 @@ export const AiStockIntelligencePage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const filteredInsights = insights.filter((i) => {
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase().trim();
+    return (
+      (i.part_number || '').toLowerCase().includes(q) ||
+      (i.part_description || '').toLowerCase().includes(q)
+    );
+  });
+
+  const chartData = searchQuery.trim()
+    ? filteredInsights.slice(0, 10)
+    : insights.slice(0, 5);
 
   const getTargetProductionParts = () => {
     // 1. High priority: parts with projected shortage, HIGH risk, or out of stock (0 qty)
@@ -123,6 +137,35 @@ export const AiStockIntelligencePage: React.FC = () => {
     }));
 
     exportToExcel(exportData, `Production_Plan_Forecast_${new Date().toISOString().split('T')[0]}`, 'Production Plan');
+  };
+
+  const renderTrendIcon = (reason: string, riskLevel?: string) => {
+    const lower = (reason || '').toLowerCase();
+
+    // 1. Decreased / dropping consumption -> Green TrendingDown
+    if (lower.includes('decreased') || lower.includes('drop')) {
+      return <TrendingDown size={16} color="#16a34a" style={{ flexShrink: 0, strokeWidth: 2.2 }} />;
+    }
+
+    // 2. High Risk / High Demand -> Red TrendingUp
+    if (
+      riskLevel === 'HIGH' ||
+      lower.includes('increased') ||
+      lower.includes('surge') ||
+      lower.includes('high demand') ||
+      lower.includes('exceeds') ||
+      lower.includes('critical')
+    ) {
+      return <TrendingUp size={16} color="#dc2626" style={{ flexShrink: 0, strokeWidth: 2.5 }} />;
+    }
+
+    // 3. Medium Risk / Safety Buffer / Depleting -> Amber AlertCircle
+    if (riskLevel === 'MEDIUM' || lower.includes('safety') || lower.includes('buffer') || lower.includes('depletes')) {
+      return <AlertCircle size={16} color="#f59e0b" style={{ flexShrink: 0, strokeWidth: 2.2 }} />;
+    }
+
+    // 4. Low Risk / Safe Stock -> Green CheckCircle
+    return <CheckCircle size={15} color="#10b981" style={{ flexShrink: 0 }} />;
   };
 
   const highRiskCount = insights.filter(i => i.risk_level === 'HIGH').length;
@@ -239,7 +282,11 @@ export const AiStockIntelligencePage: React.FC = () => {
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <BarChart2 size={20} color="#3b82f6" />
-              <h3 className="card-title" style={{ margin: 0 }}>Top 5 High-Risk Parts: Stock vs Demand Trend</h3>
+              <h3 className="card-title" style={{ margin: 0 }}>
+                {searchQuery.trim()
+                  ? `Trend for "${searchQuery}" (${chartData.length} matching part${chartData.length === 1 ? '' : 's'})`
+                  : 'Top 5 High-Risk Parts: Stock vs Demand Trend'}
+              </h3>
             </div>
             <span style={{ fontSize: '12px', color: 'var(--text-main)', backgroundColor: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.25)', padding: '4px 10px', borderRadius: '12px', fontWeight: 600 }}>
               🟢 Green = What is currently in stock | 🟠 Orange = What customers will need
@@ -248,12 +295,14 @@ export const AiStockIntelligencePage: React.FC = () => {
           <div className="card-body" style={{ height: '350px', padding: '20px' }}>
             {loading ? (
               <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>Loading AI Insights...</div>
-            ) : insights.length === 0 ? (
-              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>No data available</div>
+            ) : chartData.length === 0 ? (
+              <div style={{ display: 'flex', height: '100%', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}>
+                No parts matching "{searchQuery}"
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart
-                  data={insights.slice(0, 5)}
+                  data={chartData}
                   margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.08)" />
@@ -273,11 +322,62 @@ export const AiStockIntelligencePage: React.FC = () => {
         </div>
 
         <div className="card">
-          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
-            <h3 className="card-title" style={{ margin: 0 }}>Stock Availability & Demand Forecast</h3>
-            <span style={{ fontSize: '13px', color: '#6b7280' }}>
-              Shows real-time stock levels and AI production suggestions
-            </span>
+          <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+            <div>
+              <h3 className="card-title" style={{ margin: 0 }}>Stock Availability & Demand Forecast</h3>
+              <span style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
+                Shows real-time stock levels, demand trends, and AI production suggestions
+              </span>
+            </div>
+
+            {/* Part Search Bar */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+              <div style={{ position: 'relative', width: '280px' }}>
+                <Search size={15} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                <input
+                  type="text"
+                  placeholder="Search Part Number Or Name"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '8px 30px 8px 34px',
+                    borderRadius: '6px',
+                    border: '1px solid var(--border-color)',
+                    backgroundColor: 'var(--card-sub-bg, #1e293b)',
+                    color: 'var(--text-main)',
+                    fontSize: '13px',
+                    outline: 'none',
+                  }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    style={{
+                      position: 'absolute',
+                      right: '8px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--text-muted)',
+                      cursor: 'pointer',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                    title="Clear search"
+                  >
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+              {searchQuery && (
+                <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>
+                  Showing {filteredInsights.length} of {insights.length}
+                </span>
+              )}
+            </div>
           </div>
           <div className="card-body">
             <div className="table-responsive">
@@ -299,12 +399,21 @@ export const AiStockIntelligencePage: React.FC = () => {
                     <tr>
                       <td colSpan={8} style={{ textAlign: 'center', padding: '30px' }}>Loading AI Insights...</td>
                     </tr>
-                  ) : insights.length === 0 ? (
+                  ) : filteredInsights.length === 0 ? (
                     <tr>
-                      <td colSpan={8} style={{ textAlign: 'center', padding: '30px' }}>No data available</td>
+                      <td colSpan={8} style={{ textAlign: 'center', padding: '36px', color: 'var(--text-muted)' }}>
+                        <div>No parts found matching <strong>"{searchQuery}"</strong></div>
+                        <button
+                          onClick={() => setSearchQuery('')}
+                          className="btn btn-sm btn-secondary"
+                          style={{ marginTop: '10px', cursor: 'pointer' }}
+                        >
+                          Clear Search Filter
+                        </button>
+                      </td>
                     </tr>
                   ) : (
-                    insights.map((item) => (
+                    filteredInsights.map((item) => (
                       <tr key={item.part_id}>
                         <td>
                           <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{item.part_number}</div>
@@ -366,13 +475,11 @@ export const AiStockIntelligencePage: React.FC = () => {
                           )}
                         </td>
                         <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px' }}>
-                            {item.trend_reason.includes('increased') ? <TrendingUp size={14} color="#dc2626" /> : 
-                             item.trend_reason.includes('decreased') ? <TrendingDown size={14} color="#16a34a" /> : 
-                             <Minus size={14} color="#9ca3af" />}
-                            {item.trend_reason}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '13px' }}>
+                            {renderTrendIcon(item.trend_reason, item.risk_level)}
+                            <span>{item.trend_reason}</span>
                           </div>
-                          <div style={{ fontSize: '11px', color: '#9ca3af' }}>Confidence: {item.confidence_score}%</div>
+                          <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '2px' }}>Confidence: {item.confidence_score}%</div>
                         </td>
                         <td>
                           <span

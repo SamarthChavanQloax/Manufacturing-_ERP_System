@@ -1072,10 +1072,16 @@ export const NotificationsPage: React.FC = () => {
             const badge = getPriorityBadge(n.priority);
             const isResolved = n.lifecycle_status === 'RESOLVED';
             const isTargeted = targetId && String(n.id) === String(targetId);
+            const targetUrl = getNotificationUrl(n);
             const isMismatch =
               n.type === 'INVOICE_QTY_MISMATCH_RISK' ||
               n.metadata?.alert_category === 'INVOICE_QUANTITY_MISMATCH' ||
               (n.title && n.title.includes('Box Qty Mismatch'));
+
+            const handleNavigateToTarget = () => {
+              if (!n.is_read) markAsRead(n.id);
+              navigate(targetUrl);
+            };
 
             return (
               <div
@@ -1129,7 +1135,19 @@ export const NotificationsPage: React.FC = () => {
                       {badge.label}
                     </span>
 
-                    <span style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text-main)' }}>
+                    <span
+                      onClick={handleNavigateToTarget}
+                      style={{
+                        fontWeight: 700,
+                        fontSize: '15px',
+                        color: 'var(--text-main)',
+                        cursor: 'pointer',
+                        transition: 'color 0.15s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#3b82f6')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-main)')}
+                      title="Click to view details"
+                    >
                       {n.title}
                     </span>
 
@@ -1332,23 +1350,15 @@ export const NotificationsPage: React.FC = () => {
                     </button>
                   )}
 
-                  {(() => {
-                    const targetUrl = getNotificationUrl(n);
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!n.is_read) markAsRead(n.id);
-                          navigate(targetUrl);
-                        }}
-                        className="btn btn-sm btn-primary"
-                        style={{ fontSize: '11.5px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                      >
-                        {isMismatch ? 'Open Invoice & Box Mapping' : 'Review Incident'}
-                        <ArrowRight size={12} />
-                      </button>
-                    );
-                  })()}
+                  <button
+                    type="button"
+                    onClick={handleNavigateToTarget}
+                    className="btn btn-sm btn-primary"
+                    style={{ fontSize: '11.5px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    {isMismatch ? 'Open Invoice & Box Mapping' : 'Review Incident'}
+                    <ArrowRight size={12} />
+                  </button>
                 </div>
               </div>
             );

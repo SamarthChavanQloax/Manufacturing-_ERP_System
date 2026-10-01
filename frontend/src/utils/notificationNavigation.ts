@@ -23,8 +23,8 @@ export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string 
       return url.replace('/gate_risk', '/ai_gate_risk');
     } else if (url.startsWith('/security_briefing')) {
       return url.replace('/security_briefing', '/ai_security_briefing');
-    } else if (url === '/security') {
-      return '/ai_security';
+    } else if (url.startsWith('/security')) {
+      return url.replace('/security', '/ai_security');
     } else {
       return url;
     }
@@ -32,9 +32,24 @@ export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string 
 
   // Deduce target page from notification type and entity_type
   const type = (n.type || '').toUpperCase();
+  const title = (n.title || '').toLowerCase();
   const entityType = (n.entity_type || '').toLowerCase();
   const entityId = (n.entity_id || '').trim();
-  // Invoice notifications should always route to invoice mapping or invoice view
+
+  // 1. Critical AI Security & Anomaly alerts MUST route directly to AI Security Hub
+  if (
+    type.includes('SECURITY') ||
+    type.includes('ANOMALY') ||
+    entityType === 'security' ||
+    entityType === 'anomaly' ||
+    title.includes('anomaly') ||
+    title.includes('security alert') ||
+    n.metadata?.anomaly_type
+  ) {
+    return entityId ? `/ai_security?search=${encodeURIComponent(entityId)}` : '/ai_security';
+  }
+
+  // 2. Invoice notifications (normal flow)
   if (type.includes('INVOICE') || entityType === 'invoice') {
     if (n.action_url && n.action_url.startsWith('/add_box_to_invoice/')) {
       return n.action_url;
@@ -54,15 +69,11 @@ export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string 
     entityType === 'gate' ||
     (type.includes('RISK') && !type.includes('INVOICE'))
   ) {
-    return entityId ? `/ai_gate_risk?search=${entityId}` : '/ai_gate_risk';
+    return entityId ? `/ai_gate_risk?search=${encodeURIComponent(entityId)}` : '/ai_gate_risk';
   }
 
   if (type.includes('BRIEFING') || entityType === 'security_briefing') {
     return '/ai_security_briefing';
-  }
-
-  if (type.includes('SECURITY') || type.includes('ANOMALY') || entityType === 'security' || entityType === 'anomaly') {
-    return entityId ? `/ai_security?search=${entityId}` : '/ai_security';
   }
 
   if (type.includes('BOX') || entityType === 'box') {
