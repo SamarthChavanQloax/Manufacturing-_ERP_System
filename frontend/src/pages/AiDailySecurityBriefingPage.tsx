@@ -19,6 +19,7 @@ import {
   X,
   Layers,
   Sparkles,
+  UserCheck,
 } from 'lucide-react';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
@@ -77,6 +78,40 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
       alert(err.response?.data?.message || 'Error generating daily security briefing');
     } finally {
       setGenerating(false);
+    }
+  };
+
+  const handleSignOffBriefing = async () => {
+    const note = prompt('Enter supervisor sign-off note to close this briefing:', 'Supervisor shift clearance and review completed.');
+    if (note === null) return;
+    setLoading(true);
+    try {
+      const res = await api.post(`/ai/security-briefing/${currentDate}/sign-off`, {
+        note: note.trim() || 'Supervisor shift clearance and review completed.',
+      });
+      setBriefing(res.data);
+      fetchHistory();
+      alert(`Daily Security Briefing for ${currentDate} has been signed off and closed successfully.`);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error signing off briefing');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleReviewSingleEvent = async (event: any) => {
+    const note = prompt(`Enter supervisor note to review & resolve "${event.title}":`, 'Reviewed and verified by supervisor.');
+    if (note === null) return;
+    try {
+      const res = await api.post(`/ai/security-briefing/${currentDate}/events/${event.id}/review`, {
+        decision: 'approved',
+        note: note.trim() || 'Reviewed and verified by supervisor.',
+      });
+      setBriefing(res.data.briefing);
+      fetchHistory();
+      alert('Incident has been reviewed and closed.');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Error reviewing incident');
     }
   };
 
@@ -578,20 +613,23 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
             /* List of Structured Incident Cards */
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {events.map((event) => {
+                const isReviewed = event.review_status === 'reviewed';
                 const color = getPriorityColor(event.priority);
-                const bg = getPriorityBg(event.priority);
-                const border = getPriorityBorder(event.priority);
+                const bg = isReviewed ? 'rgba(16, 185, 129, 0.14)' : getPriorityBg(event.priority);
+                const border = isReviewed ? 'rgba(16, 185, 129, 0.5)' : getPriorityBorder(event.priority);
                 const evidence = event.evidence || {};
 
                 return (
                   <div
                     key={event.id}
                     style={{
-                      background: 'var(--card-bg, #111827)',
-                      border: `1px solid ${border}`,
+                      background: isReviewed ? 'rgba(16, 185, 129, 0.03)' : 'var(--card-bg, #111827)',
+                      border: `1.5px solid ${border}`,
+                      borderLeft: isReviewed ? '6px solid #10b981' : `1.5px solid ${border}`,
                       borderRadius: '12px',
                       overflow: 'hidden',
-                      boxShadow: '0 4px 10px rgba(0,0,0,0.2)',
+                      boxShadow: isReviewed ? '0 4px 14px rgba(16, 185, 129, 0.12)' : '0 4px 10px rgba(0,0,0,0.2)',
+                      transition: 'all 0.25s ease',
                     }}
                   >
                     {/* Header Strip */}
@@ -608,18 +646,25 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        {isReviewed && (
+                          <span className="ai-reviewed-dot ai-reviewed-dot-approved" title="Admin Reviewed & Closed" />
+                        )}
                         <span
                           style={{
-                            background: color,
+                            background: isReviewed ? '#10b981' : color,
                             color: '#ffffff',
                             fontSize: '11px',
                             fontWeight: 800,
                             padding: '3px 9px',
                             borderRadius: '12px',
                             letterSpacing: '0.5px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
                           }}
                         >
-                          {event.priority} PRIORITY
+                          {isReviewed && <CheckCircle2 size={12} />}
+                          {isReviewed ? `RESOLVED (${event.priority})` : `${event.priority} PRIORITY`}
                         </span>
                         <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: 'var(--text-main, #f8fafc)' }}>
                           {event.title}
@@ -629,12 +674,46 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <span
                           className={`badge ${
-                            event.review_status === 'reviewed' ? 'badge-verified' : 'badge-danger'
+                            isReviewed ? 'badge-verified' : 'badge-danger'
                           }`}
-                          style={{ fontSize: '11px', padding: '3px 8px' }}
+                          style={{
+                            fontSize: '11px',
+                            padding: '4px 9px',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '5px',
+                            background: isReviewed ? 'rgba(16, 185, 129, 0.2)' : undefined,
+                            color: isReviewed ? '#10b981' : undefined,
+                            border: isReviewed ? '1px solid rgba(16, 185, 129, 0.4)' : undefined,
+                          }}
                         >
-                          {event.review_status === 'reviewed' ? 'Reviewed' : 'Review Pending'}
+                          {isReviewed && <span className="ai-reviewed-dot ai-reviewed-dot-approved" />}
+                          {isReviewed ? 'Reviewed & Closed' : 'Review Pending'}
                         </span>
+
+                        {!isReviewed && (
+                          <button
+                            type="button"
+                            onClick={() => handleReviewSingleEvent(event)}
+                            className="btn btn-sm btn-success"
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '6px',
+                              fontSize: '12px',
+                              fontWeight: 700,
+                              background: '#16a34a',
+                              color: '#ffffff',
+                              border: 'none',
+                              padding: '4px 10px',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <UserCheck size={13} /> Review & Close
+                          </button>
+                        )}
+
                         <button
                           type="button"
                           onClick={() => setSelectedEvent(event)}
@@ -694,8 +773,8 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                         {/* Why It Matters */}
                         <div
                           style={{
-                            background: 'rgba(245, 158, 11, 0.08)',
-                            border: '1px solid rgba(245, 158, 11, 0.25)',
+                            background: isReviewed ? 'rgba(16, 185, 129, 0.06)' : 'rgba(245, 158, 11, 0.08)',
+                            border: isReviewed ? '1px solid rgba(16, 185, 129, 0.25)' : '1px solid rgba(245, 158, 11, 0.25)',
                             borderRadius: '8px',
                             padding: '14px',
                           }}
@@ -704,7 +783,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                             style={{
                               fontSize: '11px',
                               fontWeight: 800,
-                              color: '#fbbf24',
+                              color: isReviewed ? '#10b981' : '#fbbf24',
                               textTransform: 'uppercase',
                               letterSpacing: '0.05em',
                               marginBottom: '4px',
@@ -752,7 +831,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                           {evidence.risk_score !== undefined && (
                             <div>
                               <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Risk Score:</span>
-                              <strong style={{ fontSize: '13.5px', color: color }}>
+                              <strong style={{ fontSize: '13.5px', color: isReviewed ? '#10b981' : color }}>
                                 {evidence.risk_score} / 100 ({evidence.risk_level})
                               </strong>
                             </div>
@@ -761,7 +840,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                           {evidence.failed_scans_count > 0 && (
                             <div>
                               <span style={{ fontSize: '11px', color: 'var(--text-muted, #94a3b8)', display: 'block' }}>Failed Scans:</span>
-                              <strong style={{ fontSize: '13.5px', color: '#ef4444' }}>
+                              <strong style={{ fontSize: '13.5px', color: isReviewed ? '#10b981' : '#ef4444' }}>
                                 {evidence.failed_scans_count} attempts
                               </strong>
                             </div>
@@ -786,6 +865,31 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
                           View Full Evidence Chain &rarr;
                         </button>
                       </div>
+
+                      {/* Supervisor Review Audit Log Strip */}
+                      {isReviewed && (
+                        <div
+                          style={{
+                            marginTop: '12px',
+                            background: 'rgba(16, 185, 129, 0.1)',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                            borderRadius: '8px',
+                            padding: '10px 14px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            color: '#10b981',
+                            fontSize: '13px',
+                          }}
+                        >
+                          <span className="ai-reviewed-dot ai-reviewed-dot-approved" />
+                          <CheckCircle2 size={16} />
+                          <span>
+                            Incident Signed Off & Cleared by <strong>{evidence.reviewed_by || 'Admin'}</strong>
+                            {evidence.review_note ? ` — Note: "${evidence.review_note}"` : ''}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -802,6 +906,7 @@ export const AiDailySecurityBriefingPage: React.FC = () => {
           onClose={() => setSelectedEvent(null)}
           event={selectedEvent}
           dateStr={currentDate}
+          onEventReviewed={() => fetchBriefing(currentDate)}
         />
       )}
 

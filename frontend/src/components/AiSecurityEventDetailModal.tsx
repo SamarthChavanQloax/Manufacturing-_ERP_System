@@ -1,12 +1,14 @@
 import React from 'react';
 import { X, ShieldAlert, AlertTriangle, ShieldCheck, Clock, ExternalLink, UserCheck, CheckCircle2, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import api from '../api/client';
 
 interface AiSecurityEventDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   event: any;
   dateStr?: string;
+  onEventReviewed?: () => void;
 }
 
 export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProps> = ({
@@ -14,6 +16,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
   onClose,
   event,
   dateStr,
+  onEventReviewed,
 }) => {
   const navigate = useNavigate();
 
@@ -123,6 +126,25 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
                 >
                   {event.priority} PRIORITY
                 </span>
+                {(event.review_status === 'reviewed' || evidence.review_status === 'reviewed') && (
+                  <span
+                    style={{
+                      background: 'rgba(16, 185, 129, 0.15)',
+                      color: '#10b981',
+                      border: '1px solid rgba(16, 185, 129, 0.35)',
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '2px 8px',
+                      borderRadius: '12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                    }}
+                  >
+                    <span className="ai-reviewed-dot ai-reviewed-dot-approved" title="Admin Reviewed" />
+                    REVIEWED
+                  </span>
+                )}
                 <span style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)', fontWeight: 600 }}>
                   Category: {event.category}
                 </span>
@@ -371,7 +393,7 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
           )}
 
           {/* Footer Action Buttons */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color, #374151)', paddingTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--border-color, #374151)', paddingTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
             <button
               type="button"
               onClick={() => {
@@ -381,17 +403,73 @@ export const AiSecurityEventDetailModal: React.FC<AiSecurityEventDetailModalProp
               className="btn btn-sm btn-secondary"
               style={{ display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <ExternalLink size={14} /> Open Gate Verification List
+              <ExternalLink size={14} /> Open Gate Verification
             </button>
 
-            <button
-              type="button"
-              onClick={onClose}
-              className="btn btn-primary"
-              style={{ padding: '8px 20px', borderRadius: '8px', fontWeight: 600 }}
-            >
-              Close Briefing Detail
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              {!(event.review_status === 'reviewed' || evidence.review_status === 'reviewed') ? (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const note = prompt('Enter supervisor review note to sign off & resolve this incident:', 'Reviewed and cleared for dispatch by supervisor.');
+                    if (note === null) return;
+                    try {
+                      const res = await api.post(`/ai/security-briefing/${dateStr || new Date().toISOString().split('T')[0]}/events/${event.id}/review`, {
+                        decision: 'approved',
+                        note: note.trim() || 'Reviewed and verified by supervisor.',
+                      });
+                      alert('Incident has been reviewed and closed successfully.');
+                      if (onEventReviewed) onEventReviewed();
+                      onClose();
+                    } catch (err: any) {
+                      alert(err.response?.data?.message || 'Error reviewing incident');
+                    }
+                  }}
+                  className="btn btn-success"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    background: '#16a34a',
+                    color: '#ffffff',
+                    border: 'none',
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                  }}
+                >
+                  <CheckCircle2 size={16} /> Mark Incident as Reviewed
+                </button>
+              ) : (
+                <span
+                  style={{
+                    background: 'rgba(16, 185, 129, 0.15)',
+                    color: '#10b981',
+                    border: '1px solid rgba(16, 185, 129, 0.35)',
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <span className="ai-reviewed-dot ai-reviewed-dot-approved" />
+                  <CheckCircle2 size={14} /> Review Complete
+                </span>
+              )}
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn btn-secondary"
+                style={{ padding: '8px 16px', borderRadius: '8px', fontWeight: 600 }}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       </div>

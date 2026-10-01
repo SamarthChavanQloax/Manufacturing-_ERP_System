@@ -177,16 +177,22 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
             </div>
             <div
               style={{
-                fontSize: '13px',
-                fontWeight: 600,
-                color: analysis.review_status === 'reviewed' ? '#16a34a' : '#d97706',
-                background: 'var(--card-bg)',
-                padding: '6px 12px',
+                fontSize: '12px',
+                fontWeight: 700,
+                color: analysis.review_status === 'reviewed' ? '#10b981' : '#f59e0b',
+                background: analysis.review_status === 'reviewed' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                padding: '6px 14px',
                 borderRadius: '20px',
-                border: '1px solid var(--border-color)',
+                border: `1px solid ${analysis.review_status === 'reviewed' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
               }}
             >
-              {analysis.review_status === 'reviewed' ? 'Previously Reviewed' : 'Pending Supervisor Review'}
+              {analysis.review_status === 'reviewed' && (
+                <span className="ai-reviewed-dot ai-reviewed-dot-approved" title="Admin Reviewed" />
+              )}
+              {analysis.review_status === 'reviewed' ? 'PREVIOUSLY REVIEWED' : 'PENDING SUPERVISOR REVIEW'}
             </div>
           </div>
 

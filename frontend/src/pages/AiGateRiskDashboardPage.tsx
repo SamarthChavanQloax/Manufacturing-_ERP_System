@@ -588,8 +588,24 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                           ? t.reasons[0]
                           : 'Normal parameters';
 
+                      const isReviewed = t.review_status === 'reviewed';
+                      const decision = t.reviewed_decision || (isReviewed ? 'approved' : '');
+                      const rowClass = isReviewed
+                        ? decision === 'rejected'
+                          ? 'ai-reviewed-row-rejected'
+                          : decision === 'flagged'
+                          ? 'ai-reviewed-row-flagged'
+                          : 'ai-reviewed-row-approved'
+                        : '';
+                      const dotClass =
+                        decision === 'rejected'
+                          ? 'ai-reviewed-dot-rejected'
+                          : decision === 'flagged'
+                          ? 'ai-reviewed-dot-flagged'
+                          : 'ai-reviewed-dot-approved';
+
                       return (
-                        <tr key={t.id}>
+                        <tr key={t.id} className={rowClass}>
                           <td>{(page - 1) * limit + idx + 1}</td>
                           <td>
                             <div style={{ fontWeight: 700, color: 'var(--text-main, #f8fafc)' }}>
@@ -642,18 +658,28 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                             {primaryReason}
                           </td>
                           <td>
-                            <span
-                              className={`badge ${
-                                t.review_status === 'reviewed'
-                                  ? 'badge-verified'
-                                  : t.risk_level === 'HIGH'
-                                  ? 'badge-danger'
-                                  : 'badge-pending'
-                              }`}
-                              style={{ fontSize: '11px' }}
-                            >
-                              {t.review_status === 'reviewed' ? 'Reviewed' : 'Pending'}
-                            </span>
+                            {isReviewed ? (
+                              <span
+                                className={`badge ${
+                                  decision === 'rejected'
+                                    ? 'badge-danger'
+                                    : decision === 'flagged'
+                                    ? 'badge-pending'
+                                    : 'badge-verified'
+                                }`}
+                                style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '5px' }}
+                              >
+                                <span className={`ai-reviewed-dot ${dotClass}`} title={`Admin Action: ${decision.toUpperCase()}`} />
+                                {decision ? decision.toUpperCase() : 'REVIEWED'}
+                              </span>
+                            ) : (
+                              <span
+                                className={`badge ${t.risk_level === 'HIGH' ? 'badge-danger' : 'badge-pending'}`}
+                                style={{ fontSize: '11px' }}
+                              >
+                                Pending
+                              </span>
+                            )}
                           </td>
                           <td>
                             <div style={{ display: 'flex', gap: '6px' }}>
@@ -815,8 +841,18 @@ export const AiGateRiskDashboardPage: React.FC = () => {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted, #94a3b8)' }}>Status</div>
-                  <span className={`badge ${selectedTx.review_status === 'reviewed' ? 'badge-verified' : 'badge-danger'}`}>
-                    {selectedTx.review_status === 'reviewed' ? 'Reviewed' : 'Pending Review'}
+                  <span
+                    className={`badge ${selectedTx.review_status === 'reviewed' ? 'badge-verified' : 'badge-danger'}`}
+                    style={{ fontSize: '11px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+                  >
+                    {selectedTx.review_status === 'reviewed' && (
+                      <span className="ai-reviewed-dot ai-reviewed-dot-approved" title="Admin Reviewed" />
+                    )}
+                    {selectedTx.review_status === 'reviewed'
+                      ? selectedTx.reviewed_decision
+                        ? selectedTx.reviewed_decision.toUpperCase()
+                        : 'REVIEWED'
+                      : 'Pending Review'}
                   </span>
                 </div>
               </div>

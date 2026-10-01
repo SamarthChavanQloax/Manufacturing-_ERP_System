@@ -423,7 +423,7 @@ export const PartMasterPage: React.FC = () => {
             <div className="modal-body" style={{ display: 'flex', justifyContent: 'center' }}>
               <BarcodeCard
                 partNumber={barcodeModalData.part_number}
-                qty={barcodeModalData.qty || 1}
+                qty={barcodeModalData.qty ?? 0}
                 dateStr={new Date().toISOString().split('T')[0]}
                 barcode={barcodeModalData.part_number}
               />
