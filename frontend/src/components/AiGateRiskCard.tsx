@@ -183,18 +183,43 @@ export const AiGateRiskCard: React.FC<AiGateRiskCardProps> = ({ analysis, onRefr
               {analysis.review_status === 'reviewed' && (
                 <span
                   style={{
-                    background: '#16a34a',
-                    color: '#ffffff',
+                    background: analysis.review_decision === 'rejected'
+                      ? 'rgba(239, 68, 68, 0.15)'
+                      : analysis.review_decision === 'flagged'
+                      ? 'rgba(245, 158, 11, 0.15)'
+                      : 'rgba(16, 185, 129, 0.15)',
+                    color: analysis.review_decision === 'rejected'
+                      ? '#ef4444'
+                      : analysis.review_decision === 'flagged'
+                      ? '#f59e0b'
+                      : '#10b981',
+                    border: `1px solid ${
+                      analysis.review_decision === 'rejected'
+                        ? 'rgba(239, 68, 68, 0.35)'
+                        : analysis.review_decision === 'flagged'
+                        ? 'rgba(245, 158, 11, 0.35)'
+                        : 'rgba(16, 185, 129, 0.35)'
+                    }`,
                     fontSize: '11px',
                     fontWeight: 700,
                     padding: '2px 8px',
                     borderRadius: '12px',
                     display: 'inline-flex',
                     alignItems: 'center',
-                    gap: '4px',
+                    gap: '6px',
                   }}
                 >
-                  <FileCheck2 size={12} /> REVIEWED
+                  <span
+                    className={`ai-reviewed-dot ${
+                      analysis.review_decision === 'rejected'
+                        ? 'ai-reviewed-dot-rejected'
+                        : analysis.review_decision === 'flagged'
+                        ? 'ai-reviewed-dot-flagged'
+                        : 'ai-reviewed-dot-approved'
+                    }`}
+                    title={`Admin Action: ${analysis.review_decision || 'reviewed'}`}
+                  />
+                  <FileCheck2 size={12} /> {analysis.review_decision ? analysis.review_decision.toUpperCase() : 'REVIEWED'}
                 </span>
               )}
             </div>

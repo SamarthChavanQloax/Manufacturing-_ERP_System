@@ -1233,6 +1233,103 @@ table tbody tr {
   animation: pulseDot 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
 }
 
+/* AI Reviewed Status Dots and Color Schemes (Admin Reviewed Only) */
+.ai-reviewed-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  min-width: 8px;
+  min-height: 8px;
+  border-radius: 50%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.ai-reviewed-dot-approved,
+.ai-reviewed-dot-resolved {
+  background-color: #10b981;
+  box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+  animation: pulseDotApproved 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.ai-reviewed-dot-flagged,
+.ai-reviewed-dot-investigating {
+  background-color: #f59e0b;
+  box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7);
+  animation: pulseDotFlagged 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+.ai-reviewed-dot-rejected {
+  background-color: #ef4444;
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulseDotRejected 2s infinite cubic-bezier(0.4, 0, 0.6, 1);
+}
+
+@keyframes pulseDotApproved {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulseDotFlagged {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(245, 158, 11, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+}
+
+@keyframes pulseDotRejected {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* AI Reviewed Container & Row Styling */
+.ai-reviewed-row-approved,
+.ai-reviewed-row-resolved {
+  background-color: rgba(16, 185, 129, 0.07) !important;
+  border-left: 4px solid #10b981 !important;
+}
+
+.ai-reviewed-row-flagged,
+.ai-reviewed-row-investigating {
+  background-color: rgba(245, 158, 11, 0.07) !important;
+  border-left: 4px solid #f59e0b !important;
+}
+
+.ai-reviewed-row-rejected {
+  background-color: rgba(239, 68, 68, 0.07) !important;
+  border-left: 4px solid #ef4444 !important;
+}
+
+.ai-reviewed-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 9px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+.ai-reviewed-badge-approved,
+.ai-reviewed-badge-resolved {
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.35);
+}
+.ai-reviewed-badge-flagged,
+.ai-reviewed-badge-investigating {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.35);
+}
+.ai-reviewed-badge-rejected {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
 @keyframes pulseDot {
   0% {
     transform: scale(0.95);

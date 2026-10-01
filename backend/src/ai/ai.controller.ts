@@ -181,6 +181,30 @@ export class AiController {
     return this.briefingService.getEventDetail(date, eventId);
   }
 
+  @Post('security-briefing/:date/sign-off')
+  @Roles('admin')
+  async signOffSecurityBriefing(
+    @Param('date') date: string,
+    @Body('note') note: string,
+    @Request() req: any,
+  ) {
+    const userName = req.user?.username || req.user?.email || 'admin';
+    return this.briefingService.signOffBriefing(date, userName, note);
+  }
+
+  @Post('security-briefing/:date/events/:eventId/review')
+  @Roles('admin')
+  async reviewSecurityBriefingEvent(
+    @Param('date') date: string,
+    @Param('eventId') eventId: string,
+    @Body('decision') decision: string,
+    @Body('note') note: string,
+    @Request() req: any,
+  ) {
+    const userName = req.user?.username || req.user?.email || 'admin';
+    return this.briefingService.reviewEvent(date, eventId, userName, decision, note);
+  }
+
   // ----------------------------------------------------
   // ASK ERP AI ASSISTANT ENDPOINTS (Role-Aware)
   // ----------------------------------------------------

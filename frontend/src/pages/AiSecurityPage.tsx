@@ -407,102 +407,128 @@ export const AiSecurityPage: React.FC = () => {
             </div>
           ) : (
             <div>
-              {filtered.map(anomaly => (
-                <div key={anomaly.id} style={{ 
-                  padding: '20px 24px', 
-                  borderBottom: '1px solid var(--border-color, #374151)',
-                  display: 'flex',
-                  gap: '20px',
-                  alignItems: 'flex-start',
-                  transition: 'background 0.2s',
-                  cursor: 'pointer'
-                }}
-                onClick={() => setSelectedAnomaly(anomaly)}
-                onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--card-sub-bg, rgba(255,255,255,0.03))')}
-                onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                >
-                  <div style={{ 
-                    padding: '12px', 
-                    borderRadius: '12px', 
-                    background: getSeverityBg(anomaly.severity), 
-                    color: getSeverityColor(anomaly.severity),
+              {filtered.map(anomaly => {
+                const isResolved = completedIds.includes(anomaly.id);
+                const isInvestigating = investigatedIds.includes(anomaly.id) && !isResolved;
+                
+                const rowBg = isResolved
+                  ? 'rgba(16, 185, 129, 0.07)'
+                  : isInvestigating
+                  ? 'rgba(245, 158, 11, 0.07)'
+                  : 'transparent';
+                
+                const borderLeftColor = isResolved
+                  ? '4px solid #10b981'
+                  : isInvestigating
+                  ? '4px solid #f59e0b'
+                  : '4px solid transparent';
+
+                return (
+                  <div key={anomaly.id} style={{ 
+                    padding: '20px 24px', 
+                    borderBottom: '1px solid var(--border-color, #374151)',
+                    borderLeft: borderLeftColor,
+                    background: rowBg,
                     display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}>
-                    {getIcon(anomaly.type)}
-                  </div>
-                  
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                      <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-main, #f9fafb)' }}>{anomaly.type}</h4>
-                      <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        <Clock size={14} />
-                        {anomaly.timestamp}
-                      </span>
+                    gap: '20px',
+                    alignItems: 'flex-start',
+                    transition: 'background 0.2s',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setSelectedAnomaly(anomaly)}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = isResolved ? 'rgba(16, 185, 129, 0.12)' : isInvestigating ? 'rgba(245, 158, 11, 0.12)' : 'var(--card-sub-bg, rgba(255,255,255,0.03))')}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = rowBg)}
+                  >
+                    <div style={{ 
+                      padding: '12px', 
+                      borderRadius: '12px', 
+                      background: isResolved ? 'rgba(16, 185, 129, 0.18)' : isInvestigating ? 'rgba(245, 158, 11, 0.18)' : getSeverityBg(anomaly.severity), 
+                      color: isResolved ? '#10b981' : isInvestigating ? '#f59e0b' : getSeverityColor(anomaly.severity),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      {getIcon(anomaly.type)}
                     </div>
                     
-                    <p style={{ margin: '0 0 12px 0', color: 'var(--text-main, #e5e7eb)', fontSize: '14.5px', lineHeight: '1.5' }}>
-                      {anomaly.description}
-                    </p>
-                    
-                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                      {completedIds.includes(anomaly.id) ? (
-                        <span style={{ 
-                          fontSize: '12px', 
-                          fontWeight: 600, 
-                          color: '#10b981',
-                          background: 'rgba(16, 185, 129, 0.12)',
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          border: '1px solid rgba(16, 185, 129, 0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <CheckCircle size={12} />
-                          RESOLVED
+                    <div style={{ flex: 1 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          {/* Small recognizable status dot - ONLY after Admin Review/Action */}
+                          {isResolved && <span className="ai-reviewed-dot ai-reviewed-dot-resolved" title="Admin Action: Resolved" />}
+                          {isInvestigating && <span className="ai-reviewed-dot ai-reviewed-dot-investigating" title="Admin Action: Investigating" />}
+                          <h4 style={{ margin: 0, fontSize: '16px', fontWeight: 600, color: 'var(--text-main, #f9fafb)' }}>{anomaly.type}</h4>
+                        </div>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <Clock size={14} />
+                          {anomaly.timestamp}
                         </span>
-                      ) : investigatedIds.includes(anomaly.id) ? (
-                        <span style={{ 
-                          fontSize: '12px', 
-                          fontWeight: 600, 
-                          color: '#f59e0b',
-                          background: 'rgba(245, 158, 11, 0.12)',
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          border: '1px solid rgba(245, 158, 11, 0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px'
-                        }}>
-                          <Search size={12} />
-                          UNDER INVESTIGATION
-                        </span>
-                      ) : (
-                        <span style={{ 
-                          fontSize: '12px', 
-                          fontWeight: 600, 
-                          color: getSeverityColor(anomaly.severity),
-                          background: getSeverityBg(anomaly.severity),
-                          padding: '4px 10px',
-                          borderRadius: '20px',
-                          border: `1px solid ${getSeverityColor(anomaly.severity)}40`
-                        }}>
-                          {anomaly.severity} RISK
-                        </span>
-                      )}
+                      </div>
                       
-                      <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', background: 'var(--card-sub-bg, rgba(255, 255, 255, 0.06))', padding: '4px 10px', borderRadius: '6px', fontWeight: 500, border: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' }}>
-                        Actor: {anomaly.actor_name}
-                      </span>
-                      <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', background: 'var(--card-sub-bg, rgba(255, 255, 255, 0.06))', padding: '4px 10px', borderRadius: '6px', fontWeight: 500, border: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' }}>
-                        Entity: {anomaly.entity_id}
-                      </span>
+                      <p style={{ margin: '0 0 12px 0', color: 'var(--text-main, #e5e7eb)', fontSize: '14.5px', lineHeight: '1.5' }}>
+                        {anomaly.description}
+                      </p>
+                      
+                      <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                        {isResolved ? (
+                          <span style={{ 
+                            fontSize: '12px', 
+                            fontWeight: 600, 
+                            color: '#10b981',
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            border: '1px solid rgba(16, 185, 129, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}>
+                            <span className="ai-reviewed-dot ai-reviewed-dot-resolved" />
+                            <CheckCircle size={12} />
+                            RESOLVED
+                          </span>
+                        ) : isInvestigating ? (
+                          <span style={{ 
+                            fontSize: '12px', 
+                            fontWeight: 600, 
+                            color: '#f59e0b',
+                            background: 'rgba(245, 158, 11, 0.15)',
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            border: '1px solid rgba(245, 158, 11, 0.4)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}>
+                            <span className="ai-reviewed-dot ai-reviewed-dot-investigating" />
+                            <Search size={12} />
+                            UNDER INVESTIGATION
+                          </span>
+                        ) : (
+                          <span style={{ 
+                            fontSize: '12px', 
+                            fontWeight: 600, 
+                            color: getSeverityColor(anomaly.severity),
+                            background: getSeverityBg(anomaly.severity),
+                            padding: '4px 10px',
+                            borderRadius: '20px',
+                            border: `1px solid ${getSeverityColor(anomaly.severity)}40`
+                          }}>
+                            {anomaly.severity} RISK
+                          </span>
+                        )}
+                        
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', background: 'var(--card-sub-bg, rgba(255, 255, 255, 0.06))', padding: '4px 10px', borderRadius: '6px', fontWeight: 500, border: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' }}>
+                          Actor: {anomaly.actor_name}
+                        </span>
+                        <span style={{ fontSize: '13px', color: 'var(--text-muted, #9ca3af)', background: 'var(--card-sub-bg, rgba(255, 255, 255, 0.06))', padding: '4px 10px', borderRadius: '6px', fontWeight: 500, border: '1px solid var(--border-color, rgba(255, 255, 255, 0.08))' }}>
+                          Entity: {anomaly.entity_id}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

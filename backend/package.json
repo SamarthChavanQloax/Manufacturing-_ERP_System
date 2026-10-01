@@ -6,7 +6,8 @@
     "build": "tsc",
     "start": "node dist/src/main.js",
     "start:prod": "node dist/src/main.js",
-    "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts"
+    "start:dev": "ts-node-dev --respawn --transpile-only src/main.ts",
+    "test": "ts-node src/e2e-automation-test.ts"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",

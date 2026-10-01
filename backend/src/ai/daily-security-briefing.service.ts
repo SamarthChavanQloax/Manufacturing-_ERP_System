@@ -36,6 +36,7 @@ export interface SecurityBriefingEvent {
     review_status?: string;
     reviewed_by?: string;
     review_note?: string;
+    review_decision?: string;
     historical_avg_qty?: number;
     quantity_ratio?: number;
     scan_timeline?: Array<{
@@ -141,6 +142,45 @@ export class DailySecurityBriefingService implements OnModuleInit {
     try {
       eventsArr = briefing.events ? JSON.parse(briefing.events) : [];
     } catch (e) {}
+
+    // Synchronize latest review states with GateRiskAnalysis records
+    let pendingCount = 0;
+    let hasChanges = false;
+
+    for (const evt of eventsArr) {
+      const invBarcode = evt.evidence?.invoice_barcode || evt.evidence?.invoice_number;
+      if (invBarcode) {
+        const riskRecord = await this.gateRiskRepo.findOne({
+          where: [
+            { invoice_barcode: invBarcode },
+            { invoice_number: invBarcode },
+          ],
+          order: { id: 'DESC' },
+        });
+        if (riskRecord && riskRecord.review_status === 'reviewed') {
+          if (evt.review_status !== 'reviewed') {
+            evt.review_status = 'reviewed';
+            evt.evidence.review_status = 'reviewed';
+            evt.evidence.reviewed_by = riskRecord.reviewed_by_name || 'Admin';
+            evt.evidence.review_note = riskRecord.review_note;
+            evt.evidence.review_decision = riskRecord.review_decision;
+            hasChanges = true;
+          }
+        }
+      }
+      if (evt.review_status !== 'reviewed') {
+        pendingCount++;
+      }
+    }
+
+    if (hasChanges || briefing.pending_reviews_count !== pendingCount) {
+      briefing.pending_reviews_count = pendingCount;
+      if (pendingCount === 0) {
+        briefing.status = 'reviewed';
+      }
+      briefing.events = JSON.stringify(eventsArr);
+      await this.briefingRepo.save(briefing);
+    }
 
     return {
       ...briefing,
@@ -476,5 +516,125 @@ export class DailySecurityBriefingService implements OnModuleInit {
       throw new NotFoundException(`Security event #${eventId} not found in briefing for ${dateStr}`);
     }
     return event;
+  }
+
+  // Sign off and close the entire daily security briefing for a date
+  async signOffBriefing(dateStr: string, userName: string, note?: string) {
+    const targetDate = (dateStr || this.getTodayDateStr()).trim();
+    let briefing = await this.briefingRepo.findOne({
+      where: { briefing_date: targetDate },
+    });
+    if (!briefing) {
+      await this.generateBriefing(targetDate, userName);
+      briefing = await this.briefingRepo.findOne({ where: { briefing_date: targetDate } });
+    }
+
+    if (briefing) {
+      let eventsArr: SecurityBriefingEvent[] = [];
+      try {
+        eventsArr = briefing.events ? JSON.parse(briefing.events) : [];
+      } catch (e) {}
+
+      // Mark all events as reviewed and update linked gate risk records
+      for (const evt of eventsArr) {
+        evt.review_status = 'reviewed';
+        evt.evidence = evt.evidence || {};
+        evt.evidence.review_status = 'reviewed';
+        evt.evidence.reviewed_by = userName;
+        evt.evidence.review_note = note || 'Supervisor daily briefing sign-off and closure.';
+        evt.evidence.review_decision = 'approved';
+
+        const invBarcode = evt.evidence?.invoice_barcode || evt.evidence?.invoice_number;
+        if (invBarcode) {
+          const riskRecord = await this.gateRiskRepo.findOne({
+            where: [
+              { invoice_barcode: invBarcode },
+              { invoice_number: invBarcode },
+            ],
+            order: { id: 'DESC' },
+          });
+          if (riskRecord) {
+            riskRecord.review_status = 'reviewed';
+            riskRecord.reviewed_by_name = userName;
+            riskRecord.review_note = note || 'Signed off during daily security briefing review.';
+            riskRecord.review_decision = 'approved';
+            riskRecord.review_timestamp = new Date();
+            await this.gateRiskRepo.save(riskRecord);
+          }
+        }
+      }
+
+      briefing.pending_reviews_count = 0;
+      briefing.status = 'reviewed';
+      briefing.events = JSON.stringify(eventsArr);
+      await this.briefingRepo.save(briefing);
+    }
+
+    return this.getBriefingForDate(targetDate);
+  }
+
+  // Review a specific incident event in the daily security briefing
+  async reviewEvent(dateStr: string, eventId: string, userName: string, decision = 'approved', note?: string) {
+    const targetDate = (dateStr || this.getTodayDateStr()).trim();
+    let briefing = await this.briefingRepo.findOne({
+      where: { briefing_date: targetDate },
+    });
+    if (!briefing) {
+      throw new NotFoundException(`Briefing for ${targetDate} not found`);
+    }
+
+    let eventsArr: SecurityBriefingEvent[] = [];
+    try {
+      eventsArr = briefing.events ? JSON.parse(briefing.events) : [];
+    } catch (e) {}
+
+    const evt = eventsArr.find((e) => e.id === eventId);
+    if (!evt) {
+      throw new NotFoundException(`Event #${eventId} not found in briefing for ${targetDate}`);
+    }
+
+    evt.review_status = 'reviewed';
+    evt.evidence = evt.evidence || {};
+    evt.evidence.review_status = 'reviewed';
+    evt.evidence.reviewed_by = userName;
+    evt.evidence.review_note = note || 'Reviewed and approved by supervisor.';
+    evt.evidence.review_decision = decision;
+
+    // Also update linked gate_risk_analysis record if exists
+    const invBarcode = evt.evidence?.invoice_barcode || evt.evidence?.invoice_number;
+    if (invBarcode) {
+      const riskRecord = await this.gateRiskRepo.findOne({
+        where: [
+          { invoice_barcode: invBarcode },
+          { invoice_number: invBarcode },
+        ],
+        order: { id: 'DESC' },
+      });
+      if (riskRecord) {
+        riskRecord.review_status = 'reviewed';
+        riskRecord.reviewed_by_name = userName;
+        riskRecord.review_note = note || 'Reviewed and approved by supervisor.';
+        riskRecord.review_decision = (decision as any) || 'approved';
+        riskRecord.review_timestamp = new Date();
+        await this.gateRiskRepo.save(riskRecord);
+      }
+    }
+
+    const pendingCount = eventsArr.filter((e) => e.review_status !== 'reviewed').length;
+    briefing.pending_reviews_count = pendingCount;
+    if (pendingCount === 0) {
+      briefing.status = 'reviewed';
+    }
+    briefing.events = JSON.stringify(eventsArr);
+    await this.briefingRepo.save(briefing);
+
+    return {
+      success: true,
+      event: evt,
+      briefing: {
+        ...briefing,
+        events: eventsArr,
+      },
+    };
   }
 }
