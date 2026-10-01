@@ -38,7 +38,8 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
           height: 55,
           displayValue: false,
           margin: 0,
-          lineColor: '#0f172a',
+          lineColor: '#000000',
+          background: '#ffffff',
         });
       } catch (err) {
         console.error('Error rendering barcode:', err);
@@ -57,14 +58,14 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
     win.document.write(`
       <style>
         @page { size: auto; margin: 5mm; }
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 5px; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 5px; background: #fff; }
         * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-        .barcode-card { width: 320px; font-weight: bold; font-size: 15px; line-height: 1.4; color: #000; }
-        svg { width: 100%; max-height: 60px; margin: 5px 0; }
+        .printable-barcode-card { width: 320px; font-weight: bold; font-size: 15px; line-height: 1.4; color: #000; background: #fff !important; }
+        svg { width: 100%; max-height: 60px; margin: 5px 0; background: #fff !important; }
       </style>
     `);
     win.document.write('</head><body>');
-    win.document.write('<div class="barcode-card">' + printContent.outerHTML + '</div>');
+    win.document.write('<div class="printable-barcode-card">' + printContent.outerHTML + '</div>');
     win.document.write('</body></html>');
     win.document.close();
     win.focus();
@@ -93,8 +94,9 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
     <div className="barcode-container" style={{ display: 'inline-block', margin: '12px' }}>
       <div
         id={cardId}
+        className="printable-barcode-card"
         style={{
-          background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
+          background: '#ffffff',
           border: '2px solid #cbd5e1',
           borderTop: '6px solid #2563eb', // Premium theme accent
           borderRadius: '10px',
@@ -102,18 +104,18 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
           width: '320px',
           color: '#0f172a',
           fontWeight: 600,
-          boxShadow: '0 8px 16px rgba(0,0,0,0.06)',
+          boxShadow: '0 8px 16px rgba(0,0,0,0.08)',
           textAlign: 'left',
           position: 'relative',
           overflow: 'hidden'
         }}
       >
-        {/* Subtle Watermark or branding could go here */}
+        {/* Subtle Watermark or branding */}
         <div style={{
           position: 'absolute',
           top: '-15px',
           right: '-15px',
-          opacity: 0.03,
+          opacity: 0.04,
           fontSize: '100px',
           pointerEvents: 'none'
         }}>
@@ -142,7 +144,7 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
         </div>
 
         {/* Part Number & Qty Row */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', background: '#f1f5f9', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
+        <div className="barcode-meta-box" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px', background: '#f1f5f9', padding: '8px 10px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
           <div>
             <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {isBox ? 'Box Part No' : 'Part Number'}
@@ -155,7 +157,7 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
             <div style={{ fontSize: '11px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               {isBox ? 'Box Qty' : isInvoice ? 'Total Qty' : 'Quantity'}
             </div>
-            <div style={{ fontSize: '18px', fontWeight: 800, color: '#047857' }}>
+            <div className="barcode-qty-num" style={{ fontSize: '18px', fontWeight: 800, color: '#047857' }}>
               {qty} <span style={{fontSize: '12px'}}>pcs</span>
             </div>
           </div>
@@ -164,28 +166,30 @@ export const BarcodeCard: React.FC<BarcodeCardProps> = ({
         {/* Date & Time Row */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '13px', color: '#475569' }}>
           <div>
-            <span style={{color: '#94a3b8'}}>Date:</span> <span style={{fontWeight: 700}}>{dateStr}</span>
+            <span style={{color: '#64748b'}}>Date:</span> <span style={{fontWeight: 700, color: '#0f172a'}}>{dateStr}</span>
           </div>
           {(isBox || isInvoice) && timeStr && (
             <div>
-              <span style={{color: '#94a3b8'}}>Time:</span> <span style={{fontWeight: 700}}>{timeStr}</span>
+              <span style={{color: '#64748b'}}>Time:</span> <span style={{fontWeight: 700, color: '#0f172a'}}>{timeStr}</span>
             </div>
           )}
         </div>
 
         {/* Barcode Number & SVG */}
-        <div style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
-          <div style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>
+        <div className="barcode-svg-box" style={{ background: '#ffffff', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', textAlign: 'center' }}>
+          <div style={{ fontSize: '12px', color: '#475569', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '6px', fontWeight: 600 }}>
             Barcode ID: <span style={{ fontWeight: 800, color: '#0f172a', fontSize: '14px' }}>{barcode}</span>
           </div>
-          <svg ref={barcodeRef} style={{ width: '100%', height: '55px' }}></svg>
+          <div style={{ background: '#ffffff', padding: '4px', borderRadius: '4px' }}>
+            <svg ref={barcodeRef} style={{ width: '100%', height: '55px', background: '#ffffff' }}></svg>
+          </div>
         </div>
 
         {/* Footer */}
         <div
           style={{
             fontSize: '11px',
-            color: '#94a3b8',
+            color: '#64748b',
             textAlign: 'center',
             marginTop: '12px',
             fontWeight: 500,

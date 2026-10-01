@@ -89,14 +89,14 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
     >
       <div
         style={{
-          background: '#ffffff',
+          background: 'var(--card-bg)',
           borderRadius: '16px',
           width: '600px',
           maxWidth: '100%',
           maxHeight: '90vh',
           overflowY: 'auto',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-          border: '1px solid #e2e8f0',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
+          border: '1px solid var(--card-border)',
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -104,11 +104,11 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
         <div
           style={{
             padding: '20px 24px',
-            borderBottom: '1px solid #e2e8f0',
+            borderBottom: '1px solid var(--border-color)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            background: '#f8fafc',
+            background: 'var(--card-sub-bg)',
             borderTopLeftRadius: '16px',
             borderTopRightRadius: '16px',
           }}
@@ -129,10 +129,10 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
               <ShieldAlert size={20} />
             </div>
             <div>
-              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--text-main)' }}>
                 Review Gate Dispatch Risk
               </h3>
-              <div style={{ fontSize: '12.5px', color: '#64748b', marginTop: '2px' }}>
+              <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
                 Invoice: <strong>{analysis.invoice_number || analysis.invoice_barcode}</strong> &bull; Customer: <strong>{analysis.customer_name || 'N/A'}</strong>
               </div>
             </div>
@@ -143,7 +143,7 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
               background: 'transparent',
               border: 'none',
               cursor: 'pointer',
-              color: '#64748b',
+              color: 'var(--text-muted)',
               padding: '6px',
               borderRadius: '6px',
             }}
@@ -168,7 +168,7 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
             }}
           >
             <div>
-              <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase' }}>
                 AI Evaluated Risk Level
               </div>
               <div style={{ fontSize: '18px', fontWeight: 800, color: getRiskColor(analysis.risk_level) }}>
@@ -180,10 +180,10 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
                 fontSize: '13px',
                 fontWeight: 600,
                 color: analysis.review_status === 'reviewed' ? '#16a34a' : '#d97706',
-                background: '#ffffff',
+                background: 'var(--card-bg)',
                 padding: '6px 12px',
                 borderRadius: '20px',
-                border: '1px solid #e2e8f0',
+                border: '1px solid var(--border-color)',
               }}
             >
               {analysis.review_status === 'reviewed' ? 'Previously Reviewed' : 'Pending Supervisor Review'}
@@ -192,13 +192,13 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
 
           {/* AI Explanation Reasons */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>
               AI Identified Risk Signals ({reasons.length})
             </label>
             <div
               style={{
-                background: '#f8fafc',
-                border: '1px solid #e2e8f0',
+                background: 'var(--card-sub-bg)',
+                border: '1px solid var(--card-border)',
                 borderRadius: '8px',
                 padding: '12px 16px',
               }}
@@ -210,7 +210,7 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
               ) : (
                 <ul style={{ margin: 0, paddingLeft: '18px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {reasons.map((r, idx) => (
-                    <li key={idx} style={{ fontSize: '13.5px', color: '#334155', lineHeight: '1.45' }}>
+                    <li key={idx} style={{ fontSize: '13.5px', color: 'var(--text-main)', lineHeight: '1.45' }}>
                       {r}
                     </li>
                   ))}
@@ -221,14 +221,14 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
 
           {/* Decision Selection */}
           <div style={{ marginBottom: '20px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>
               Supervisor Review Decision <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
               <label
                 style={{
-                  border: `2px solid ${decision === 'approved' ? '#16a34a' : '#e2e8f0'}`,
-                  background: decision === 'approved' ? '#f0fdf4' : '#ffffff',
+                  border: `2px solid ${decision === 'approved' ? '#16a34a' : 'var(--border-color)'}`,
+                  background: decision === 'approved' ? 'rgba(22, 163, 74, 0.12)' : 'var(--card-sub-bg)',
                   padding: '12px',
                   borderRadius: '10px',
                   cursor: 'pointer',
@@ -246,15 +246,15 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
                     checked={decision === 'approved'}
                     onChange={() => setDecision('approved')}
                   />
-                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#166534' }}>Approve</span>
+                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#16a34a' }}>Approve</span>
                 </div>
-                <span style={{ fontSize: '11.5px', color: '#64748b' }}>Override warnings & proceed</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Override warnings & proceed</span>
               </label>
 
               <label
                 style={{
-                  border: `2px solid ${decision === 'flagged' ? '#d97706' : '#e2e8f0'}`,
-                  background: decision === 'flagged' ? '#fffbeb' : '#ffffff',
+                  border: `2px solid ${decision === 'flagged' ? '#d97706' : 'var(--border-color)'}`,
+                  background: decision === 'flagged' ? 'rgba(245, 158, 11, 0.12)' : 'var(--card-sub-bg)',
                   padding: '12px',
                   borderRadius: '10px',
                   cursor: 'pointer',
@@ -272,15 +272,15 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
                     checked={decision === 'flagged'}
                     onChange={() => setDecision('flagged')}
                   />
-                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#b45309' }}>Investigate</span>
+                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#d97706' }}>Investigate</span>
                 </div>
-                <span style={{ fontSize: '11.5px', color: '#64748b' }}>Flag for security inquiry</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Flag for security inquiry</span>
               </label>
 
               <label
                 style={{
-                  border: `2px solid ${decision === 'rejected' ? '#dc2626' : '#e2e8f0'}`,
-                  background: decision === 'rejected' ? '#fef2f2' : '#ffffff',
+                  border: `2px solid ${decision === 'rejected' ? '#dc2626' : 'var(--border-color)'}`,
+                  background: decision === 'rejected' ? 'rgba(220, 38, 38, 0.12)' : 'var(--card-sub-bg)',
                   padding: '12px',
                   borderRadius: '10px',
                   cursor: 'pointer',
@@ -298,16 +298,16 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
                     checked={decision === 'rejected'}
                     onChange={() => setDecision('rejected')}
                   />
-                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#991b1b' }}>Reject</span>
+                  <span style={{ fontSize: '13.5px', fontWeight: 700, color: '#dc2626' }}>Reject</span>
                 </div>
-                <span style={{ fontSize: '11.5px', color: '#64748b' }}>Hold & return dispatch</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>Hold & return dispatch</span>
               </label>
             </div>
           </div>
 
           {/* Supervisor Review Note */}
           <div style={{ marginBottom: '24px' }}>
-            <label style={{ fontSize: '13px', fontWeight: 700, color: '#334155', display: 'block', marginBottom: '8px' }}>
+            <label style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text-main)', display: 'block', marginBottom: '8px' }}>
               Supervisor Review Audit Note <span style={{ color: '#dc2626' }}>*</span>
             </label>
             <textarea
@@ -321,13 +321,11 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
                 width: '100%',
                 padding: '10px 12px',
                 borderRadius: '8px',
-                border: '1px solid #cbd5e1',
                 fontSize: '13.5px',
                 lineHeight: '1.5',
-                outline: 'none',
               }}
             />
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
               This note will be permanently logged in the audit trail with your username and timestamp.
             </div>
           </div>
@@ -336,23 +334,23 @@ export const AiGateRiskReviewModal: React.FC<AiGateRiskReviewModalProps> = ({
           {analysis.reviewed_by_name && (
             <div
               style={{
-                background: '#f1f5f9',
-                border: '1px solid #e2e8f0',
+                background: 'var(--card-sub-bg)',
+                border: '1px solid var(--card-border)',
                 borderRadius: '8px',
                 padding: '10px 14px',
                 marginBottom: '20px',
                 fontSize: '12.5px',
-                color: '#475569',
+                color: 'var(--text-muted)',
               }}
             >
-              <strong>Previous Review:</strong> {analysis.review_decision?.toUpperCase()} by {analysis.reviewed_by_name} on{' '}
+              <strong style={{ color: 'var(--text-main)' }}>Previous Review:</strong> {analysis.review_decision?.toUpperCase()} by {analysis.reviewed_by_name} on{' '}
               {analysis.review_timestamp ? new Date(analysis.review_timestamp).toLocaleString() : 'N/A'}.
               {analysis.review_note && <div style={{ marginTop: '4px', fontStyle: 'italic' }}>"{analysis.review_note}"</div>}
             </div>
           )}
 
           {/* Actions */}
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid #e2e8f0', paddingTop: '16px' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', borderTop: '1px solid var(--border-color)', paddingTop: '16px' }}>
             <button
               type="button"
               onClick={onClose}

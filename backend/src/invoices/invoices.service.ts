@@ -34,6 +34,28 @@ export class InvoicesService {
     return { dateStr, timeStr };
   }
 
+  /**
+   * Generates the next strictly unique, monotonically increasing numerical invoice barcode.
+   * Guarantees zero barcode collisions even if historical rows were deleted.
+   */
+  private async generateNextBarcode(): Promise<string> {
+    const raw = await this.invoiceRepo
+      .createQueryBuilder('i')
+      .select('MAX(CAST(i.barcode AS UNSIGNED))', 'maxBarcode')
+      .where("i.barcode REGEXP '^[0-9]+$'")
+      .getRawOne();
+
+    let nextNum = raw && raw.maxBarcode ? Number(raw.maxBarcode) + 1 : 300001;
+    if (nextNum < 300001) nextNum = 300001;
+
+    // Safety loop: Ensure no collision with any existing invoice barcode in DB
+    while (await this.invoiceRepo.findOne({ where: { barcode: String(nextNum) } })) {
+      nextNum++;
+    }
+
+    return String(nextNum);
+  }
+
   async create(data: { invoice_number: string; part_id: number; qty: number }, userId: number) {
     if (!data.invoice_number || !data.part_id || !data.qty) {
       throw new BadRequestException('Invoice number, Part, and Quantity are required');
@@ -50,8 +72,7 @@ export class InvoicesService {
       throw new BadRequestException('Error : Invoice Number Already Exists');
     }
 
-    const count = await this.invoiceRepo.count();
-    const barcode = String(300000 + count);
+    const barcode = await this.generateNextBarcode();
     const { dateStr, timeStr } = this.getLegacyDateTime();
 
     const invoice = this.invoiceRepo.create({

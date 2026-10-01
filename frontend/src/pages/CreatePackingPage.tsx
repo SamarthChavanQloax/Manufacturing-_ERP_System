@@ -90,16 +90,16 @@ export const CreatePackingPage: React.FC = () => {
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Create Packing</span>
+          <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>Create Packing</span>
         </div>
       </div>
 
       <div className="content-body">
         {/* If newly created barcode, display thermal barcode ticket for immediate printing */}
         {createdBarcode && (
-          <div className="card" style={{ border: '2px solid #28a745', marginBottom: '20px' }}>
-            <div className="card-header" style={{ background: '#f0fdf4' }}>
-              <h3 className="card-title" style={{ color: '#166534' }}>
+          <div className="card" style={{ border: '1px solid rgba(34, 197, 94, 0.4)', marginBottom: '20px', background: 'var(--card-bg)' }}>
+            <div className="card-header" style={{ background: 'rgba(34, 197, 94, 0.12)' }}>
+              <h3 className="card-title" style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 Barcode Generated Successfully!
               </h3>
               <button
@@ -140,7 +140,7 @@ export const CreatePackingPage: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13.5px', color: '#4b5563' }}>Show</span>
+                <span style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>Show</span>
                 <select
                   className="form-control"
                   style={{ width: '84px', padding: '4px 8px' }}
@@ -158,11 +158,11 @@ export const CreatePackingPage: React.FC = () => {
                   <option value={500}>500</option>
                   <option value="all">All</option>
                 </select>
-                <span style={{ fontSize: '13.5px', color: '#4b5563' }}>entries</span>
+                <span style={{ fontSize: '13.5px', color: 'var(--text-muted)' }}>entries</span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13.5px', color: '#4b5563', fontWeight: 600 }}>Search:</span>
+                <span style={{ fontSize: '13.5px', color: 'var(--text-muted)', fontWeight: 600 }}>Search:</span>
                 <input
                   type="text"
                   placeholder="Search by Part Number or Part Name..."

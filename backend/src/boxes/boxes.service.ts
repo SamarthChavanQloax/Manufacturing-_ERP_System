@@ -25,11 +25,32 @@ export class BoxesService {
     return { dateStr, timeStr };
   }
 
+  /**
+   * Generates the next strictly unique, monotonically increasing numerical box barcode.
+   * Guarantees zero barcode collisions even if historical rows were deleted.
+   */
+  private async generateNextBarcode(): Promise<string> {
+    const raw = await this.boxRepo
+      .createQueryBuilder('b')
+      .select('MAX(CAST(b.barcode AS UNSIGNED))', 'maxBarcode')
+      .where("b.barcode REGEXP '^[0-9]+$'")
+      .getRawOne();
+
+    let nextNum = raw && raw.maxBarcode ? Number(raw.maxBarcode) + 1 : 200001;
+    if (nextNum < 200001) nextNum = 200001;
+
+    // Safety loop: Ensure no collision with any existing box barcode in DB
+    while (await this.boxRepo.findOne({ where: { barcode: String(nextNum) } })) {
+      nextNum++;
+    }
+
+    return String(nextNum);
+  }
+
   async create(data: { box_name: string; customer_id?: number; box_size?: string }, userId: number) {
     if (!data.box_name) throw new BadRequestException('Box/Part Name is required');
 
-    const count = await this.boxRepo.count();
-    const barcode = String(200000 + count);
+    const barcode = await this.generateNextBarcode();
     const { dateStr, timeStr } = this.getLegacyDateTime();
 
     const box = this.boxRepo.create({

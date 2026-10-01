@@ -90,7 +90,9 @@ export const AddBoxToInvoicePage: React.FC = () => {
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Part Master</span>
+          <span>Invoices</span>
+          <span>/</span>
+          <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>Add Box To Invoice</span>
         </div>
       </div>
 

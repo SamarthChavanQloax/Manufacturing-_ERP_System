@@ -19,6 +19,28 @@ export class PackingService {
     return { dateStr, timeStr };
   }
 
+  /**
+   * Generates the next strictly unique, monotonically increasing numerical packing barcode.
+   * Guarantees zero barcode collisions even if historical rows were deleted.
+   */
+  private async generateNextBarcode(): Promise<number> {
+    const raw = await this.packingRepo
+      .createQueryBuilder('p')
+      .select('MAX(CAST(p.barcode AS UNSIGNED))', 'maxBarcode')
+      .where("p.barcode REGEXP '^[0-9]+$'")
+      .getRawOne();
+
+    let nextNum = raw && raw.maxBarcode ? Number(raw.maxBarcode) + 1 : 100001;
+    if (nextNum < 100001) nextNum = 100001;
+
+    // Safety loop: Ensure no collision with any existing packing barcode in DB
+    while (await this.packingRepo.findOne({ where: { barcode: String(nextNum) } })) {
+      nextNum++;
+    }
+
+    return nextNum;
+  }
+
   async createSingle(partId: number, partQty: number, userId: number) {
     const part = await this.partRepo.findOne({ where: { id: partId } });
     if (!part) throw new BadRequestException('Part not found');
@@ -31,8 +53,8 @@ export class PackingService {
       );
     }
 
-    const count = await this.packingRepo.count();
-    const barcode = String(100000 + count);
+    const nextBarcodeNum = await this.generateNextBarcode();
+    const barcode = String(nextBarcodeNum);
     const { dateStr, timeStr } = this.getLegacyDateTime();
 
     const packing = this.packingRepo.create({
@@ -76,10 +98,14 @@ export class PackingService {
 
     const createdItems: any[] = [];
     const { dateStr, timeStr } = this.getLegacyDateTime();
+    let currentBarcodeNum = await this.generateNextBarcode();
 
     for (let i = 0; i < packingQty; i++) {
-      const count = await this.packingRepo.count();
-      const barcode = String(100000 + count);
+      let barcode = String(currentBarcodeNum);
+      while (await this.packingRepo.findOne({ where: { barcode } })) {
+        currentBarcodeNum++;
+        barcode = String(currentBarcodeNum);
+      }
 
       const item = this.packingRepo.create({
         barcode,
@@ -98,6 +124,8 @@ export class PackingService {
         part_number: part.part_number,
         part_description: part.part_description,
       });
+
+      currentBarcodeNum++;
     }
 
     // Deduct bulk packed quantity from remaining part stock

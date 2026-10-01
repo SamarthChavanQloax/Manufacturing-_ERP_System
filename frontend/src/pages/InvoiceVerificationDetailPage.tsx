@@ -73,7 +73,9 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
         <div className="breadcrumbs">
           <span>Home</span>
           <span>/</span>
-          <span style={{ color: '#212529', fontWeight: 600 }}>Part Master</span>
+          <span>Gate Dispatch Verification</span>
+          <span>/</span>
+          <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>Verify Invoice</span>
         </div>
       </div>
 
@@ -92,7 +94,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
             {!isMatched ? (
               <form onSubmit={handleScanBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end', marginBottom: '16px' }}>
                 <div style={{ width: '320px' }}>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#374151' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
                     Scan Code <span style={{ color: '#dc2626' }}>*</span>
                   </label>
                   <div style={{ display: 'flex', gap: '6px' }}>
@@ -117,7 +119,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
             {/* Verification Status Banner matching legacy */}
             <div style={{ display: 'flex', gap: '40px', alignItems: 'center', flexWrap: 'wrap' }}>
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#6b7280' }}>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
                   Invoice Match Status
                 </label>
                 <div
@@ -146,17 +148,17 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
 
               {isMatched && (
                 <div>
-                  <label style={{ fontSize: '13px', fontWeight: 600, color: '#6b7280' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
                     Invoice Match Number (Gate Out Code) :
                   </label>
-                  <div style={{ fontSize: '24px', fontWeight: 800, color: '#111827', letterSpacing: '0.5px' }}>
+                  <div style={{ fontSize: '24px', fontWeight: 800, color: 'var(--text-main)', letterSpacing: '0.5px' }}>
                     {data?.gate_out_code}
                   </div>
                 </div>
               )}
 
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: '#6b7280' }}>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-muted)' }}>
                   Invoice Qty
                 </label>
                 <div style={{ fontSize: '22px', fontWeight: 700, color: isMatched ? '#16a34a' : '#dc2626' }}>
@@ -170,8 +172,8 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
             {/* Manifest progress */}
             <div
               style={{
-                background: isMatched ? '#f0fdf4' : '#fffbeb',
-                border: `1px solid ${isMatched ? '#bbf7d0' : '#fde68a'}`,
+                background: isMatched ? 'rgba(22, 163, 74, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                border: `1px solid ${isMatched ? 'rgba(22, 163, 74, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
                 padding: '14px 18px',
                 borderRadius: '6px',
                 marginBottom: '20px',
@@ -181,11 +183,11 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
               }}
             >
               <div>
-                <div style={{ fontSize: '14px', fontWeight: 600, color: isMatched ? '#166534' : '#92400e' }}>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: isMatched ? '#16a34a' : '#f59e0b' }}>
                   Verification Audit Progress: {data?.scanned_boxes_count || 0} of {data?.expected_boxes_count || 0} Boxes Physically Verified
                 </div>
-                <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '2px' }}>
-                  Invoice: {invoice?.invoice_number} (Barcode: {invoice?.barcode})
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                  Invoice: <strong style={{ color: 'var(--text-main)' }}>{invoice?.invoice_number}</strong> (Barcode: {invoice?.barcode})
                 </div>
               </div>
 
@@ -202,7 +204,7 @@ export const InvoiceVerificationDetailPage: React.FC = () => {
             </div>
 
             {/* Physically Scanned Boxes Table */}
-            <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '10px' }}>
+            <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '10px', color: 'var(--text-main)' }}>
               Physically Verified Boxes Loaded on Vehicle ({data?.scanned_boxes?.length || 0})
             </h4>
 

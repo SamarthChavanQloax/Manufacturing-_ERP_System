@@ -954,22 +954,82 @@ body[data-theme="dark"] .content-header h1,
   color: var(--text-main);
 }
 
-/* Auto-adapt dashboard action boxes and list items in dark mode */
-[data-theme="dark"] div[style*="background: #fff"],
-[data-theme="dark"] div[style*="background: rgb(255, 255, 255)"],
-[data-theme="dark"] div[style*="background:#fff"],
-[data-theme="dark"] div[style*="background-color: #fff"],
-[data-theme="dark"] div[style*="background-color: rgb(255, 255, 255)"],
-[data-theme="dark"] div[style*="background: white"],
-body[data-theme="dark"] div[style*="background: #fff"],
-body[data-theme="dark"] div[style*="background: rgb(255, 255, 255)"],
-body[data-theme="dark"] div[style*="background:#fff"],
-body[data-theme="dark"] div[style*="background-color: #fff"],
-body[data-theme="dark"] div[style*="background-color: rgb(255, 255, 255)"],
-body[data-theme="dark"] div[style*="background: white"] {
+/* Auto-adapt dashboard action boxes and list items in dark mode (excluding physical printable barcode cards and gate passes) */
+[data-theme="dark"] div[style*="background: #fff"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+[data-theme="dark"] div[style*="background: rgb(255, 255, 255)"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+[data-theme="dark"] div[style*="background:#fff"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+[data-theme="dark"] div[style*="background-color: #fff"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+[data-theme="dark"] div[style*="background-color: rgb(255, 255, 255)"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+[data-theme="dark"] div[style*="background: white"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+body[data-theme="dark"] div[style*="background: #fff"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+body[data-theme="dark"] div[style*="background: rgb(255, 255, 255)"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+body[data-theme="dark"] div[style*="background:#fff"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+body[data-theme="dark"] div[style*="background-color: #fff"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+body[data-theme="dark"] div[style*="background-color: rgb(255, 255, 255)"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *),
+body[data-theme="dark"] div[style*="background: white"]:not(.printable-barcode-card):not(.printable-barcode-card *):not([id^="barcode-card-"]):not([id^="barcode-card-"] *):not(#printable-gate-pass):not(#printable-gate-pass *) {
   background: var(--card-bg) !important;
   border-color: var(--card-border) !important;
   color: var(--text-main) !important;
+}
+
+/* ==========================================================================
+   PRINTABLE BARCODE STICKER & GATE PASS PROTECTION (High-Contrast Guaranteed)
+   ========================================================================== */
+.printable-barcode-card,
+[id^="barcode-card-"],
+.barcode-svg-box,
+#printable-gate-pass {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.printable-barcode-card *,
+[id^="barcode-card-"] *,
+#printable-gate-pass * {
+  -webkit-print-color-adjust: exact !important;
+  print-color-adjust: exact !important;
+}
+
+[data-theme="dark"] .printable-barcode-card,
+[data-theme="dark"] [id^="barcode-card-"],
+[data-theme="dark"] .barcode-svg-box,
+body[data-theme="dark"] .printable-barcode-card,
+body[data-theme="dark"] [id^="barcode-card-"],
+body[data-theme="dark"] .barcode-svg-box {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45) !important;
+}
+
+[data-theme="dark"] .printable-barcode-card svg,
+[data-theme="dark"] [id^="barcode-card-"] svg,
+body[data-theme="dark"] .printable-barcode-card svg,
+body[data-theme="dark"] [id^="barcode-card-"] svg {
+  background: #ffffff !important;
+}
+
+[data-theme="dark"] .printable-barcode-card .barcode-meta-box,
+[data-theme="dark"] [id^="barcode-card-"] .barcode-meta-box,
+body[data-theme="dark"] .printable-barcode-card .barcode-meta-box,
+body[data-theme="dark"] [id^="barcode-card-"] .barcode-meta-box {
+  background: #f1f5f9 !important;
+  border-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="dark"] .printable-barcode-card .barcode-meta-box *,
+[data-theme="dark"] [id^="barcode-card-"] .barcode-meta-box *,
+body[data-theme="dark"] .printable-barcode-card .barcode-meta-box *,
+body[data-theme="dark"] [id^="barcode-card-"] .barcode-meta-box * {
+  color: #0f172a !important;
+}
+
+[data-theme="dark"] .printable-barcode-card .barcode-qty-num,
+[data-theme="dark"] [id^="barcode-card-"] .barcode-qty-num,
+body[data-theme="dark"] .printable-barcode-card .barcode-qty-num,
+body[data-theme="dark"] [id^="barcode-card-"] .barcode-qty-num {
+  color: #047857 !important;
 }
 
 [data-theme="dark"] div[style*="background: #f8fafc"],
