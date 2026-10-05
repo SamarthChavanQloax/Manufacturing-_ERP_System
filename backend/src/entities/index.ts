@@ -528,6 +528,24 @@ export class Notification {
   action_url: string;
 
   @Column({ type: 'text', nullable: true })
+  reason: string; // The reason for the notification
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  module: string; // The affected section/module (e.g. 'Authentication', 'Gate Verification', 'Part Master', 'Invoice Box Mapping', 'Packing', 'System')
+
+  @Column({ type: 'int', nullable: true })
+  actor_id: number; // Active user ID
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  actor_name: string; // Active user name
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  actor_role: string; // Active user role
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  actor_email: string; // Active user email
+
+  @Column({ type: 'text', nullable: true })
   metadata: string; // JSON
 
   @Column({ type: 'varchar', length: 180, nullable: true })
@@ -556,6 +574,111 @@ export class Notification {
 
   @Column({ type: 'datetime', nullable: true })
   expires_at: Date;
+}
+
+@Entity('part_history')
+export class PartHistory {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int' })
+  part_id: number;
+
+  @Column({ type: 'varchar', length: 50 })
+  event_type: string; // 'STOCK_ADDED' | 'STOCK_CONSUMED' | 'STOCK_FINISHED' | 'STOCK_ADJUSTED'
+
+  @Column({ type: 'float', default: 0 })
+  quantity_change: number; // e.g. +100 or -25
+
+  @Column({ type: 'float', default: 0 })
+  previous_qty: number;
+
+  @Column({ type: 'float', default: 0 })
+  new_qty: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  supplier_name: string;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  supplier_contact: string;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  supplier_invoice_no: string;
+
+  @Column({ type: 'text', nullable: true })
+  supplier_notes: string;
+
+  @Column({ type: 'int', nullable: true })
+  created_by_user_id: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  created_by_user_name: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  created_by_user_role: string;
+
+  @Column({ type: 'varchar', length: 30 })
+  entry_date: string; // YYYY-MM-DD
+
+  @Column({ type: 'varchar', length: 30 })
+  entry_time: string; // HH:MM:SS
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
+
+  @Column({ type: 'text', nullable: true })
+  notes: string;
+}
+
+@Entity('audit_activity_log')
+export class AuditActivityLog {
+  @PrimaryGeneratedColumn()
+  id: number;
+
+  @Column({ type: 'int', nullable: true })
+  user_id: number;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  user_name: string;
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  user_role: string; // 'admin', 'invoice', 'gate', 'packing', 'box'
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  user_email: string;
+
+  @Column({ type: 'varchar', length: 20 })
+  action_type: string; // 'INSERT' | 'UPDATE' | 'DELETE'
+
+  @Column({ type: 'varchar', length: 255 })
+  action_title: string; // e.g. 'Invoice Created', 'Invoice Deleted', 'Part Created', etc.
+
+  @Column({ type: 'varchar', length: 100 })
+  module: string; // 'Invoices', 'Part Master', 'Packing', 'Box Packaging', 'Gate Verification', 'AI Security & Anomaly Detection'
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  entity_type: string; // 'INVOICE', 'PART', 'BOX', 'PACKING', 'MATCH'
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  entity_id: string; // e.g. 'INV-1001' or '300095' or Part ID
+
+  @Column({ type: 'text', nullable: true })
+  details: string; // Human-readable or structured details of the action
+
+  @Column({ type: 'text', nullable: true })
+  metadata: string; // JSON metadata if any
+
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  ip_address: string;
+
+  @Column({ type: 'varchar', length: 30 })
+  created_date: string; // YYYY-MM-DD
+
+  @Column({ type: 'varchar', length: 30 })
+  created_time: string; // HH:MM:SS / 12h
+
+  @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  created_at: Date;
 }
 
 

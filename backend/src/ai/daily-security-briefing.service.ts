@@ -11,7 +11,6 @@ import {
   Customer,
   UserInfo,
 } from '../entities';
-import { NotificationService } from '../notifications/notifications.service';
 
 export interface SecurityBriefingEvent {
   id: string;
@@ -72,7 +71,6 @@ export class DailySecurityBriefingService implements OnModuleInit {
     private customerRepo: Repository<Customer>,
     @InjectRepository(UserInfo)
     private userRepo: Repository<UserInfo>,
-    private notifService: NotificationService,
   ) {}
 
   async onModuleInit() {
@@ -469,17 +467,7 @@ export class DailySecurityBriefingService implements OnModuleInit {
 
     const saved = await this.briefingRepo.save(briefingRecord);
 
-    // Trigger notification for daily security briefing
-    try {
-      await this.notifService.notifyDailySecurityBriefing({
-        briefing_date: saved.briefing_date,
-        total_events: saved.total_events,
-        high_priority_count: saved.high_priority_count,
-        medium_priority_count: saved.medium_priority_count,
-      });
-    } catch (e) {
-      console.error('Error triggering briefing notification:', e);
-    }
+
 
     return {
       ...saved,

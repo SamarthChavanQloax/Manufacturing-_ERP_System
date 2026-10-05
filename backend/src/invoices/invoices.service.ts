@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Invoice, InvoiceBox, Box, BoxPacking, Packing, Part, UserInfo } from '../entities';
 import { NotificationService } from '../notifications/notifications.service';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class InvoicesService {
@@ -25,6 +26,7 @@ export class InvoicesService {
     @InjectRepository(UserInfo)
     private userRepo: Repository<UserInfo>,
     private notificationService: NotificationService,
+    private activityService: ActivityLogService,
   ) {}
 
   private getLegacyDateTime() {
@@ -75,64 +77,130 @@ export class InvoicesService {
     const barcode = await this.generateNextBarcode();
     const { dateStr, timeStr } = this.getLegacyDateTime();
 
+    // Check Part Master stock for the selected part
+    const part = await this.partRepo.findOne({ where: { id: Number(data.part_id) } });
+    const partNumber = part?.part_number || `Part #${data.part_id}`;
+    const partDesc = part?.part_description || '';
+    const currentPartStock = part ? Number(part.qty) || 0 : 0;
+
+    const requestedQty = Number(data.qty);
+    const exceedsThreshold = requestedQty > 5000;
+    const isStockDeficit = requestedQty > currentPartStock;
+    const isAnomalous = exceedsThreshold || isStockDeficit;
+    const initialStatus = isAnomalous ? 'waiting_for_approval' : 'pending';
+
     const invoice = this.invoiceRepo.create({
       barcode,
       invoice_number: data.invoice_number.trim(),
       part_id: Number(data.part_id),
-      qty: Number(data.qty),
+      qty: requestedQty,
       created_by: userId,
       created_date: timeStr,
       created_time: dateStr,
-      status: 'pending',
+      status: initialStatus,
       lock_status: 'no',
-      status_new: 'pending',
+      status_new: initialStatus,
     });
 
     const saved = await this.invoiceRepo.save(invoice);
 
-    // Notify admin on invoice creation & highlight anomalies immediately
-    try {
-      if (Number(data.qty) > 5000) {
+    // Only generate notification when an actual ANOMALY is detected (>5000 pcs or stock deficit)
+    if (isAnomalous) {
+      try {
+        const userRec = await this.userRepo.findOne({ where: { id: userId } });
+        const actorName = userRec?.user_name || `User #${userId}`;
+        const actorRole = userRec?.type || 'invoice';
+
+        const stockDeficitUnits = isStockDeficit ? requestedQty - currentPartStock : 0;
+
+        let reason = '';
+        if (isStockDeficit && exceedsThreshold) {
+          reason = `Anomalous Invoice Quantity & Stock Deficit: Requested ${requestedQty} pcs exceeds standard production lot threshold (> 5000 units) and exceeds available Part Stock (${currentPartStock} pcs) by ${stockDeficitUnits} units on Part "${partNumber}".`;
+        } else if (isStockDeficit) {
+          reason = `Insufficient Part Stock Deficit: Requested ${requestedQty} pcs exceeds available Part Stock (${currentPartStock} pcs) by ${stockDeficitUnits} units on Part "${partNumber}".`;
+        } else {
+          reason = `Anomalous Invoice Quantity: ${requestedQty} pcs exceeds standard production lot threshold (> 5000 units). Available Part Stock: ${currentPartStock} pcs on Part "${partNumber}".`;
+        }
+
+        const title = isStockDeficit
+          ? `🚨 Invoice Anomaly: Stock Deficit (${requestedQty} pcs requested vs ${currentPartStock} in stock on ${saved.invoice_number}) - Waiting for Approval`
+          : `🚨 Invoice Anomaly: Excessive Quantity (${requestedQty} pcs on ${saved.invoice_number}) - Part Stock Checked - Waiting for Approval`;
+
+        const stockVerificationSection = `📦 PART DETAILS & STOCK VERIFICATION:
+• Part Number: ${partNumber}
+• Description: ${partDesc || 'N/A'}
+• Current Available Part Stock: ${currentPartStock} pcs
+• Requested Invoice Quantity: ${saved.qty} pcs
+• Stock Check Status: ${isStockDeficit ? `⚠️ INSUFFICIENT STOCK DEFICIT (Shortfall: -${stockDeficitUnits} pcs)` : `✅ SUFFICIENT INVENTORY (${currentPartStock} pcs available in Part Master)`}`;
+
+        const message = `Invoice ${saved.invoice_number} was created with an unusually high quantity of ${saved.qty} pcs. Immediate supervisor audit required.
+
+Status: Waiting for Admin Approval
+Notice for Invoice User: Please wait for admin approval of this part details and quantity before proceeding with box mapping or gate dispatch.
+
+${stockVerificationSection}
+
+Reason: ${reason}
+Affected Section: AI Security & Anomaly Detection / Part Master
+Active User: ${actorName} (${actorRole.toUpperCase()} | ID: ${userId})`;
+
         await this.notificationService.createNotification({
-          recipient_role: 'admin',
+          recipient_role: 'invoice,admin',
           type: 'SECURITY_ANOMALY',
           priority: 'CRITICAL',
-          title: `🚨 AI Security Alert: Anomalous Invoice Quantity (${saved.qty} pcs)`,
-          message: `Invoice ${saved.invoice_number} was generated with an unusually high quantity of ${saved.qty} pcs. Immediate supervisor audit required.`,
+          title,
+          message,
+          reason,
+          module: 'AI Security & Anomaly Detection',
+          actor_id: userId,
+          actor_name: actorName,
+          actor_role: actorRole,
           entity_type: 'INVOICE',
           entity_id: saved.invoice_number,
-          action_url: `/ai_security?search=${encodeURIComponent(saved.invoice_number)}`,
+          action_url: `/ai_security`,
           dedup_key: `anomaly_qty_${saved.id}`,
           metadata: {
             invoice_id: saved.id,
             invoice_number: saved.invoice_number,
             qty: saved.qty,
-            created_by: userId,
-            anomaly_type: 'Anomalous Quantity',
+            part_id: part?.id || data.part_id,
+            part_number: partNumber,
+            part_description: partDesc,
+            current_part_stock: currentPartStock,
+            requested_qty: saved.qty,
+            stock_deficit: stockDeficitUnits,
+            stock_sufficient: !isStockDeficit,
+            stock_check_status: isStockDeficit ? 'INSUFFICIENT' : 'SUFFICIENT',
+            reason,
+            module: 'AI Security & Anomaly Detection',
+            user_details: { id: userId, name: actorName, role: actorRole },
+            anomaly_type: isStockDeficit ? 'Stock Deficit & High Quantity' : 'High Quantity Anomaly',
+            approval_status: 'waiting_for_approval',
           },
         });
-      } else {
-        await this.notificationService.createNotification({
-          recipient_role: 'admin',
-          type: 'INVOICE_CREATED',
-          priority: 'INFO',
-          title: `📄 New Invoice Created: ${saved.invoice_number}`,
-          message: `Invoice ${saved.invoice_number} was created with quantity ${saved.qty} pcs. Ready for packaging.`,
-          entity_type: 'INVOICE',
-          entity_id: saved.invoice_number,
-          action_url: `/add_box_to_invoice?invoice_id=${saved.id}`,
-          dedup_key: `inv_created_${saved.id}`,
-          metadata: {
-            invoice_id: saved.id,
-            invoice_number: saved.invoice_number,
-            qty: saved.qty,
-            created_by: userId,
-          },
-        });
+      } catch (err) {
+        this.logger.error('Failed to dispatch notification for anomalous invoice', err);
       }
-    } catch (err) {
-      this.logger.error('Failed to dispatch notification for invoice creation', err);
     }
+
+    // Record immutable audit history
+    await this.activityService.recordActivity({
+      userId,
+      actionType: 'INSERT',
+      actionTitle: 'Invoice Created',
+      module: 'Invoices',
+      entityType: 'INVOICE',
+      entityId: saved.invoice_number,
+      details: `Created Invoice #${saved.invoice_number} (Barcode: ${saved.barcode}) with required lot ${saved.qty} pcs on Part "${partNumber}". Initial Status: ${saved.status}.`,
+      metadata: {
+        invoice_id: saved.id,
+        invoice_number: saved.invoice_number,
+        barcode: saved.barcode,
+        qty: saved.qty,
+        part_number: partNumber,
+        status: saved.status,
+      },
+    });
 
     return saved;
   }
@@ -204,6 +272,12 @@ export class InvoicesService {
   async addBoxToInvoice(invoiceId: number, boxBarcode: string, userId: number) {
     const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
+
+    if (invoice.status === 'waiting_for_approval' || invoice.status_new === 'waiting_for_approval') {
+      throw new BadRequestException(
+        `Error: Invoice #${invoice.invoice_number} is currently Waiting for Admin Approval due to excessive quantity/anomaly. You cannot add boxes until the administrator approves and resolves the anomaly.`,
+      );
+    }
 
     if (invoice.lock_status === 'yes') {
       throw new BadRequestException('Error: Invoice is already locked');
@@ -349,10 +423,27 @@ export class InvoicesService {
     // Reset attempt tracker upon successful addition
     this.mismatchAttempts.delete(`inv_${invoice.id}_user_${userId}`);
 
+    // Record immutable audit activity
+    await this.activityService.recordActivity({
+      userId,
+      actionType: 'INSERT',
+      actionTitle: 'Box Added to Invoice',
+      module: 'Invoices',
+      entityType: 'INVOICE',
+      entityId: invoice.invoice_number,
+      details: `Box #${box.barcode} (+${thisBoxQty} pcs) was successfully mapped to Invoice #${invoice.invoice_number}.`,
+      metadata: {
+        invoice_id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        box_barcode: box.barcode,
+        box_qty: thisBoxQty,
+      },
+    });
+
     return { success: true, message: 'Box Added to Invoice Successfully' };
   }
 
-  async lockInvoice(invoiceId: number) {
+  async lockInvoice(invoiceId: number, userId?: number) {
     const invoice = await this.invoiceRepo.findOne({ where: { id: invoiceId } });
     if (!invoice) throw new NotFoundException('Invoice not found');
 
@@ -363,12 +454,33 @@ export class InvoicesService {
 
     invoice.lock_status = 'yes';
     await this.invoiceRepo.save(invoice);
+
+    // Record immutable audit activity
+    await this.activityService.recordActivity({
+      userId,
+      actionType: 'UPDATE',
+      actionTitle: 'Invoice Locked',
+      module: 'Invoices',
+      entityType: 'INVOICE',
+      entityId: invoice.invoice_number,
+      details: `Invoice #${invoice.invoice_number} (Barcode: ${invoice.barcode}) locked and sealed with ${invoiceBoxes.length} boxes for gate verification.`,
+      metadata: {
+        invoice_id: invoice.id,
+        invoice_number: invoice.invoice_number,
+        boxes_count: invoiceBoxes.length,
+      },
+    });
+
     return { success: true, lock_status: 'yes', message: 'Invoice Locked Successfully' };
   }
 
-  async delete(id: number) {
+  async delete(id: number, userId?: number) {
     const invoice = await this.invoiceRepo.findOne({ where: { id } });
     if (!invoice) throw new NotFoundException('Invoice not found');
+
+    const invNum = invoice.invoice_number;
+    const invBarcode = invoice.barcode;
+    const invQty = invoice.qty;
 
     // Revert all associated boxes to pending
     const invoiceBoxes = await this.invoiceBoxRepo.find({ where: { invoice_id: invoice.id } });
@@ -381,7 +493,26 @@ export class InvoicesService {
       await this.invoiceBoxRepo.delete(ib.id);
     }
 
-    return this.invoiceRepo.delete(id);
+    const res = await this.invoiceRepo.delete(id);
+
+    // Record immutable audit activity
+    await this.activityService.recordActivity({
+      userId,
+      actionType: 'DELETE',
+      actionTitle: 'Invoice Deleted',
+      module: 'Invoices',
+      entityType: 'INVOICE',
+      entityId: invNum,
+      details: `Invoice #${invNum} (Barcode: ${invBarcode}, Required Qty: ${invQty} pcs) was permanently deleted by user.`,
+      metadata: {
+        deleted_invoice_id: id,
+        invoice_number: invNum,
+        barcode: invBarcode,
+        qty: invQty,
+      },
+    });
+
+    return res;
   }
 
   /**
@@ -528,17 +659,29 @@ ${packSummaryLines || '  - No individual pack details found'}
     };
 
     try {
+      const mismatchReason = `Repeated quantity mismatch: Box #${box.barcode} (+${thisBoxQty} pcs) exceeds remaining permitted invoice capacity (+${excessQty} pcs excess)`;
+
       await this.notificationService.createNotification({
-        recipient_role: 'admin',
+        recipient_role: 'invoice,box,admin',
         type: 'INVOICE_QTY_MISMATCH_RISK',
         priority,
         title: `🚨 Risk Alert: Repeated Box Qty Mismatch on Invoice ${invoice.invoice_number} (Attempt #${attemptCount})`,
         message: notificationMessage,
+        reason: mismatchReason,
+        module: 'Invoice Box Mapping',
+        actor_id: userId,
+        actor_name: operatorName,
+        actor_role: operatorRole,
+        actor_email: operatorEmail,
         entity_type: 'invoice',
         entity_id: invoice.invoice_number,
         action_url: `/add_box_to_invoice/${invoice.id}`,
         dedup_key: `mismatch_inv_${invoice.id}_user_${userId}`,
-        metadata,
+        metadata: {
+          ...metadata,
+          reason: mismatchReason,
+          module: 'Invoice Box Mapping',
+        },
       });
 
       this.logger.log(

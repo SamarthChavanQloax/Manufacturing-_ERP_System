@@ -44,13 +44,13 @@ export class InvoicesController {
 
   @Post('lock')
   @Roles('admin', 'invoice')
-  async lockInvoice(@Body() body: { invoice_id: number }) {
-    return this.invoicesService.lockInvoice(Number(body.invoice_id));
+  async lockInvoice(@Body() body: { invoice_id: number }, @Request() req: any) {
+    return this.invoicesService.lockInvoice(Number(body.invoice_id), req.user?.userId);
   }
 
   @Delete(':id')
   @Roles('admin', 'invoice')
-  async delete(@Param('id') id: string) {
-    return this.invoicesService.delete(Number(id));
+  async delete(@Param('id') id: string, @Request() req: any) {
+    return this.invoicesService.delete(Number(id), req.user?.userId);
   }
 }

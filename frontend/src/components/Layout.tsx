@@ -21,6 +21,7 @@ import {
   Bell,
   Sparkles,
   Camera,
+  History,
 } from 'lucide-react';
 
 import { getUserAvatarColor, getUserProfilePhoto } from '../utils/userProfileStorage';
@@ -430,6 +431,17 @@ export const Layout: React.FC = () => {
             );
           })()}
 
+          {/* Activity History (For all users, scoped by RBAC; Admin sees all sections) */}
+          <NavLink
+            to="/activity_history"
+            className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <History size={18} />
+              <span>Activity History</span>
+            </div>
+          </NavLink>
+
           {/* AI Insights Menu (Strictly Admin Only) */}
           {role === 'admin' && (
             <div>
@@ -723,6 +735,18 @@ export const Layout: React.FC = () => {
 
             {/* Notification Bell Popover */}
             <NotificationBellPopover />
+
+            {/* Quick Activity History Button */}
+            <button
+              onClick={() => navigate('/activity_history')}
+              className="btn btn-sm btn-secondary navbar-settings-btn"
+              title="Activity History & Audit Trail"
+              aria-label="Activity History"
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 10px' }}
+            >
+              <History size={14} />
+              <span className="d-none d-md-inline" style={{ fontSize: '12px', fontWeight: 600 }}>History</span>
+            </button>
 
             {/* Quick Settings Button */}
             <button

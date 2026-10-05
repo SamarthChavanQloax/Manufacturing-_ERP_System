@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, RotateCcw, X, ShieldCheck, FileSpreadsheet } from 'lucide-react';
+import { Eye, RotateCcw, X, ShieldCheck, ShieldAlert, FileSpreadsheet } from 'lucide-react';
 import { exportToExcel } from '../utils/excelExport';
 
 export const VerifyInvoicePage: React.FC = () => {
@@ -11,6 +11,7 @@ export const VerifyInvoicePage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [limit, setLimit] = useState<number | 'all'>(10);
   const [loading, setLoading] = useState(false);
+  const [errorAlert, setErrorAlert] = useState<string | null>(null);
 
   // Return Invoice modal
   const [returnMatch, setReturnMatch] = useState<any | null>(null);
@@ -37,13 +38,16 @@ export const VerifyInvoicePage: React.FC = () => {
     if (!barcodeVal) return;
 
     try {
+      setErrorAlert(null);
       const res = await api.post('/verification/start', {
         invoice_barcode: barcodeVal,
       });
       alert('Added Successfully');
       navigate(`/add_box_to_invoice_verify/${res.data.id}`);
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Error starting verification');
+      const msg = err.response?.data?.message || 'Error starting verification';
+      setErrorAlert(msg);
+      alert(msg);
     }
   };
 
@@ -97,6 +101,48 @@ export const VerifyInvoicePage: React.FC = () => {
       </div>
 
       <div className="content-body">
+        {errorAlert && (
+          <div
+            id="gate-verification-error-banner"
+            style={{
+              marginBottom: '16px',
+              padding: '14px 18px',
+              borderRadius: '8px',
+              background: 'rgba(239, 68, 68, 0.12)',
+              border: '1px solid rgba(239, 68, 68, 0.4)',
+              color: 'var(--text-main)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <ShieldAlert size={24} style={{ color: '#ef4444', flexShrink: 0, marginTop: '2px' }} />
+            <div style={{ flex: 1 }}>
+              <div style={{ fontWeight: 700, fontSize: '15px', color: '#ef4444', marginBottom: '4px' }}>
+                Gate Verification Blocked
+              </div>
+              <div style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--text-main)' }}>
+                {errorAlert}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorAlert(null)}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                color: '#ef4444',
+                padding: '4px',
+              }}
+              title="Dismiss"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         <div className="card">
           <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             {/* Form matching screenshot 12_verify_invoice.png */}

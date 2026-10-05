@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Part, Invoice, Box, Packing, UserInfo, InvoiceMatch } from '../entities';
-import { NotificationService } from '../notifications/notifications.service';
 
 @Injectable()
 export class AiService {
@@ -19,7 +18,6 @@ export class AiService {
     private usersRepo: Repository<UserInfo>,
     @InjectRepository(InvoiceMatch)
     private verificationRepo: Repository<InvoiceMatch>,
-    private notifService: NotificationService,
   ) {}
 
   async getStockIntelligence() {
@@ -234,26 +232,6 @@ export class AiService {
 
     // Sort anomalies by timestamp descending (newest first)
     anomalies.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-
-    // Sync detected anomalies to admin notifications
-    for (const a of anomalies) {
-      try {
-        await this.notifService.createNotification({
-          recipient_role: 'admin',
-          type: 'SECURITY_ANOMALY',
-          priority: a.severity === 'CRITICAL' ? 'CRITICAL' : a.severity === 'HIGH' ? 'HIGH' : 'WARNING',
-          title: `🚨 AI Security Alert: ${a.type} (${a.entity_id})`,
-          message: a.description,
-          entity_type: 'ANOMALY',
-          entity_id: a.entity_id,
-          action_url: `/ai_security?search=${encodeURIComponent(a.entity_id)}`,
-          dedup_key: `anomaly_${a.id}`,
-          metadata: a,
-        });
-      } catch (err) {
-        // Continue silently on notification errors
-      }
-    }
 
     return anomalies;
   }

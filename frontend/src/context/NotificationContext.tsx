@@ -12,6 +12,12 @@ export interface ERPNotification {
   priority: 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL';
   title: string;
   message: string;
+  reason?: string;
+  module?: string;
+  actor_name?: string;
+  actor_id?: number;
+  actor_role?: string;
+  actor_email?: string;
   entity_type?: string;
   entity_id?: string;
   action_url?: string;
@@ -130,11 +136,23 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const markAsRead = async (id: number) => {
     try {
-      await api.patch(`/notifications/${id}/read`);
+      const target = notifications.find((n) => n.id === id);
+      const wasUnread = target ? !target.is_read : true;
+
+      // Optimistic instant local updates
       setNotifications((prev) =>
         prev.map((n) => (n.id === id ? { ...n, is_read: true, read_at: new Date().toISOString() } : n)),
       );
-      setUnreadCount((c) => Math.max(0, c - 1));
+      if (wasUnread) {
+        setUnreadCount((c) => Math.max(0, c - 1));
+        setSummary((prev) => (prev ? { ...prev, unread: Math.max(0, prev.unread - 1) } : prev));
+      }
+
+      await api.patch(`/notifications/${id}/read`);
+
+      // Sync exact counts from backend
+      fetchUnreadCount();
+      fetchSummary();
     } catch (err) {
       console.error('Error marking notification read:', err);
     }
@@ -142,12 +160,17 @@ export const NotificationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const markAllAsRead = async () => {
     try {
-      await api.post('/notifications/mark-all-read');
       setNotifications((prev) =>
         prev.map((n) => ({ ...n, is_read: true, read_at: new Date().toISOString() })),
       );
       setUnreadCount(0);
       setCriticalCount(0);
+      setSummary((prev) => (prev ? { ...prev, unread: 0 } : prev));
+
+      await api.post('/notifications/mark-all-read');
+
+      fetchUnreadCount();
+      fetchSummary();
     } catch (err) {
       console.error('Error marking all notifications read:', err);
     }

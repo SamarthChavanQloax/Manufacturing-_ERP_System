@@ -76,6 +76,7 @@ export const AddBoxToInvoicePage: React.FC = () => {
   const totalPartQty = data?.total_part_qty || 0;
   const isLocked = invoice?.lock_status === 'yes';
   const isMatched = totalPartQty === invoice?.qty;
+  const isWaitingForApproval = invoice?.status === 'waiting_for_approval' || invoice?.status_new === 'waiting_for_approval';
 
   return (
     <div>
@@ -97,6 +98,34 @@ export const AddBoxToInvoicePage: React.FC = () => {
       </div>
 
       <div className="content-body">
+        {isWaitingForApproval && (
+          <div
+            id="invoice-hold-banner"
+            style={{
+              marginBottom: '16px',
+              padding: '14px 18px',
+              borderRadius: '8px',
+              background: 'rgba(245, 158, 11, 0.12)',
+              border: '1px solid rgba(245, 158, 11, 0.4)',
+              color: 'var(--text-main)',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '12px',
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+            }}
+          >
+            <ShieldAlert size={24} style={{ color: '#f59e0b', flexShrink: 0, marginTop: '2px' }} />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: '15px', color: '#f59e0b', marginBottom: '4px' }}>
+                Waiting for Admin Approval
+              </div>
+              <div style={{ fontSize: '13px', lineHeight: 1.5, color: 'var(--text-main)' }}>
+                An anomaly was detected for this invoice (Part details / high quantity). Gate security verification and box mapping are blocked until an administrator approves and resolves this anomaly.
+              </div>
+            </div>
+          </div>
+        )}
+
         {errorAlert && (
           <div
             id="box-mismatch-alert-banner"
@@ -179,7 +208,31 @@ export const AddBoxToInvoicePage: React.FC = () => {
           >
             {/* Left Controls: Scan or Lock or Status */}
             <div>
-              {!isLocked && !isMatched && (
+              {isWaitingForApproval ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    color: '#f59e0b',
+                    background: 'rgba(245, 158, 11, 0.12)',
+                    border: '1px solid rgba(245, 158, 11, 0.3)',
+                    padding: '12px 20px',
+                    borderRadius: '8px',
+                    maxWidth: '520px',
+                  }}
+                >
+                  <Lock size={22} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '14.5px', color: '#f59e0b' }}>
+                      Locked: Waiting for Admin Approval
+                    </div>
+                    <div style={{ fontSize: '12.5px', color: 'var(--text-muted)', marginTop: '2px' }}>
+                      Box mapping is locked because an anomaly was detected for this invoice. An administrator must approve/resolve it first.
+                    </div>
+                  </div>
+                </div>
+              ) : !isLocked && !isMatched ? (
                 <form onSubmit={handleAddBox} style={{ display: 'flex', gap: '14px', alignItems: 'flex-end' }}>
                   <div style={{ width: '320px' }}>
                     <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-main)' }}>
@@ -202,7 +255,7 @@ export const AddBoxToInvoicePage: React.FC = () => {
                     Submit
                   </button>
                 </form>
-              )}
+              ) : null}
 
               {!isLocked && isMatched && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>

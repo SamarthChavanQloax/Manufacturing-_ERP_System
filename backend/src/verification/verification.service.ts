@@ -12,6 +12,7 @@ import {
   GateRiskAnalysis,
 } from '../entities';
 import { GateRiskService } from '../ai/gate-risk.service';
+import { ActivityLogService } from '../activity-log/activity-log.service';
 
 @Injectable()
 export class VerificationService {
@@ -34,6 +35,7 @@ export class VerificationService {
     private riskAnalysisRepo: Repository<GateRiskAnalysis>,
     @Inject(forwardRef(() => GateRiskService))
     private gateRiskService: GateRiskService,
+    private activityService: ActivityLogService,
   ) {}
 
   private getLegacyDateTime() {
@@ -46,7 +48,7 @@ export class VerificationService {
   async startVerification(invoiceBarcode: string, userId: number) {
     const barcodeStr = String(invoiceBarcode).trim();
     const invoice = await this.invoiceRepo.findOne({
-      where: { barcode: barcodeStr },
+      where: [{ barcode: barcodeStr }, { invoice_number: barcodeStr }],
     });
     if (!invoice) {
       // Log failed scan attempt
@@ -62,6 +64,13 @@ export class VerificationService {
       } catch (e) {}
 
       throw new BadRequestException('Error : Invoice Number Not Found !!!');
+    }
+
+    // Security Restriction: If the invoice is waiting for approval due to an anomaly, block gate verification until admin resolves/approves it!
+    if (invoice.status === 'waiting_for_approval' || invoice.status_new === 'waiting_for_approval') {
+      throw new BadRequestException(
+        `Error: Invoice #${invoice.invoice_number || invoice.barcode} is currently on Security Hold (Waiting for Admin Approval). Gate verification cannot proceed until an Administrator reviews and resolves the anomaly in the Notification Center.`,
+      );
     }
 
     // Step Restriction: Invoice must be finalized & locked by billing before gate verification
@@ -116,6 +125,23 @@ export class VerificationService {
     } catch (e) {
       console.error('[VerificationService] AI Gate Risk Analysis error:', e);
     }
+
+    // Record immutable audit activity
+    await this.activityService.recordActivity({
+      userId,
+      actionType: 'INSERT',
+      actionTitle: 'Gate Verification Started',
+      module: 'Gate Verification',
+      entityType: 'MATCH',
+      entityId: String(savedMatch.id),
+      details: `Gate verification started for Invoice #${invoice.invoice_number} (Barcode: ${invoice.barcode}, Stock: ${invoice.qty} pcs).`,
+      metadata: {
+        match_id: savedMatch.id,
+        invoice_number: invoice.invoice_number,
+        invoice_barcode: invoice.barcode,
+        qty: invoice.qty,
+      },
+    });
 
     return {
       ...savedMatch,
@@ -328,13 +354,13 @@ export class VerificationService {
     };
   }
 
-  async returnInvoice(matchId: number, invoiceBarcode?: string) {
+  async returnInvoice(matchId: number, invoiceBarcode?: string, userId?: number) {
     const match = await this.invoiceMatchRepo.findOne({ where: { id: matchId } });
     if (!match) throw new NotFoundException('Verification record not found');
 
     const barcode = invoiceBarcode || match.invoice_number;
     const invoice = await this.invoiceRepo.findOne({
-      where: { barcode },
+      where: [{ barcode }, { invoice_number: barcode }],
     });
     if (invoice) {
       invoice.status = 'pending';
@@ -344,6 +370,23 @@ export class VerificationService {
     }
 
     await this.invoiceMatchRepo.delete(matchId);
+
+    // Record immutable audit activity
+    await this.activityService.recordActivity({
+      userId,
+      actionType: 'UPDATE',
+      actionTitle: 'Invoice Returned at Gate',
+      module: 'Gate Verification',
+      entityType: 'INVOICE',
+      entityId: invoice?.invoice_number || barcode,
+      details: `Invoice #${invoice?.invoice_number || barcode} was returned at gate and reset to pending. Verification match #${matchId} cleared.`,
+      metadata: {
+        match_id: matchId,
+        invoice_number: invoice?.invoice_number,
+        barcode,
+      },
+    });
+
     return { success: true, message: 'Invoice Returned Successfully' };
   }
 }

@@ -40,8 +40,11 @@ export class VerificationController {
 
   @Post('return')
   @Roles('admin', 'gate')
-  async returnInvoice(@Body() body: { match_id?: number; invoice_match_id?: number; invoice_barcode?: string }) {
+  async returnInvoice(
+    @Body() body: { match_id?: number; invoice_match_id?: number; invoice_barcode?: string },
+    @Request() req: any,
+  ) {
     const matchId = body.match_id || body.invoice_match_id || 0;
-    return this.verificationService.returnInvoice(Number(matchId), body.invoice_barcode);
+    return this.verificationService.returnInvoice(Number(matchId), body.invoice_barcode, req.user?.userId);
   }
 }

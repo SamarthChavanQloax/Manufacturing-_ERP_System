@@ -98,6 +98,35 @@ export const ToastNotification: React.FC = () => {
           </button>
         </div>
 
+        {/* Feature 1 Context Tag in Toast */}
+        {(() => {
+          let meta: any = activeToast.metadata;
+          if (typeof meta === 'string') {
+            try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+          }
+          const mod = activeToast.module || meta?.module || 'System';
+          const rsn = activeToast.reason || meta?.reason || activeToast.message.match(/Reason:\s*([^\n]+)/i)?.[1];
+          const act = activeToast.actor_name || meta?.user_details?.name || meta?.operator?.name || activeToast.message.match(/Active User:\s*([^\s(]+)/i)?.[1];
+
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap', marginBottom: '6px', fontSize: '11px' }}>
+              <span style={{ padding: '1px 6px', borderRadius: '4px', background: 'rgba(255,255,255,0.12)', color: '#fff', fontWeight: 700 }}>
+                {mod}
+              </span>
+              {rsn && (
+                <span style={{ color: isCritical ? '#fca5a5' : '#fde68a', fontWeight: 600 }}>
+                  • {rsn}
+                </span>
+              )}
+              {act && (
+                <span style={{ color: '#93c5fd', fontSize: '10.5px' }}>
+                  (User: {act})
+                </span>
+              )}
+            </div>
+          );
+        })()}
+
         <p
           style={{
             fontSize: '12px',

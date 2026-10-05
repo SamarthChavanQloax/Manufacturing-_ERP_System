@@ -32,6 +32,7 @@ import { AiStockIntelligencePage } from './pages/AiStockIntelligencePage';
 import { AiSecurityPage } from './pages/AiSecurityPage';
 import { AiGateRiskDashboardPage } from './pages/AiGateRiskDashboardPage';
 import { AiDailySecurityBriefingPage } from './pages/AiDailySecurityBriefingPage';
+import { ActivityHistoryPage } from './pages/ActivityHistoryPage';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -284,6 +285,14 @@ export const App: React.FC = () => {
               element={
                 <ProtectedRoute>
                   <NotificationsPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/activity_history"
+              element={
+                <ProtectedRoute>
+                  <ActivityHistoryPage />
                 </ProtectedRoute>
               }
             />

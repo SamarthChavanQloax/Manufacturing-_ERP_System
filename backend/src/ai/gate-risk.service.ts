@@ -108,7 +108,7 @@ export class GateRiskService implements OnModuleInit {
           where: { invoice_barcode: row.invoice_barcode },
         });
         if (!exists) {
-          await this.analyzeGateTransaction({ invoice_barcode: row.invoice_barcode });
+          await this.analyzeGateTransaction({ invoice_barcode: row.invoice_barcode, triggerNotification: false });
         }
       }
     } catch (e) {
@@ -291,12 +291,15 @@ export class GateRiskService implements OnModuleInit {
             last_reason: dto.failure_reason,
           });
 
-          // Automatically evaluate and record AI risk analysis for this incident
+          // Automatically evaluate and record AI risk analysis for this incident (manual scan anomaly)
           try {
             await this.analyzeGateTransaction({
               invoice_barcode: dto.invoice_barcode,
               match_id: dto.match_id,
               user_id: dto.user_id,
+              triggerNotification: true,
+              operator_name: userName,
+              operator_role: 'gate',
             });
           } catch (analyzeErr) {
             console.error('Error analyzing transaction on scan anomaly:', analyzeErr);
@@ -315,6 +318,9 @@ export class GateRiskService implements OnModuleInit {
     invoice_barcode?: string;
     match_id?: number;
     user_id?: number;
+    triggerNotification?: boolean;
+    operator_name?: string;
+    operator_role?: string;
   }): Promise<RiskAnalysisResult> {
     const { invoice_barcode, match_id, user_id } = params;
 
@@ -822,20 +828,25 @@ export class GateRiskService implements OnModuleInit {
 
     const savedRecord = await this.riskAnalysisRepo.save(existingRecord);
 
-    // Trigger AI Gate Risk notification if HIGH or MEDIUM risk
-    try {
-      await this.notifService.notifyGateRisk({
-        id: savedRecord.id,
-        invoice_barcode: savedRecord.invoice_barcode,
-        invoice_number: savedRecord.invoice_number || invoice.invoice_number,
-        customer_name: savedRecord.customer_name || customerName,
-        risk_score: savedRecord.risk_score,
-        risk_level: savedRecord.risk_level,
-        reasons: reasons,
-        invoice_qty: savedRecord.invoice_qty,
-      });
-    } catch (e) {
-      console.error('Error triggering gate risk notification:', e);
+    // Only trigger AI Gate Risk notification if explicitly requested during a manual anomaly event
+    if (params.triggerNotification) {
+      try {
+        await this.notifService.notifyGateRisk({
+          id: savedRecord.id,
+          invoice_barcode: savedRecord.invoice_barcode,
+          invoice_number: savedRecord.invoice_number || invoice.invoice_number,
+          customer_name: savedRecord.customer_name || customerName,
+          risk_score: savedRecord.risk_score,
+          risk_level: savedRecord.risk_level,
+          reasons: reasons,
+          invoice_qty: savedRecord.invoice_qty,
+          operator_name: params.operator_name,
+          operator_role: params.operator_role,
+          operator_id: user_id,
+        });
+      } catch (e) {
+        console.error('Error triggering gate risk notification:', e);
+      }
     }
 
     return {

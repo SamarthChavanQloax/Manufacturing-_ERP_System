@@ -12,12 +12,16 @@ import {
   ExternalLink,
   ChevronRight,
   Info,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useNotifications, ERPNotification } from '../context/NotificationContext';
 import { getNotificationUrl } from '../utils/notificationNavigation';
 
 export const NotificationBellPopover: React.FC = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const {
     notifications,
     unreadCount,
@@ -103,7 +107,21 @@ export const NotificationBellPopover: React.FC = () => {
       markAsRead(n.id);
     }
     setIsOpen(false);
-    navigate(`/notifications?id=${n.id}`);
+
+    const userRole = (user?.type || user?.role || 'admin').toLowerCase();
+    const isSecurityAnomaly =
+      n.type === 'SECURITY_ANOMALY' ||
+      n.type?.includes('SECURITY') ||
+      n.type?.includes('ANOMALY') ||
+      n.module?.toLowerCase().includes('security') ||
+      n.title?.toLowerCase().includes('anomaly') ||
+      n.title?.toLowerCase().includes('security');
+
+    if (userRole === 'admin' && isSecurityAnomaly) {
+      navigate('/ai_security');
+    } else {
+      navigate(`/notifications?id=${n.id}`);
+    }
   };
 
   const getIcon = (type: string, priority: string) => {
@@ -292,6 +310,20 @@ export const NotificationBellPopover: React.FC = () => {
               <span style={{ fontWeight: 700, fontSize: '13.5px', color: 'var(--text-main)' }}>
                 Notifications
               </span>
+              <span
+                style={{
+                  fontSize: '9.5px',
+                  fontWeight: 800,
+                  textTransform: 'uppercase',
+                  padding: '1px 5px',
+                  borderRadius: '4px',
+                  background: 'var(--card-bg)',
+                  border: '1px solid var(--border-color)',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                {user?.type || user?.role || 'admin'}
+              </span>
               {unreadCount > 0 && (
                 <span
                   style={{
@@ -361,20 +393,23 @@ export const NotificationBellPopover: React.FC = () => {
                   style={{
                     padding: '10px 14px',
                     borderBottom: '1px solid var(--border-color)',
+                    borderLeft: !n.is_read ? '3.5px solid #2563eb' : '3.5px solid transparent',
                     background: n.is_read ? 'transparent' : 'rgba(59, 130, 246, 0.04)',
                     cursor: 'pointer',
-                    transition: 'background 0.15s ease',
+                    transition: 'all 0.15s ease',
                     display: 'flex',
                     gap: '10px',
                     alignItems: 'flex-start',
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'var(--hover-bg, rgba(255,255,255,0.04))';
+                    e.currentTarget.style.background = 'var(--hover-bg, rgba(255,255,255,0.06))';
+                    e.currentTarget.style.borderLeftColor = '#2563eb';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = n.is_read
                       ? 'transparent'
                       : 'rgba(59, 130, 246, 0.04)';
+                    e.currentTarget.style.borderLeftColor = !n.is_read ? '#2563eb' : 'transparent';
                   }}
                 >
                   <div style={{ marginTop: '2px', flexShrink: 0 }}>
@@ -403,16 +438,117 @@ export const NotificationBellPopover: React.FC = () => {
                       >
                         {n.title}
                       </span>
-                      <span
-                        style={{
-                          fontSize: '10.5px',
-                          color: 'var(--text-muted)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        {getTimeAgo(n.created_at)}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                        {n.is_read ? (
+                          <span
+                            title="Seen notification"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              color: '#10b981',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              background: 'rgba(16, 185, 129, 0.1)',
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            <Eye size={11} />
+                            <span>Seen</span>
+                          </span>
+                        ) : (
+                          <span
+                            title="Unseen notification - click to view"
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '2px',
+                              color: '#2563eb',
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              background: 'rgba(37, 99, 235, 0.12)',
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            <EyeOff size={11} />
+                            <span>Unseen</span>
+                          </span>
+                        )}
+                        <span
+                          style={{
+                            fontSize: '10.5px',
+                            color: 'var(--text-muted)',
+                          }}
+                        >
+                          {getTimeAgo(n.created_at)}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* Feature 1 Context Tag Row */}
+                    {(() => {
+                      let meta: any = n.metadata;
+                      if (typeof meta === 'string') {
+                        try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                      }
+                      const mod = n.module || meta?.module || (
+                        n.type.includes('GATE') ? 'Gate' :
+                        n.type.includes('INVOICE') ? 'Invoice' :
+                        n.type.includes('PACK') ? 'Packing' :
+                        n.type.includes('PART') ? 'Part Master' :
+                        n.type.includes('LOGIN') || n.type.includes('SECURITY') ? 'Auth & Security' : 'System'
+                      );
+                      const rsn = n.reason || meta?.reason || n.message.match(/Reason:\s*([^\n]+)/i)?.[1];
+                      const act = n.actor_name || meta?.user_details?.name || meta?.operator?.name || n.message.match(/Active User:\s*([^\s(]+)/i)?.[1] || n.recipient_role;
+
+                      return (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', flexWrap: 'wrap', marginBottom: '3px' }}>
+                          <span
+                            style={{
+                              fontSize: '10px',
+                              fontWeight: 700,
+                              background: 'rgba(59, 130, 246, 0.1)',
+                              color: '#2563eb',
+                              padding: '1px 5px',
+                              borderRadius: '4px',
+                            }}
+                          >
+                            {mod}
+                          </span>
+                          {act && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                fontWeight: 600,
+                                background: 'rgba(22, 163, 74, 0.08)',
+                                color: '#16a34a',
+                                padding: '1px 5px',
+                                borderRadius: '4px',
+                              }}
+                            >
+                              User: {act}
+                            </span>
+                          )}
+                          {rsn && (
+                            <span
+                              style={{
+                                fontSize: '10px',
+                                color: 'var(--text-muted)',
+                                maxWidth: '140px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                              }}
+                              title={rsn}
+                            >
+                              • {rsn}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     <p
                       style={{

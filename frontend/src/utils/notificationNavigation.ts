@@ -7,6 +7,27 @@ import { ERPNotification } from '../context/NotificationContext';
 export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string => {
   if (!n) return '/notifications';
 
+  const type = (n.type || '').toUpperCase();
+  const title = (n.title || '').toLowerCase();
+  const moduleName = (n.module || '').toLowerCase();
+  const entityType = (n.entity_type || '').toLowerCase();
+  const entityId = (n.entity_id || '').trim();
+
+  // 1. Critical AI Security & Anomaly alerts MUST route directly to AI Security & Anomaly Detection (/ai_security)
+  if (
+    type === 'SECURITY_ANOMALY' ||
+    type.includes('SECURITY') ||
+    type.includes('ANOMALY') ||
+    entityType === 'security' ||
+    entityType === 'anomaly' ||
+    title.includes('anomaly') ||
+    title.includes('security') ||
+    moduleName.includes('security') ||
+    n.metadata?.anomaly_type
+  ) {
+    return entityId ? `/ai_security?search=${encodeURIComponent(entityId)}` : '/ai_security';
+  }
+
   let url = (n.action_url || '').trim();
 
   // If action_url exists, normalize legacy or erroneous URLs
@@ -28,25 +49,6 @@ export const getNotificationUrl = (n?: Partial<ERPNotification> | null): string 
     } else {
       return url;
     }
-  }
-
-  // Deduce target page from notification type and entity_type
-  const type = (n.type || '').toUpperCase();
-  const title = (n.title || '').toLowerCase();
-  const entityType = (n.entity_type || '').toLowerCase();
-  const entityId = (n.entity_id || '').trim();
-
-  // 1. Critical AI Security & Anomaly alerts MUST route directly to AI Security Hub
-  if (
-    type.includes('SECURITY') ||
-    type.includes('ANOMALY') ||
-    entityType === 'security' ||
-    entityType === 'anomaly' ||
-    title.includes('anomaly') ||
-    title.includes('security alert') ||
-    n.metadata?.anomaly_type
-  ) {
-    return entityId ? `/ai_security?search=${encodeURIComponent(entityId)}` : '/ai_security';
   }
 
   // 2. Invoice notifications (normal flow)

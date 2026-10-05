@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { X, Boxes, AlertTriangle, ShieldAlert, CheckCircle } from 'lucide-react';
 import Select from 'react-select';
 
 export const CreateInvoicePage: React.FC = () => {
@@ -61,6 +61,12 @@ export const CreateInvoicePage: React.FC = () => {
       alert(err.response?.data?.message || 'Error : Invoice Number Already Exists');
     }
   };
+
+  const selectedPart = parts.find((p) => p.id === selectedPartId);
+  const currentPartStock = selectedPart ? Number(selectedPart.qty) || 0 : null;
+  const numericQty = Number(qty) || 0;
+  const isHighQty = numericQty > 5000;
+  const isStockDeficit = currentPartStock !== null && numericQty > 0 && numericQty > currentPartStock;
 
   return (
     <div>
@@ -136,6 +142,102 @@ export const CreateInvoicePage: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* Part Master Live Stock Check Banner */}
+              {selectedPart && (
+                <div
+                  id="part-stock-check-indicator"
+                  style={{
+                    marginTop: '16px',
+                    padding: '12px 16px',
+                    borderRadius: '8px',
+                    background: isStockDeficit || isHighQty ? 'rgba(245, 158, 11, 0.08)' : 'rgba(59, 130, 246, 0.06)',
+                    border: `1px solid ${isStockDeficit || isHighQty ? 'rgba(245, 158, 11, 0.35)' : 'rgba(59, 130, 246, 0.25)'}`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '12px',
+                    fontSize: '13px',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Boxes size={20} style={{ color: isStockDeficit || isHighQty ? '#f59e0b' : '#3b82f6', flexShrink: 0 }} />
+                    <div>
+                      <div>
+                        <strong>Part Stock Check:</strong> Available inventory for{' '}
+                        <strong style={{ color: 'var(--text-main)' }}>{selectedPart.part_number}</strong> is{' '}
+                        <strong style={{ color: (currentPartStock ?? 0) > 0 ? '#10b981' : '#ef4444' }}>
+                          {currentPartStock} pcs
+                        </strong>
+                        {selectedPart.part_description && ` (${selectedPart.part_description})`}.
+                      </div>
+                      {(isStockDeficit || isHighQty) && (
+                        <div style={{ fontSize: '11.5px', color: '#d97706', marginTop: '2px' }}>
+                          ⚠️ Invoices exceeding 5,000 pcs or exceeding available stock will be placed on <strong>Waiting for Admin Approval</strong> hold.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {numericQty > 0 && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {isStockDeficit ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 10px',
+                            borderRadius: '6px',
+                            background: 'rgba(239, 68, 68, 0.12)',
+                            color: '#ef4444',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                          }}
+                        >
+                          <AlertTriangle size={14} /> Deficit: -{numericQty - (currentPartStock ?? 0)} pcs (Approval Required)
+                        </span>
+                      ) : isHighQty ? (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 10px',
+                            borderRadius: '6px',
+                            background: 'rgba(245, 158, 11, 0.12)',
+                            color: '#d97706',
+                            fontWeight: 700,
+                            fontSize: '12px',
+                            border: '1px solid rgba(245, 158, 11, 0.3)',
+                          }}
+                        >
+                          <ShieldAlert size={14} /> High Lot Anomaly: {numericQty} pcs (Approval Required)
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            padding: '3px 10px',
+                            borderRadius: '6px',
+                            background: 'rgba(16, 185, 129, 0.12)',
+                            color: '#10b981',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                          }}
+                        >
+                          <CheckCircle size={14} /> Sufficient Stock Available
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </form>
 
           </div>

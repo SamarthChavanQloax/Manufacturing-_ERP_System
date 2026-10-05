@@ -26,7 +26,12 @@ import {
   AlertCircle,
   ExternalLink,
   Boxes,
+  Shield,
+  Lock,
+  Eye,
+  EyeOff,
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useNotifications, ERPNotification } from '../context/NotificationContext';
 import { getNotificationUrl } from '../utils/notificationNavigation';
 
@@ -632,6 +637,8 @@ export const NotificationsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const targetId = searchParams.get('id');
+  const { user } = useAuth();
+  const userRole = (user?.type || user?.role || 'admin').toLowerCase();
   const {
     notifications,
     summary,
@@ -649,6 +656,20 @@ export const NotificationsPage: React.FC = () => {
   const [readFilter, setReadFilter] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [page, setPage] = useState<number>(1);
+  const [selectedId, setSelectedId] = useState<number | null>(targetId ? Number(targetId) : null);
+
+  useEffect(() => {
+    if (targetId) {
+      setSelectedId(Number(targetId));
+    }
+  }, [targetId]);
+
+  const handleSelectNotification = async (n: ERPNotification) => {
+    setSelectedId(n.id);
+    if (!n.is_read) {
+      await markAsRead(n.id);
+    }
+  };
 
   // Resolve Modal state
   const [resolveTarget, setResolveTarget] = useState<ERPNotification | null>(null);
@@ -839,6 +860,55 @@ export const NotificationsPage: React.FC = () => {
         </div>
       </div>
 
+      {/* RBAC Access Control Status Banner */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '12px',
+          padding: '12px 18px',
+          borderRadius: '10px',
+          background: userRole === 'admin' ? 'rgba(59, 130, 246, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+          border: `1px solid ${userRole === 'admin' ? 'rgba(59, 130, 246, 0.25)' : 'rgba(16, 185, 129, 0.25)'}`,
+          marginBottom: '20px',
+          fontSize: '12.5px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <Shield size={19} style={{ color: userRole === 'admin' ? '#3b82f6' : '#10b981', flexShrink: 0 }} />
+          <div>
+            <strong style={{ color: 'var(--text-main)', textTransform: 'capitalize' }}>
+              Role-Based Access Control (RBAC):{' '}
+            </strong>
+            <span style={{ color: 'var(--text-muted)' }}>
+              {userRole === 'admin' && 'Viewing all system-wide alerts & anomalies (Universal Admin Scope: Inventory Stock Warnings, Packaging, Gate Security & Authentication).'}
+              {userRole === 'packing' && 'Displaying notifications filtered to Packing & Inventory (Stock Depletion & Low Stock Warnings, Buffer Depletion & Packing Operations).'}
+              {userRole === 'box' && 'Displaying notifications filtered to Box & Carton Packing (Box Packaging, Capacity Limits & Packaging Mismatches).'}
+              {userRole === 'invoice' && 'Displaying notifications filtered to Invoicing & Capacity (Excessive Quantity Anomalies & Box Capacity Warnings).'}
+              {userRole === 'gate' && 'Displaying notifications filtered to Gate Security & Dispatch (High-Risk Transactions, Barcode Scan Retries & Verification Anomalies).'}
+              {!['admin', 'packing', 'box', 'invoice', 'gate'].includes(userRole) && `Displaying notifications filtered to role: "${userRole}".`}
+            </span>
+          </div>
+        </div>
+        <span
+          style={{
+            padding: '3px 9px',
+            borderRadius: '5px',
+            fontSize: '11px',
+            fontWeight: 800,
+            textTransform: 'uppercase',
+            letterSpacing: '0.5px',
+            background: userRole === 'admin' ? '#3b82f6' : '#10b981',
+            color: '#ffffff',
+            flexShrink: 0,
+          }}
+        >
+          {userRole} RBAC SCOPE
+        </span>
+      </div>
+
       {/* Summary KPI Cards */}
       {summary && (
         <div
@@ -1009,16 +1079,31 @@ export const NotificationsPage: React.FC = () => {
                 cursor: 'pointer',
               }}
             >
-              <option value="ALL">All Categories</option>
-              <option value="AI_HIGH_RISK">AI High Risk</option>
-              <option value="AI_MEDIUM_RISK">AI Medium Risk</option>
-              <option value="REPEATED_BARCODE_FAILURE">Barcode Retries</option>
-              <option value="DUPLICATE_BARCODE">Duplicate Barcode</option>
-              <option value="AI_DAILY_SECURITY_BRIEFING">Daily Briefing</option>
-              <option value="GATE_DISPATCH_ISSUE">Gate Issues</option>
-              <option value="INVOICE_PENDING">Invoice Issues</option>
-              <option value="BOX_MAPPING_PENDING">Box Issues</option>
-              <option value="PACKING_ISSUE">Packing Issues</option>
+              <option value="ALL">All Categories ({userRole.toUpperCase()} Scope)</option>
+              {(userRole === 'admin' || userRole === 'packing') && (
+                <>
+                  <option value="STOCK_DEPLETED_WARNING">⚠️ Stock Depleted Warnings</option>
+                  <option value="LOW_STOCK_WARNING">⚠️ Low Stock Warnings</option>
+                </>
+              )}
+              {(userRole === 'admin' || userRole === 'gate') && (
+                <>
+                  <option value="AI_HIGH_RISK">🔴 AI Gate High Risk</option>
+                  <option value="REPEATED_BARCODE_FAILURE">⚠️ Repeated Barcode Scan Failures</option>
+                  <option value="DUPLICATE_BARCODE">⚠️ Duplicate Barcode Scanned</option>
+                </>
+              )}
+              {(userRole === 'admin' || userRole === 'invoice' || userRole === 'box') && (
+                <>
+                  <option value="INVOICE_QTY_MISMATCH_RISK">🚨 Box Capacity Mismatch Risk</option>
+                  <option value="SECURITY_ANOMALY">🚨 Excessive Invoice Quantity</option>
+                </>
+              )}
+              {userRole === 'admin' && (
+                <>
+                  <option value="SECURITY_LOGIN_FAILED">🛡️ Failed Login Security Anomaly</option>
+                </>
+              )}
             </select>
           </div>
 
@@ -1071,15 +1156,16 @@ export const NotificationsPage: React.FC = () => {
           notifications.map((n) => {
             const badge = getPriorityBadge(n.priority);
             const isResolved = n.lifecycle_status === 'RESOLVED';
-            const isTargeted = targetId && String(n.id) === String(targetId);
+            const isSelected = selectedId === n.id || (targetId && String(n.id) === String(targetId));
             const targetUrl = getNotificationUrl(n);
             const isMismatch =
               n.type === 'INVOICE_QTY_MISMATCH_RISK' ||
               n.metadata?.alert_category === 'INVOICE_QUANTITY_MISMATCH' ||
               (n.title && n.title.includes('Box Qty Mismatch'));
 
-            const handleNavigateToTarget = () => {
-              if (!n.is_read) markAsRead(n.id);
+            const handleNavigateToTarget = (e?: React.MouseEvent) => {
+              if (e) e.stopPropagation();
+              handleSelectNotification(n);
               navigate(targetUrl);
             };
 
@@ -1088,18 +1174,24 @@ export const NotificationsPage: React.FC = () => {
                 id={`notif-${n.id}`}
                 key={n.id}
                 className="card"
+                onClick={() => handleSelectNotification(n)}
                 style={{
                   padding: '18px 22px',
                   borderLeft: `5px solid ${badge.color}`,
-                  background: isTargeted
-                    ? 'rgba(59, 130, 246, 0.08)'
+                  border: isSelected
+                    ? '2.5px solid #2563eb'
+                    : n.is_read
+                    ? '1px solid var(--border-color)'
+                    : '1px solid rgba(59, 130, 246, 0.45)',
+                  background: isSelected
+                    ? 'rgba(37, 99, 235, 0.07)'
                     : n.is_read
                     ? 'var(--card-bg)'
                     : 'rgba(59, 130, 246, 0.03)',
-                  border: isTargeted ? '2px solid #3b82f6' : undefined,
-                  boxShadow: isTargeted
-                    ? '0 0 0 4px rgba(59, 130, 246, 0.25), 0 8px 24px rgba(0,0,0,0.12)'
-                    : undefined,
+                  boxShadow: isSelected
+                    ? '0 0 0 3.5px rgba(37, 99, 235, 0.28), 0 8px 24px rgba(37, 99, 235, 0.16)'
+                    : 'none',
+                  cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   display: 'flex',
                   flexDirection: 'column',
@@ -1136,7 +1228,7 @@ export const NotificationsPage: React.FC = () => {
                     </span>
 
                     <span
-                      onClick={handleNavigateToTarget}
+                      onClick={(e) => handleNavigateToTarget(e)}
                       style={{
                         fontWeight: 700,
                         fontSize: '15px',
@@ -1167,24 +1259,82 @@ export const NotificationsPage: React.FC = () => {
                       </span>
                     )}
 
-                    {isTargeted && (
+                    {isSelected && (
                       <span
                         style={{
-                          fontSize: '10.5px',
+                          fontSize: '11px',
                           fontWeight: 800,
-                          padding: '2px 8px',
+                          padding: '2.5px 10px',
                           borderRadius: '12px',
-                          background: '#3b82f6',
+                          background: '#2563eb',
                           color: '#ffffff',
-                          boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)',
+                          boxShadow: '0 0 10px rgba(37, 99, 235, 0.6)',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
                         }}
                       >
-                        Selected Notification
+                        <CheckCircle size={12} />
+                        Selected
                       </span>
                     )}
                   </div>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {/* Seen / Unseen Status Indicator Icon & Badge */}
+                    {n.is_read ? (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2.5px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(16, 185, 129, 0.1)',
+                          color: '#10b981',
+                          border: '1px solid rgba(16, 185, 129, 0.25)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          transition: 'all 0.2s ease',
+                        }}
+                        title={`Seen notification${n.read_at ? ` at ${new Date(n.read_at).toLocaleTimeString()}` : ''}`}
+                      >
+                        <Eye size={13} style={{ color: '#10b981' }} />
+                        <span>Seen</span>
+                      </span>
+                    ) : (
+                      <span
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '4px',
+                          padding: '2.5px 8px',
+                          borderRadius: '6px',
+                          background: 'rgba(37, 99, 235, 0.12)',
+                          color: '#2563eb',
+                          border: '1px solid rgba(37, 99, 235, 0.3)',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          boxShadow: '0 0 8px rgba(37, 99, 235, 0.25)',
+                          transition: 'all 0.2s ease',
+                        }}
+                        title="Unseen notification - Click anywhere on card to view and mark as seen"
+                      >
+                        <EyeOff size={13} style={{ color: '#2563eb' }} />
+                        <span>Unseen</span>
+                        <span
+                          style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: '#2563eb',
+                            display: 'inline-block',
+                            marginLeft: '2px',
+                          }}
+                        />
+                      </span>
+                    )}
+
                     <span style={{ fontSize: '11.5px', color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
                       <Clock size={12} />
                       {getTimeAgo(n.created_at)}
@@ -1224,12 +1374,86 @@ export const NotificationsPage: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Feature 1: Enhanced System Notification Context Box (Reason, Section/Module, Active User) */}
+                {(() => {
+                  let meta: any = n.metadata;
+                  if (typeof meta === 'string') {
+                    try { meta = JSON.parse(meta); } catch (e) { meta = {}; }
+                  }
+                  const itemReason = n.reason || meta?.reason || n.message.match(/Reason:\s*([^\n]+)/i)?.[1] || (n.priority === 'CRITICAL' || n.priority === 'HIGH' ? 'Critical Security & Process Anomaly' : 'System Event Alert');
+                  const itemModule = n.module || meta?.module || n.message.match(/Affected Section(?:\/Module)?:\s*([^\n]+)/i)?.[1] || (
+                    n.type.includes('GATE') ? 'Gate Verification' :
+                    n.type.includes('INVOICE') ? 'Invoice Box Mapping' :
+                    n.type.includes('PACK') ? 'Packing Production' :
+                    n.type.includes('PART') || n.type.includes('STOCK') ? 'Part Master / Inventory' :
+                    n.type.includes('LOGIN') || n.type.includes('SECURITY') ? 'Authentication & Security' : 'System Operations'
+                  );
+                  const itemActorName = n.actor_name || meta?.user_details?.name || meta?.operator?.name || n.message.match(/Active User:\s*([^\s(]+)/i)?.[1] || n.message.match(/User Name:\s*([^\s\n]+)/i)?.[1] || 'System Operator';
+                  const itemActorRole = n.actor_role || meta?.user_details?.role || meta?.operator?.role || n.message.match(/Active User:[^(]*\(([^)|]+)/i)?.[1] || n.recipient_role || 'OPERATOR';
+                  const itemActorId = n.actor_id || meta?.user_details?.id || meta?.operator?.id || n.message.match(/ID:\s*(\d+)/i)?.[1];
+
+                  return (
+                    <div
+                      style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        gap: '8px',
+                        alignItems: 'center',
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        background: 'var(--card-sub-bg)',
+                        border: '1px solid var(--border-color)',
+                        fontSize: '12px',
+                      }}
+                    >
+                      {/* 1. Reason */}
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--text-main)' }}>
+                        <AlertCircle size={13} style={{ color: badge.color, flexShrink: 0 }} />
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Reason:</span>
+                        <strong style={{ color: badge.color }}>{itemReason}</strong>
+                      </div>
+
+                      <span style={{ color: 'var(--border-color)' }}>•</span>
+
+                      {/* 2. Affected Section/Module */}
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--text-main)' }}>
+                        <Layers size={13} style={{ color: '#3b82f6', flexShrink: 0 }} />
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Section:</span>
+                        <span
+                          style={{
+                            background: 'rgba(59, 130, 246, 0.08)',
+                            color: '#2563eb',
+                            padding: '1.5px 7px',
+                            borderRadius: '4px',
+                            fontWeight: 700,
+                            fontSize: '11.5px',
+                          }}
+                        >
+                          {itemModule}
+                        </span>
+                      </div>
+
+                      <span style={{ color: 'var(--border-color)' }}>•</span>
+
+                      {/* 3. Active User Details */}
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color: 'var(--text-main)' }}>
+                        <User size={13} style={{ color: '#16a34a', flexShrink: 0 }} />
+                        <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>Active User:</span>
+                        <strong style={{ color: 'var(--text-main)' }}>{itemActorName}</strong>
+                        <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
+                          ({String(itemActorRole).toUpperCase()}{itemActorId ? ` | #${itemActorId}` : ''})
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Notification Content: Structured for Mismatch, clean pre-line for others */}
                 {isMismatch ? (
-                  <StructuredMismatchNotification notification={n} isTargeted={isTargeted} />
+                  <StructuredMismatchNotification notification={n} isTargeted={isSelected} />
                 ) : (
                   <>
-                    <CollapsibleNotificationMessage message={n.message} isTargeted={isTargeted} />
+                    <CollapsibleNotificationMessage message={n.message} isTargeted={isSelected} />
 
                     {/* Metadata badges if available */}
                     {n.metadata && (
@@ -1282,6 +1506,120 @@ export const NotificationsPage: React.FC = () => {
                   </>
                 )}
 
+                {/* Part Details & Stock Verification Card */}
+                {n.metadata && (n.metadata.current_part_stock !== undefined || n.metadata.part_number) && (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      background: n.metadata.stock_deficit > 0 ? 'rgba(239, 68, 68, 0.06)' : 'rgba(59, 130, 246, 0.05)',
+                      border: `1px solid ${n.metadata.stock_deficit > 0 ? 'rgba(239, 68, 68, 0.25)' : 'rgba(59, 130, 246, 0.2)'}`,
+                      marginTop: '8px',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '8px',
+                      fontSize: '12px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Boxes size={16} style={{ color: n.metadata.stock_deficit > 0 ? '#ef4444' : '#3b82f6', flexShrink: 0 }} />
+                      <span>
+                        <strong>Part Stock Check:</strong> {n.metadata.part_number} {n.metadata.part_description ? `(${n.metadata.part_description})` : ''} • Available in Master:{' '}
+                        <strong style={{ color: n.metadata.current_part_stock > 0 ? '#10b981' : '#ef4444' }}>
+                          {n.metadata.current_part_stock} pcs
+                        </strong>{' '}
+                        • Requested Lot:{' '}
+                        <strong>{n.metadata.requested_qty || n.metadata.qty} pcs</strong>
+                      </span>
+                    </div>
+
+                    <div>
+                      {n.metadata.stock_deficit > 0 ? (
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: 'rgba(239, 68, 68, 0.15)',
+                            color: '#ef4444',
+                            border: '1px solid rgba(239, 68, 68, 0.3)',
+                          }}
+                        >
+                          ⚠️ Stock Deficit: -{n.metadata.stock_deficit} pcs
+                        </span>
+                      ) : (
+                        <span
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            background: 'rgba(16, 185, 129, 0.15)',
+                            color: '#10b981',
+                            border: '1px solid rgba(16, 185, 129, 0.3)',
+                          }}
+                        >
+                          ✅ Sufficient Stock
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Notice for Invoice User regarding Approval */}
+                {(n.type === 'SECURITY_ANOMALY' || n.metadata?.approval_status === 'waiting_for_approval') && (
+                  <div
+                    style={{
+                      padding: '10px 14px',
+                      borderRadius: '8px',
+                      background: isResolved ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                      border: `1px solid ${isResolved ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
+                      marginTop: '8px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '10px',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      {isResolved ? (
+                        <CheckCircle size={16} style={{ color: '#10b981', flexShrink: 0 }} />
+                      ) : (
+                        <Lock size={16} style={{ color: '#ef4444', flexShrink: 0 }} />
+                      )}
+                      <div>
+                        <strong style={{ color: isResolved ? '#10b981' : '#ef4444', fontSize: '12.5px', display: 'block' }}>
+                          {isResolved
+                            ? `✅ Approved by Admin (${n.resolved_by_name || 'Administrator'})`
+                            : '⏳ Status: Waiting for Admin Approval'}
+                        </strong>
+                        <span style={{ fontSize: '11.5px', color: 'var(--text-muted)' }}>
+                          {isResolved
+                            ? 'The administrator has audited and approved this high-quantity invoice. You can now proceed with box mapping and gate verification.'
+                            : 'This invoice exceeds the standard threshold (> 5000 pcs). Invoice user must wait for admin approval of these part details before proceeding.'}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '10.5px',
+                        fontWeight: 800,
+                        textTransform: 'uppercase',
+                        background: isResolved ? '#10b981' : '#ef4444',
+                        color: '#fff',
+                        flexShrink: 0,
+                      }}
+                    >
+                      {isResolved ? 'APPROVED' : 'HOLD'}
+                    </span>
+                  </div>
+                )}
+
                 {/* Resolution note audit if resolved */}
                 {isResolved && n.resolution_note && (
                   <div
@@ -1295,6 +1633,7 @@ export const NotificationsPage: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
+                      marginTop: '8px',
                     }}
                   >
                     <MessageSquare size={13} style={{ color: '#10b981', flexShrink: 0 }} />
@@ -1324,7 +1663,10 @@ export const NotificationsPage: React.FC = () => {
                   {!n.is_read && (
                     <button
                       type="button"
-                      onClick={() => markAsRead(n.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        markAsRead(n.id);
+                      }}
                       className="btn btn-sm btn-secondary"
                       style={{ fontSize: '11.5px', padding: '4px 10px' }}
                     >
@@ -1336,29 +1678,59 @@ export const NotificationsPage: React.FC = () => {
                   {!isResolved && (n.priority === 'CRITICAL' || n.priority === 'HIGH' || n.priority === 'WARNING') && (
                     <button
                       type="button"
-                      onClick={() => setResolveTarget(n)}
-                      className="btn btn-sm btn-secondary"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setResolveTarget(n);
+                      }}
+                      className="btn btn-sm"
                       style={{
                         fontSize: '11.5px',
-                        padding: '4px 10px',
-                        borderColor: '#10b981',
-                        color: '#10b981',
+                        padding: '4px 12px',
+                        background: '#10b981',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '5px',
+                        fontWeight: 700,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 4px rgba(16, 185, 129, 0.25)',
+                        transition: 'all 0.15s ease',
                       }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = '#059669')}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = '#10b981')}
                     >
-                      <CheckCircle size={13} />
+                      <CheckCircle size={13} style={{ color: '#ffffff' }} />
                       Resolve Alert
                     </button>
                   )}
 
-                  <button
-                    type="button"
-                    onClick={handleNavigateToTarget}
-                    className="btn btn-sm btn-primary"
-                    style={{ fontSize: '11.5px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    {isMismatch ? 'Open Invoice & Box Mapping' : 'Review Incident'}
-                    <ArrowRight size={12} />
-                  </button>
+                  {(n.type === 'SECURITY_ANOMALY' || n.metadata?.approval_status === 'waiting_for_approval') && !isResolved && userRole !== 'admin' ? (
+                    <button
+                      type="button"
+                      disabled
+                      className="btn btn-sm btn-secondary"
+                      style={{ fontSize: '11.5px', padding: '4px 12px', opacity: 0.6, cursor: 'not-allowed', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                      title="Waiting for administrator approval"
+                    >
+                      <Lock size={12} /> Waiting for Approval
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={(e) => handleNavigateToTarget(e)}
+                      className="btn btn-sm btn-primary"
+                      style={{ fontSize: '11.5px', padding: '4px 12px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      {userRole === 'admin' && (n.type === 'SECURITY_ANOMALY' || n.module?.includes('Security'))
+                        ? 'View in AI Security & Anomaly Detection'
+                        : isMismatch
+                        ? 'Open Invoice & Box Mapping'
+                        : 'Review Incident'}
+                      <ArrowRight size={12} />
+                    </button>
+                  )}
                 </div>
               </div>
             );

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/client';
 import { Link } from 'react-router-dom';
-import { Eye, X, FileSpreadsheet } from 'lucide-react';
+import { Eye, X, FileSpreadsheet, Lock } from 'lucide-react';
 import { exportToExcel } from '../utils/excelExport';
 
 export const ViewInvoicePage: React.FC = () => {
@@ -209,20 +209,62 @@ export const ViewInvoicePage: React.FC = () => {
                         <td>{inv.part_number}</td>
                         <td style={{ fontWeight: 600 }}>{inv.qty}</td>
                         <td>
-                          <span
-                            className={`badge ${inv.status === 'used' ? 'badge-used' : 'badge-pending'}`}
-                          >
-                            {inv.status || 'pending'}
-                          </span>
+                          {inv.status === 'waiting_for_approval' || inv.status_new === 'waiting_for_approval' ? (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                padding: '3px 8px',
+                                borderRadius: '6px',
+                                background: 'rgba(239, 68, 68, 0.12)',
+                                color: '#ef4444',
+                                border: '1px solid rgba(239, 68, 68, 0.3)',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                              }}
+                            >
+                              ⏳ Waiting for Approval
+                            </span>
+                          ) : (
+                            <span
+                              className={`badge ${inv.status === 'used' ? 'badge-used' : 'badge-pending'}`}
+                            >
+                              {inv.status || 'pending'}
+                            </span>
+                          )}
                         </td>
                         <td>
-                          <Link
-                            to={`/add_box_to_invoice/${inv.id}`}
-                            className="btn btn-sm btn-primary"
-                            title="Add Boxes to Invoice"
-                          >
-                            <Eye size={14} />
-                          </Link>
+                          {inv.status === 'waiting_for_approval' || inv.status_new === 'waiting_for_approval' ? (
+                            <button
+                              type="button"
+                              onClick={() => alert(`Invoice #${inv.invoice_number} is currently Waiting for Admin Approval due to excessive quantity anomaly (> 5000 pcs). Box mapping and viewing can only be completed after Administrator approval.`)}
+                              className="btn btn-sm"
+                              style={{
+                                background: 'rgba(239, 68, 68, 0.1)',
+                                color: '#ef4444',
+                                border: '1px solid rgba(239, 68, 68, 0.25)',
+                                cursor: 'not-allowed',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '11px',
+                                fontWeight: 600,
+                                padding: '4px 8px',
+                              }}
+                              title="Waiting for Admin Approval"
+                            >
+                              <Lock size={12} /> Locked
+                            </button>
+                          ) : (
+                            <Link
+                              to={`/add_box_to_invoice/${inv.id}`}
+                              className="btn btn-sm btn-primary"
+                              title="Add Boxes to Invoice"
+                            >
+                              <Eye size={14} />
+                            </Link>
+                          )}
                         </td>
                         <td>
                           <button

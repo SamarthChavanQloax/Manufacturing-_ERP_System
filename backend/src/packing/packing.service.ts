@@ -2,6 +2,7 @@ import { Injectable, BadRequestException, NotFoundException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between } from 'typeorm';
 import { Packing, Part } from '../entities';
+import { PartsService } from '../parts/parts.service';
 
 @Injectable()
 export class PackingService {
@@ -10,6 +11,7 @@ export class PackingService {
     private packingRepo: Repository<Packing>,
     @InjectRepository(Part)
     private partRepo: Repository<Part>,
+    private partsService: PartsService,
   ) {}
 
   private getLegacyDateTime() {
@@ -70,13 +72,19 @@ export class PackingService {
 
     const saved = await this.packingRepo.save(packing);
 
-    // Deduct packed quantity from remaining part stock
-    part.qty = Math.max(0, availableStock - partQty);
-    await this.partRepo.save(part);
+    // Deduct packed quantity from remaining part stock & log in Part History
+    await this.partsService.recordStockConsumption(
+      partId,
+      partQty,
+      { id: userId },
+      `Packed single lot in Barcode #${saved.barcode} (${partQty} pcs)`,
+    );
+
+    const updatedPart = await this.partRepo.findOne({ where: { id: partId } });
 
     return {
       ...saved,
-      remaining_stock: part.qty,
+      remaining_stock: updatedPart ? updatedPart.qty : 0,
       part_number: part.part_number,
       part_description: part.part_description,
     };
@@ -128,9 +136,13 @@ export class PackingService {
       currentBarcodeNum++;
     }
 
-    // Deduct bulk packed quantity from remaining part stock
-    part.qty = Math.max(0, availableStock - totalRequired);
-    await this.partRepo.save(part);
+    // Deduct bulk packed quantity from remaining part stock & log in Part History
+    await this.partsService.recordStockConsumption(
+      partId,
+      totalRequired,
+      { id: userId },
+      `Bulk packed ${packingQty} lots (${totalRequired} pcs total)`,
+    );
 
     return createdItems;
   }

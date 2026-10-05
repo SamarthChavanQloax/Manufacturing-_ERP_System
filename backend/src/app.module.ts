@@ -17,7 +17,10 @@ import {
   GateRiskConfig,
   DailySecurityBriefing,
   Notification,
+  PartHistory,
+  AuditActivityLog,
 } from './entities';
+import { ActivityLogModule } from './activity-log/activity-log.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { PartsModule } from './parts/parts.module';
@@ -68,6 +71,8 @@ const isSslEnabled = process.env.DB_SSL === 'true';
         GateRiskConfig,
         DailySecurityBriefing,
         Notification,
+        PartHistory,
+        AuditActivityLog,
       ],
       extra: {
         connectionLimit: 25,
@@ -75,6 +80,7 @@ const isSslEnabled = process.env.DB_SSL === 'true';
       },
       synchronize: false, // Do not alter the legacy database schema!
     }),
+    ActivityLogModule,
     AuthModule,
     UsersModule,
     PartsModule,

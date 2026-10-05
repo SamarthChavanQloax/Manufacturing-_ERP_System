@@ -79,6 +79,30 @@ export class NotificationsController {
     return this.notificationService.resolveNotification(Number(id), body, req.user);
   }
 
+  // Post system-related warning, security issue, or anomaly (Feature 1)
+  @Post('system-event')
+  async postSystemEvent(
+    @Body()
+    body: {
+      reason: string;
+      module: string;
+      title: string;
+      message: string;
+      priority?: 'INFO' | 'WARNING' | 'HIGH' | 'CRITICAL';
+      type?: string;
+      entity_type?: string;
+      entity_id?: string;
+      action_url?: string;
+      metadata?: Record<string, any>;
+    },
+    @Request() req: any,
+  ) {
+    return this.notificationService.notifySystemEvent({
+      ...body,
+      user: req.user,
+    });
+  }
+
   // Test notification trigger endpoint (Admin only)
   @Post('trigger-test')
   async triggerTestNotification(
@@ -89,6 +113,10 @@ export class NotificationsController {
     if (userRole !== 'admin') {
       throw new ForbiddenException('Only Admin can trigger test notifications.');
     }
-    return this.notificationService.createNotification(body);
+    return this.notificationService.createNotification({
+      ...body,
+      user: req.user,
+    });
   }
 }
+

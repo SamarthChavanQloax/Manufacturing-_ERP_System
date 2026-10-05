@@ -6,6 +6,7 @@ export interface User {
   user_name: string;
   user_email: string;
   type: string; // 'admin' | 'packing' | 'box' | 'invoice' | 'gate'
+  role?: string;
 }
 
 interface AuthContextType {
