@@ -19,12 +19,16 @@ import {
 } from 'lucide-react';
 
 export const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { login, logout, user } = useAuth();
   const { theme, setTheme } = usePreferences();
   const isDark = theme === 'dark';
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const noticeParam = searchParams.get('notice');
+  const redirectParam = searchParams.get('redirect') || searchParams.get('returnUrl');
+  const targetDestination = redirectParam ? decodeURIComponent(redirectParam) : '/index';
+  const isTestLogin = searchParams.get('test_login') === 'true' || searchParams.has('relogin');
+
   const [email, setEmail] = useState('admin@admin.com');
   const [password, setPassword] = useState('admin');
   const [showPassword, setShowPassword] = useState(false);
@@ -32,13 +36,45 @@ export const LoginPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [focused, setFocused] = useState<'email' | 'password' | null>(null);
 
+  // If user explicitly visits for testing login, clear any stale session so login form is fully interactive
+  React.useEffect(() => {
+    if (isTestLogin && user) {
+      logout();
+    }
+  }, [isTestLogin, user, logout]);
+
+  // If already authenticated and not explicitly testing login, redirect straight to destination!
+  React.useEffect(() => {
+    if (user && !isTestLogin) {
+      navigate(targetDestination, { replace: true });
+    }
+  }, [user, isTestLogin, targetDestination, navigate]);
+
+  // If auto_auth parameter is present in URL, auto-authenticate and navigate straight to destination
+  React.useEffect(() => {
+    const autoAuthRole = searchParams.get('auto_auth') || searchParams.get('demo_auth');
+    if (autoAuthRole && !user) {
+      const roleCredentials: Record<string, [string, string]> = {
+        admin: ['admin@admin.com', 'admin'],
+        packing: ['dpr@talbros.com', 'dpr'],
+        box: ['fgs@talbros.com', 'fgs'],
+        invoice: ['invoice@talbros.com', 'invoice'],
+        gate: ['gate@talbros.com', 'gate'],
+      };
+      const creds = roleCredentials[autoAuthRole.toLowerCase()] || roleCredentials.admin;
+      login(creds[0], creds[1])
+        .then(() => navigate(targetDestination, { replace: true }))
+        .catch(() => {});
+    }
+  }, [searchParams, user, targetDestination, login, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
       await login(email, password);
-      navigate('/index');
+      navigate(targetDestination, { replace: true });
     } catch (err: any) {
       setError(err.response?.data?.message || 'Invalid email address or password.');
     } finally {

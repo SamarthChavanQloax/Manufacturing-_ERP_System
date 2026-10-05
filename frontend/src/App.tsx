@@ -51,7 +51,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowedRoles 
   }
 
   if (!user) {
-    return <Navigate to="/login?notice=login_first" replace />;
+    const currentPath = window.location.pathname + window.location.search;
+    return <Navigate to={`/login?redirect=${encodeURIComponent(currentPath)}&notice=login_first`} replace />;
   }
 
   const role = (user.type || '').toLowerCase();

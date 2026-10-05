@@ -21,50 +21,79 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(() => {
-    // Purge any legacy persistent localStorage session to enforce login on open
     try {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-    } catch {}
-
-    const saved = sessionStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
+      const saved = localStorage.getItem('user') || sessionStorage.getItem('user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const verifyToken = async () => {
-      const token = sessionStorage.getItem('token');
+    const initAuth = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const autoAuthRole = searchParams.get('auto_auth') || searchParams.get('demo_auth');
+
+      const token = localStorage.getItem('token') || sessionStorage.getItem('token');
       if (token) {
         try {
           const res = await api.get('/auth/me');
           setUser(res.data);
+          localStorage.setItem('user', JSON.stringify(res.data));
           sessionStorage.setItem('user', JSON.stringify(res.data));
+          setLoading(false);
+          return;
         } catch (err) {
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
           sessionStorage.removeItem('token');
           sessionStorage.removeItem('user');
           setUser(null);
         }
       }
+
+      // If no valid session, but auto_auth was provided (e.g. from presentation Live Test button)
+      if (autoAuthRole) {
+        try {
+          const roleCredentials: Record<string, [string, string]> = {
+            admin: ['admin@admin.com', 'admin'],
+            packing: ['dpr@talbros.com', 'dpr'],
+            box: ['fgs@talbros.com', 'fgs'],
+            invoice: ['invoice@talbros.com', 'invoice'],
+            gate: ['gate@talbros.com', 'gate'],
+          };
+          const creds = roleCredentials[autoAuthRole.toLowerCase()] || roleCredentials.admin;
+          const res = await api.post('/auth/login', { email: creds[0], password: creds[1] });
+          localStorage.setItem('token', res.data.access_token);
+          localStorage.setItem('user', JSON.stringify(res.data.user));
+          sessionStorage.setItem('token', res.data.access_token);
+          sessionStorage.setItem('user', JSON.stringify(res.data.user));
+          setUser(res.data.user);
+        } catch (e) {
+          console.error('Auto authentication error:', e);
+        }
+      }
+
       setLoading(false);
     };
-    verifyToken();
+    initAuth();
   }, []);
 
   const login = async (email: string, pass: string) => {
     const res = await api.post('/auth/login', { email, password: pass });
+    localStorage.setItem('token', res.data.access_token);
+    localStorage.setItem('user', JSON.stringify(res.data.user));
     sessionStorage.setItem('token', res.data.access_token);
     sessionStorage.setItem('user', JSON.stringify(res.data.user));
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
     setUser(res.data.user);
   };
 
   const logout = () => {
-    sessionStorage.removeItem('token');
-    sessionStorage.removeItem('user');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    sessionStorage.removeItem('token');
+    sessionStorage.removeItem('user');
     setUser(null);
     window.location.href = '/login';
   };
