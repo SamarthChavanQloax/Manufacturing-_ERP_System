@@ -314,7 +314,7 @@ export const Layout: React.FC = () => {
       >
         <div className="brand-header">
           <div className="brand-logo">ERP</div>
-          <div className="brand-text">SofTech ERP</div>
+          <div className="brand-text">Qloax ERP</div>
         </div>
 
         <div 

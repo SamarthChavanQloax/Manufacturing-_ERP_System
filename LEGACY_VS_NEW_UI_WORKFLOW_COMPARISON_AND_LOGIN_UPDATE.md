@@ -182,7 +182,7 @@ The modern application implements the exact identical business workflow with zer
 `frontend/src/pages/LoginPage.tsx` was redesigned with modern enterprise aesthetics while keeping functionality intact:
 - **Background**: Deep enterprise gradient (`linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)`) with subtle ambient radial glow accents.
 - **Card Styling**: Elevated glassmorphic surface (`background: rgba(30, 41, 59, 0.72)`, `backdrop-filter: blur(20px)`, border radius `20px`, border `1px solid rgba(255, 255, 255, 0.08)`).
-- **Brand Header**: Glowing square-rounded badge with modern barcode scanning icon, bold typography ("SofTech"), and subtitle ("Barcode Stock Management & ERP System").
+- **Brand Header**: Glowing square-rounded badge with modern barcode scanning icon, bold typography ("Qloax"), and subtitle ("Barcode Stock Management & ERP System").
 - **Inputs**: Darkened inputs (`rgba(15, 23, 42, 0.65)`) with smooth focus transitions (`box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25)`), paired with `Mail` and `Lock` Lucide icons.
 - **Button**: Full-width high-contrast gradient button (`linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)`) with hover elevation and `LogIn` icon.
 - **Error Display**: Clean red alert banner (`rgba(239, 68, 68, 0.12)`) with `AlertCircle` icon.

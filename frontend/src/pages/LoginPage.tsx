@@ -240,7 +240,7 @@ export const LoginPage: React.FC = () => {
                 letterSpacing: '-0.02em',
               }}
             >
-              SofTech ERP
+              Qloax ERP
             </h1>
             <p
               style={{
@@ -610,7 +610,7 @@ export const LoginPage: React.FC = () => {
           }}
         >
           <p style={{ fontSize: '11.5px', color: isDark ? '#64748b' : '#94a3b8', margin: 0 }}>
-            © 2026 SofTech ERP · Talbros Automotive Components Ltd.
+            © 2026 Qloax ERP · Talbros Automotive Components Ltd.
           </p>
         </div>
       </div>

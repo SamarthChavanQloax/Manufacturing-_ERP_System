@@ -20,7 +20,7 @@ This document provides a comprehensive screen-by-screen and workflow comparison 
 
 ### 1. Login & Authentication
 * **Legacy Workflow**: Simple white card with centered inputs, blue button, plain text password handling.
-* **New Workflow**: Modern enterprise card composition with SofTech branding, JWT authentication, responsive mobile layout, and clean form validation.
+* **New Workflow**: Modern enterprise card composition with Qloax branding, JWT authentication, responsive mobile layout, and clean form validation.
 
 | Legacy Login | New Modern Login |
 | :---: | :---: |
